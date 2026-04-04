@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
+import { useFormData } from "@/context/FormContext";
 
 interface Branch {
   id: string;
@@ -37,6 +38,8 @@ export default function BusinessMalaysianBusinessAddress() {
   const router = useRouter();
   const [step, setStep] = useState<number>(1);
   const [mounted, setMounted] = useState<boolean>(false);
+
+  const { formData, setFormData } = useFormData();
 
   useEffect(() => {
     setMounted(true);
@@ -132,8 +135,19 @@ export default function BusinessMalaysianBusinessAddress() {
   };
 
   const handleFinalSubmit = (): void => {
-    router.push("/business/malaysian/contact");
-  };
+  setFormData({
+    ...formData,
+    businessAddress: {
+      businessAddress,
+      mailingAddress: useBusinessAsMailing
+        ? businessAddress
+        : mailingAddress,
+      preferredBranch,
+    },
+  });
+
+  router.push("/business/malaysian/contact");
+};
 
   const inputClasses = "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
 
