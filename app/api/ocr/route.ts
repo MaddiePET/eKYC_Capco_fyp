@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const pythonScriptPath = path.join(process.cwd(), "engines", "ocr_engine.py");
     
-    return new Promise((resolve) => {
+    return await new Promise<NextResponse>((resolve) => {
       // Use "python3" for Mac
       const pythonProcess = spawn("python3", [pythonScriptPath, tempFilePath]);
 

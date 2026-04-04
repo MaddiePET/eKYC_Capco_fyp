@@ -5,10 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
-<<<<<<< HEAD
-=======
 import { useFormData } from "@/context/FormContext";
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
 
 interface Branch {
   id: string;
@@ -42,11 +39,8 @@ export default function BusinessMalaysianBusinessAddress() {
   const [step, setStep] = useState<number>(1);
   const [mounted, setMounted] = useState<boolean>(false);
 
-<<<<<<< HEAD
-=======
   const { formData, setFormData } = useFormData();
 
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -141,10 +135,6 @@ export default function BusinessMalaysianBusinessAddress() {
   };
 
   const handleFinalSubmit = (): void => {
-<<<<<<< HEAD
-    router.push("/business/malaysian/contact");
-  };
-=======
   setFormData({
     ...formData,
     businessAddress: {
@@ -158,7 +148,6 @@ export default function BusinessMalaysianBusinessAddress() {
 
   router.push("/business/malaysian/contact");
 };
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
 
   const inputClasses = "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
 

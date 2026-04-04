@@ -12,29 +12,20 @@ export default function PersonalMalaysianMyKad() {
   const [backPreview, setBackPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState<'front' | 'back' | null>(null);
-<<<<<<< HEAD
-  const [extractedData, setExtractedData] = useState<string | null>(null);
-
-  // NEW: Hidden state for the actual files needed by the OCR bridge
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [ocrData, setOcrData] = useState<string | null>(null); // Store structured OCR data for display
-=======
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
+  const [ocrData, setOcrData] = useState<any>(null); // Store structured OCR data for display
 
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = (file: File | undefined, type: 'front' | 'back') => {
     if (file && file.type.startsWith('image/')) {
-<<<<<<< HEAD
       // Store raw file for the backend
       if (type === 'front') setFrontFile(file);
       else setBackFile(file);
 
-=======
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
       const reader = new FileReader();
       reader.onloadend = () => {
         if (type === 'front') setFrontPreview(reader.result as string);
@@ -68,7 +59,6 @@ export default function PersonalMalaysianMyKad() {
     processFile(file, type);
   };
 
-<<<<<<< HEAD
   // UPDATED: Now calls the OCR bridge instead of just a timeout
   const handleSubmit = async () => {
     if (frontFile && backFile) {
@@ -103,24 +93,12 @@ export default function PersonalMalaysianMyKad() {
       } finally {
         setIsLoading(false);
       }
-=======
-  const handleSubmit = () => {
-    if (frontPreview && backPreview) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        router.push('/personal/malaysian/phone');
-      }, 2000);
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
     }
   };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
-<<<<<<< HEAD
       {/* BACKGROUND SVGS - KEPT EXACTLY AS BEFORE */}
-=======
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
@@ -214,7 +192,6 @@ export default function PersonalMalaysianMyKad() {
           ))}
         </div>
 
-<<<<<<< HEAD
         {/* ERROR MESSAGE DISPLAY */}
         {errorMessage && (
           <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium">
@@ -233,21 +210,13 @@ export default function PersonalMalaysianMyKad() {
           </div>
         )}
 
-=======
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
         <div className="mt-6 w-full max-w-md mx-auto relative z-10">
           <button
             onClick={handleSubmit}
-            disabled={!frontPreview || !backPreview || isLoading}
-<<<<<<< HEAD
+            disabled={!frontFile || !backFile || isLoading}
             className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg ${
-                (frontPreview && backPreview && !isLoading)
+                (frontFile && backFile && !isLoading)
                 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-=======
-            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] ${
-                (frontPreview && backPreview && !isLoading)
-                ? 'inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
->>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
             }`}
           >
