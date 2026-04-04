@@ -21,9 +21,15 @@
     "apexcharts": "^5.3.6",
     "autoprefixer": "^10.4.20",
     "flatpickr": "^4.6.13",
+<<<<<<< HEAD
     "formidable": "^3.5.4",
     "lucide-react": "^0.562.0",
     "next": "16.0.3",
+=======
+    "lucide-react": "^0.562.0",
+    "next": "16.0.3",
+    "pg": "^8.20.0",
+>>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
     "react": "^18.3.1",
     "react-apexcharts": "^1.8.0",
     "react-dnd": "^16.0.1",
@@ -38,6 +44,10 @@
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+<<<<<<< HEAD
+=======
+    "@types/pg": "^8.20.0",
+>>>>>>> 3ead2a0cdccffb152bf1b55ee989dc604c264246
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-transition-group": "^4.4.12",
