@@ -1,6 +1,7 @@
 {
   "name": "dtcob",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,6 +21,8 @@
     "@tailwindcss/forms": "^0.5.9",
     "apexcharts": "^5.3.6",
     "autoprefixer": "^10.4.20",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.0",
     "flatpickr": "^4.6.13",
     "formidable": "^3.5.4",
     "lucide-react": "^0.562.0",
@@ -38,6 +41,7 @@
     "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
