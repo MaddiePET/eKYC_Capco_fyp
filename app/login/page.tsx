@@ -83,7 +83,7 @@ export default function LogIn() {
     if (!res.ok) {
       alert("Incorrect password. Please try again.");
       return;
-    }
+    } 
 
     const data = await res.json();
     console.log("LOGIN RESPONSE:", data);
