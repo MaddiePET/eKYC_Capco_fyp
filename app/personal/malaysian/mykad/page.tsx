@@ -12,12 +12,20 @@ export default function PersonalMalaysianMyKad() {
   const [backPreview, setBackPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState<'front' | 'back' | null>(null);
+  const [frontFile, setFrontFile] = useState<File | null>(null);
+  const [backFile, setBackFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [ocrData, setOcrData] = useState<any>(null); // Store structured OCR data for display
 
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = (file: File | undefined, type: 'front' | 'back') => {
     if (file && file.type.startsWith('image/')) {
+      // Store raw file for the backend
+      if (type === 'front') setFrontFile(file);
+      else setBackFile(file);
+
       const reader = new FileReader();
       reader.onloadend = () => {
         if (type === 'front') setFrontPreview(reader.result as string);
@@ -51,18 +59,46 @@ export default function PersonalMalaysianMyKad() {
     processFile(file, type);
   };
 
-  const handleSubmit = () => {
-    if (frontPreview && backPreview) {
+  // UPDATED: Now calls the OCR bridge instead of just a timeout
+  const handleSubmit = async () => {
+    if (frontFile && backFile) {
       setIsLoading(true);
-      setTimeout(() => {
+      setErrorMessage(null);
+      setOcrData(null);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", frontFile);
+
+        const response = await fetch("/api/ocr", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          console.log("OCR Extracted IC:", result.data);
+          // Show success message with the data
+          setOcrData(JSON.parse(result.data)); 
+          // Delay redirect so the user can see the success message
+          setTimeout(() => router.push('/personal/malaysian/phone'), 3000);
+        } else {
+          // Failure handling
+          setErrorMessage(result.error || "OCR Failed: Check console for details.");
+          console.error("Backend Error:", result);
+        }
+      } catch (err) {
+        setErrorMessage("Network error: Could not reach the OCR bridge.");
+      } finally {
         setIsLoading(false);
-        router.push('/personal/malaysian/phone');
-      }, 2000);
+      }
     }
   };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {/* BACKGROUND SVGS - KEPT EXACTLY AS BEFORE */}
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
@@ -156,13 +192,31 @@ export default function PersonalMalaysianMyKad() {
           ))}
         </div>
 
+        {/* ERROR MESSAGE DISPLAY */}
+        {errorMessage && (
+          <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium">
+            {errorMessage}
+          </div>
+        )}
+        {/* SUCCESS MESSAGE DISPLAY */}
+        {ocrData && (
+          <div className="mt-4 p-4 rounded-xl bg-green-50 border border-green-200 text-green-800 text-sm animate-pulse">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+              <span className="font-bold">Verification Successful!</span>
+            </div>
+            <p>Extracted IC: <span className="font-mono font-bold">{ocrData.ic_number}</span></p>
+            <p className="text-xs mt-1 opacity-70">Redirecting to phone verification...</p>
+          </div>
+        )}
+
         <div className="mt-6 w-full max-w-md mx-auto relative z-10">
           <button
             onClick={handleSubmit}
-            disabled={!frontPreview || !backPreview || isLoading}
-            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] ${
-                (frontPreview && backPreview && !isLoading)
-                ? 'inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+            disabled={!frontFile || !backFile || isLoading}
+            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg ${
+                (frontFile && backFile && !isLoading)
+                ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
             }`}
           >
