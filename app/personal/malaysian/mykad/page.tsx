@@ -75,58 +75,100 @@ export default function PersonalMalaysianMyKad() {
         }
 
         // Send front image to okayid API
-        const frontResponse = await fetch("/api/ekyc/okayid", {
+        const frontOkayIdResponse = await fetch("/api/ekyc/okayid", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             journeyId,
-            imageBase64: frontPreview,
-            docType: "mykad",
+            base64ImageString: frontPreview,
           }),
         });
 
-        const frontResult = await frontResponse.json();
-        console.log("Front MyKad response:", frontResult);
-        console.log("Front response status:", frontResponse.status);
+        const frontOkayIdResult = await frontOkayIdResponse.json();
+        console.log("Front MyKad OCR response:", frontOkayIdResult);
+        console.log("Front MyKad OCR status:", frontOkayIdResponse.status);
 
-        if (!frontResponse.ok) {
-          const errorMsg = frontResult?.error || frontResult?.details || "Unknown error";
-          console.error("Front MyKad verification failed:", frontResult);
-          alert(`Failed to verify front of MyKad (${frontResponse.status}): ${errorMsg}. Please try again.`);
+        if (!frontOkayIdResponse.ok) {
+          const errorMsg = frontOkayIdResult?.error || frontOkayIdResult?.details || "Unknown error";
+          console.error("Front MyKad OCR failed:", frontOkayIdResult);
+          alert(`Failed to verify front of MyKad OCR (${frontOkayIdResponse.status}): ${errorMsg}. Please try again.`);
           setIsLoading(false);
           return;
         }
 
-        // Front verified - log OCR and auth results
-        console.log("Front OCR Extraction:", frontResult.ocrExtraction);
-        console.log("Front Authentication:", frontResult.authenticationVerification);
+        // Send front image to okaydoc API for authentication verification
+        const frontOkayDocResponse = await fetch("/api/ekyc/okaydoc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            base64ImageString: frontPreview,
+            docType: "mykad",
+          }),
+        });
+
+        const frontOkayDocResult = await frontOkayDocResponse.json();
+        console.log("Front MyKad auth response:", frontOkayDocResult);
+        console.log("Front MyKad auth status:", frontOkayDocResponse.status);
+
+        if (!frontOkayDocResponse.ok) {
+          const errorMsg = frontOkayDocResult?.error || frontOkayDocResult?.details || "Unknown error";
+          console.error("Front MyKad authentication failed:", frontOkayDocResult);
+          alert(`Failed to verify front of MyKad authentication (${frontOkayDocResponse.status}): ${errorMsg}. Please try again.`);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Front OCR Extraction:", JSON.stringify(frontOkayIdResult, null, 2));
+        console.log("Front Authentication:", JSON.stringify(frontOkayDocResult, null, 2));
 
         // Send back image to okayid API
-        const backResponse = await fetch("/api/ekyc/okayid", {
+        const backOkayIdResponse = await fetch("/api/ekyc/okayid", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             journeyId,
-            imageBase64: backPreview,
-            docType: "mykad",
+            base64ImageString: backPreview,
           }),
         });
 
-        const backResult = await backResponse.json();
-        console.log("Back MyKad response:", backResult);
-        console.log("Back response status:", backResponse.status);
+        const backOkayIdResult = await backOkayIdResponse.json();
+        console.log("Back MyKad OCR response:", backOkayIdResult);
+        console.log("Back MyKad OCR status:", backOkayIdResponse.status);
 
-        if (!backResponse.ok) {
-          const errorMsg = backResult?.error || backResult?.details || "Unknown error";
-          console.error("Back MyKad verification failed:", backResult);
-          alert(`Failed to verify back of MyKad (${backResponse.status}): ${errorMsg}. Please try again.`);
+        if (!backOkayIdResponse.ok) {
+          const errorMsg = backOkayIdResult?.error || backOkayIdResult?.details || "Unknown error";
+          console.error("Back MyKad OCR failed:", backOkayIdResult);
+          alert(`Failed to verify back of MyKad OCR (${backOkayIdResponse.status}): ${errorMsg}. Please try again.`);
           setIsLoading(false);
           return;
         }
 
-        // Back verified - log OCR and auth results
-        console.log("Back OCR Extraction:", backResult.ocrExtraction);
-        console.log("Back Authentication:", backResult.authenticationVerification);
+        // Send back image to okaydoc API for authentication verification
+        const backOkayDocResponse = await fetch("/api/ekyc/okaydoc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            base64ImageString: backPreview,
+            docType: "mykad",
+          }),
+        });
+
+        const backOkayDocResult = await backOkayDocResponse.json();
+        console.log("Back MyKad auth response:", backOkayDocResult);
+        console.log("Back MyKad auth status:", backOkayDocResponse.status);
+
+        if (!backOkayDocResponse.ok) {
+          const errorMsg = backOkayDocResult?.error || backOkayDocResult?.details || "Unknown error";
+          console.error("Back MyKad authentication failed:", backOkayDocResult);
+          alert(`Failed to verify back of MyKad authentication (${backOkayDocResponse.status}): ${errorMsg}. Please try again.`);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Back OCR Extraction:", JSON.stringify(backOkayIdResult, null, 2));
+        console.log("Back Authentication:", JSON.stringify(backOkayDocResult, null, 2));
 
         // Both images verified successfully, proceed
         router.push('/personal/malaysian/phone');

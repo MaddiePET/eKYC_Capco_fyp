@@ -67,32 +67,55 @@ export default function PersonalNonMalaysianPassport() {
         }
 
         // Send passport image to okayid API
-        const response = await fetch("/api/ekyc/okayid", {
+        const okayidResponse = await fetch("/api/ekyc/okayid", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             journeyId,
-            imageBase64: preview,
-            docType: "passport",
+            base64ImageString: preview,
           }),
         });
 
-        const result = await response.json();
-        console.log("Passport response:", result);
-        console.log("Response status:", response.status);
+        const okayidResult = await okayidResponse.json();
+        console.log("Passport OCR response:", okayidResult);
+        console.log("Passport OCR status:", okayidResponse.status);
 
-        if (!response.ok) {
-          const errorMsg = result?.error || result?.details || "Unknown error";
-          console.error("Passport verification failed:", result);
-          alert(`Failed to verify passport (${response.status}): ${errorMsg}. Please try again.`);
+        if (!okayidResponse.ok) {
+          const errorMsg = okayidResult?.error || okayidResult?.details || "Unknown error";
+          console.error("Passport OCR failed:", okayidResult);
+          alert(`Failed to verify passport OCR (${okayidResponse.status}): ${errorMsg}. Please try again.`);
           setIsLoading(false);
           return;
         }
 
-        // Two-step verification successful
-        console.log("Step 1 - OCR Extraction:", result.ocrExtraction);
-        console.log("Step 2 - Authentication Verification:", result.authenticationVerification);
-        
+        // Send passport image to okaydoc API for authentication verification
+        const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            type: "passport",
+            country: okayidResult.country || "OTHER",
+            halfSizeImage: preview,
+            fullSizeImage: preview, // Send the same image for both fields since we only have one image from the user
+          }),
+        });
+
+        const okaydocResult = await okaydocResponse.json();
+        console.log("Passport auth response:", okaydocResult);
+        console.log("Passport auth status:", okaydocResponse.status);
+
+        if (!okaydocResponse.ok) {
+          const errorMsg = okaydocResult?.error || okaydocResult?.details || "Unknown error";
+          console.error("Passport authentication failed:", okaydocResult);
+          alert(`Failed to verify passport authentication (${okaydocResponse.status}): ${errorMsg}. Please try again.`);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Step 1 - OCR Extraction:", JSON.stringify(okayidResult, null, 2));
+        console.log("Step 2 - Authentication Verification:", JSON.stringify(okaydocResult, null, 2));
+
         // Passport verified successfully, proceed
         router.push('/personal/non-malaysian/info');
       } catch (error) {
