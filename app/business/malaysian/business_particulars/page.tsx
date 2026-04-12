@@ -37,38 +37,20 @@ export default function BusinessMalaysianBusinessParticulars() {
     businessType: "",
   });
 
-    const monthMap: Record<string, string> = {
-    January: "01",
-    February: "02",
-    March: "03",
-    April: "04",
-    May: "05",
-    June: "06",
-    July: "07",
-    August: "08",
-    September: "09",
-    October: "10",
-    November: "11",
-    December: "12",
-  };
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (selectedBusinessId) {
-      const biz = linked_businesses.find(b => b.id === selectedBusinessId);
+      const biz = linked_businesses.find((b) => b.id === selectedBusinessId);
       if (biz) {
         const [y, m, d] = biz.start_date.split("-");
         setFormData({
           businessName: biz.name,
           brn: biz.brn,
           day: d,
-          month: [
-            "January", "February", "March", "April", "May", "June", "July", "August", "September", 
-            "October", "November", "December"
-          ][parseInt(m) - 1],
+          month: m,
           year: y,
           businessType: biz.type,
         });
@@ -89,27 +71,28 @@ export default function BusinessMalaysianBusinessParticulars() {
   };
 
   const handleFinalSubmit = () => {
-  setGlobalFormData({
-    ...globalFormData,
-    businessParticulars: {
-      businessName: formData.businessName,
-      brn: formData.brn,
-      startDate: `${formData.year}-${monthMap[formData.month]}-${formData.day}`,
-      businessType: formData.businessType,
-    },
-  });
+    setGlobalFormData({
+      ...globalFormData,
+      businessParticulars: {
+        businessName: formData.businessName,
+        brn: formData.brn,
+        startDate: `${formData.year}-${formData.month.padStart(2, "0")}-${formData.day.padStart(2, "0")}`,
+        businessType: formData.businessType,
+      },
+    });
 
-  router.push("/business/malaysian/business_address");
-};
+    router.push("/business/malaysian/business_address");
+  };
 
-  const inputClasses = "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
-  const readOnlyClasses = "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
+  const inputClasses =
+    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
+  const readOnlyClasses =
+    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
 
   if (!mounted) return null;
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
-      
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
@@ -154,7 +137,7 @@ export default function BusinessMalaysianBusinessParticulars() {
               {linked_businesses.map((business) => {
                 const isSelected = selectedBusinessId === business.id;
                 return (
-                  <div 
+                  <div
                     key={business.id}
                     onClick={() => setSelectedBusinessId(business.id)}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
@@ -182,10 +165,10 @@ export default function BusinessMalaysianBusinessParticulars() {
             </div>
 
             <div className="mt-8 flex flex-col items-center">
-              <button 
+              <button
                 type="button"
-                onClick={handleNextStep1} 
-                disabled={!selectedBusinessId} 
+                onClick={handleNextStep1}
+                disabled={!selectedBusinessId}
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
               >
                 Continue
@@ -193,8 +176,8 @@ export default function BusinessMalaysianBusinessParticulars() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                  <Link 
-                    href="/support" 
+                  <Link
+                    href="/support"
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                   >
                     Contact Support
@@ -222,10 +205,10 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Business Name <span className="text-red-500">*</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className={inputClasses} 
-                    value={formData.businessName} 
+                  <input
+                    type="text"
+                    className={inputClasses}
+                    value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                   />
                 </div>
@@ -234,12 +217,7 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Business Registration Number (BRN) <span className="text-red-500">*</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className={readOnlyClasses} 
-                    value={formData.brn} 
-                    readOnly 
-                  />
+                  <input type="text" className={readOnlyClasses} value={formData.brn} readOnly />
                 </div>
 
                 <div className="md:col-span-2">
@@ -247,50 +225,50 @@ export default function BusinessMalaysianBusinessParticulars() {
                     Operation Start Date <span className="text-red-500">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="relative">
-                      <select 
-                        value={formData.day} 
-                        onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                        className={inputClasses}
-                      >
-                        <option value="" disabled>Day</option>
-                        {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map(day => <option key={day} value={day}>{day}</option>)}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="DD"
+                      className={inputClasses}
+                      value={formData.day}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          day: e.target.value.replace(/[^0-9]/g, "").slice(0, 2),
+                        })
+                      }
+                    />
 
-                    <div className="relative">
-                      <select 
-                        value={formData.month} 
-                        onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-                        className={inputClasses}
-                      >
-                        <option value="" disabled>Month</option>
-                        {[
-                          "January", "February", "March", "April", "May", "June", "July", "August", "September", 
-                          "October", "November", "December"
-                        ].map(month => <option key={month} value={month}>{month}</option>)}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      placeholder="MM"
+                      className={inputClasses}
+                      value={formData.month}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          month: e.target.value.replace(/[^0-9]/g, "").slice(0, 2),
+                        })
+                      }
+                    />
 
-                    <div className="relative">
-                      <select 
-                        value={formData.year} 
-                        onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                        className={inputClasses}
-                      >
-                        <option value="" disabled>Year</option>
-                        {Array.from({ length: 30 }, (_, i) => String(new Date().getFullYear() - i)).map(year => <option key={year} value={year}>{year}</option>)}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
+                    <input
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      placeholder="YYYY"
+                      className={inputClasses}
+                      value={formData.year}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          year: e.target.value.replace(/[^0-9]/g, "").slice(0, 4),
+                        })
+                      }
+                    />
                   </div>
                 </div>
 
@@ -299,18 +277,27 @@ export default function BusinessMalaysianBusinessParticulars() {
                     Business Type <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <select 
-                      value={formData.businessType} 
+                    <select
+                      value={formData.businessType}
                       onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                       className={inputClasses}
                     >
                       <option value="" disabled>Select Type</option>
                       {[
-                        "Sole Proprietorship", "Partnership", "Private Limited (Sdn Bhd)", "Limited Liability Partnership (LLP)"
-                      ].map(type => <option key={type} value={type}>{type}</option>)}
+                        "Sole Proprietorship",
+                        "Partnership",
+                        "Private Limited (Sdn Bhd)",
+                        "Limited Liability Partnership (LLP)",
+                      ].map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -322,21 +309,27 @@ export default function BusinessMalaysianBusinessParticulars() {
                 </p>
 
                 <div className="w-full">
-                  <button 
+                  <button
                     type="button"
-                    onClick={handleFinalSubmit} 
-                    disabled={!formData.businessName || !formData.day || !formData.month || !formData.year || !formData.businessType}
+                    onClick={handleFinalSubmit}
+                    disabled={
+                      !formData.businessName ||
+                      !formData.day ||
+                      !formData.month ||
+                      !formData.year ||
+                      !formData.businessType
+                    }
                     className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
                   >
                     Continue
                   </button>
                 </div>
-                
+
                 <div className="mt-5 text-center">
                   <p className="text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                    <Link 
-                      href="/support" 
+                    <Link
+                      href="/support"
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                     >
                       Contact Support
