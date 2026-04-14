@@ -10,6 +10,12 @@ export default function PersonalMalaysianMailingAddress() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
+  // Controls loading state while saving mailing address to the database
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Stores any error message if mailing address save fails
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const [mailingData, setMailingData] = useState({
     permanentAddress: "Jalan SS15/1H, 40000 Subang Jaya, Selangor, Malaysia",
     streetAddress: "Jalan SS15/1H",
@@ -25,6 +31,54 @@ export default function PersonalMalaysianMailingAddress() {
 
   if (!mounted) return null;
 
+  // Handle mailing address submission
+// Purpose:
+// 1. Send mailing address data to the existing address API route
+// 2. Save this address as a separate Mailing address record
+// 3. Continue to face verification only if save succeeds
+const handleNavigation = async () => {
+  try {
+    // Start loading and clear previous error
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    // Call backend API to save mailing address into Address table
+    const response = await fetch("/api/application/address", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        add_type: "Mailing",              // Mark this address as a mailing address
+        add_1: mailingData.streetAddress, // Street address from form
+        postcode: mailingData.postal,     // Postal code from form
+        city: mailingData.city,           // City from form
+        state: mailingData.state,         // State from form
+        country: mailingData.country,     // Country from form
+      }),
+    });
+
+    const result = await response.json();
+
+    // Stop the flow if the address insert fails
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to save mailing address.");
+    }
+
+    // Log success result in browser console for testing
+    console.log("Mailing address saved:", result.data);
+
+    // Move to next page only after save succeeds
+    router.push("/personal/malaysian/face_verification");
+  } catch (error: any) {
+    // Show submission error on screen if anything fails
+    console.error("Mailing address submission error:", error);
+    setSubmitError(error.message || "Failed to save mailing address.");
+  } finally {
+    // Stop loading state whether success or failure
+    setIsSubmitting(false);
+  }
+};
   const isFormValid = 
     mailingData.streetAddress.trim() !== "" &&
     mailingData.postal.trim() !== "" &&
@@ -138,16 +192,20 @@ export default function PersonalMalaysianMailingAddress() {
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               By clicking continue, you confirm that the information provided is accurate and belongs to you.
             </p>
+            {/* Continue button:
+                 - disabled if required fields are missing
+                 - disabled while mailing address is being saved
+                 - saves mailing address before continuing */}
             <button 
-              onClick={() => router.push("/personal/malaysian/face_verification")} 
-              disabled={!isFormValid}
+              onClick={handleNavigation} 
+              disabled={!isFormValid || isSubmitting}
               className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 active:scale-[0.98] ${
                 isFormValid 
                   ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
               }`}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </button>
           </div>
         </div>
