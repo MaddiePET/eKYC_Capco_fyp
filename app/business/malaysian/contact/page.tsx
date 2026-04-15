@@ -6,11 +6,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import Label from "@/components/form/Label";
+import { useFormData } from "@/context/FormContext";
 
 type Step = "details" | "email-otp" | "phone-otp";
 
 export default function BusinessMalaysianContact() {
   const router = useRouter();
+  const { formData, setFormData } = useFormData();
+
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("details");
   const [email, setEmail] = useState("");
@@ -24,6 +27,13 @@ export default function BusinessMalaysianContact() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    setEmail(formData?.businessContact?.bus_email || "");
+    setPhoneNumber(formData?.businessContact?.bus_ph_no || "");
+  }, [mounted, formData]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -48,8 +58,19 @@ export default function BusinessMalaysianContact() {
       handleSendOtp("phone-otp");
     } else if (step === "phone-otp") {
       setIsLoading(true);
+
       setTimeout(() => {
-         router.push("/business/malaysian/face_verification");
+        setFormData((prev: any) => ({
+          ...prev,
+          businessContact: {
+            ...prev?.businessContact,
+            bus_email: email.trim(),
+            bus_ph_no: phoneNumber.trim(),
+          },
+        }));
+
+        setIsLoading(false);
+        router.push("/business/malaysian/face_verification");
       }, 800);
     }
   };
@@ -88,7 +109,6 @@ export default function BusinessMalaysianContact() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
-      
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
@@ -123,19 +143,23 @@ export default function BusinessMalaysianContact() {
       </div>
 
       <div className="relative w-full max-w-md z-10">
-        
         {step === "details" && (
           <div className="animate-in fade-in duration-500">
             <div className="mb-8 text-center">
-                <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
+              <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Enter Your Business Contact Details
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your business contact information to proceed with registration.
               </p>
             </div>
-            
-            <form onSubmit={(e) => { e.preventDefault(); handleSendOtp("email-otp"); }}>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendOtp("email-otp");
+              }}
+            >
               <div className="space-y-6">
                 <div>
                   <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -171,29 +195,19 @@ export default function BusinessMalaysianContact() {
                   </div>
                 </div>
 
-                <button 
-                  type="submit" 
-                  disabled={isLoading || !email || phoneNumber.length < 8} 
-                  className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${!!email && phoneNumber.length >= 8 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'}`}
+                <button
+                  type="submit"
+                  disabled={isLoading || !email || phoneNumber.length < 8}
+                  className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                    !!email && phoneNumber.length >= 8
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                  }`}
                 >
                   {isLoading ? "Processing..." : "Next"}
                 </button>
               </div>
             </form>
-            <div className="mt-5 text-center">
-              <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                <Link href="/support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Contact Support</Link>
-              </p>
-            </div>
-            <div className="mt-8 p-4 rounded-xl flex gap-3 border transition-all bg-blue-50/80 backdrop-blur-sm border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
-              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                <span>Your business contact details are used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.</span>
-              </p>
-            </div>
           </div>
         )}
 
@@ -203,7 +217,9 @@ export default function BusinessMalaysianContact() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Business Email
               </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed with the registration.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed with the registration.
+              </p>
             </div>
 
             <div className="space-y-6">
@@ -214,50 +230,29 @@ export default function BusinessMalaysianContact() {
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
-                    ref={(el) => { otpInputs.current[index] = el; }}
+                    ref={(el) => {
+                      otpInputs.current[index] = el;
+                    }}
                     value={digit}
                     onChange={(e) => handleOtpChange(e.target.value, index)}
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   />
                 ))}
               </div>
 
-              <button 
-                type="button" 
-                onClick={handleVerify} 
-                disabled={otp.join("").length < 6 || isLoading} 
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${otp.join("").length === 6 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'}`}
+              <button
+                type="button"
+                onClick={handleVerify}
+                disabled={otp.join("").length < 6 || isLoading}
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  otp.join("").length === 6
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                }`}
               >
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
-            </div>
-
-            <div className="text-center mt-6">
-              {timer > 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
-                </p>
-              ) : (
-                <button type="button" onClick={() => handleSendOtp("email-otp")} className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity">
-                  Resend Code
-                </button>
-              )}
-            </div>
-            
-            <div className="mt-5 text-center">
-              <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                <Link href="/support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Contact Support</Link>
-              </p>
-            </div>
-            <div className="mt-8 p-4 rounded-xl flex gap-3 border transition-all bg-blue-50/80 backdrop-blur-sm border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
-              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                <span>Standard email rates may apply. Your email address is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.</span>
-              </p>
             </div>
           </div>
         )}
@@ -281,56 +276,53 @@ export default function BusinessMalaysianContact() {
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
-                    ref={(el) => { otpInputs.current[index] = el; }}
+                    ref={(el) => {
+                      otpInputs.current[index] = el;
+                    }}
                     value={digit}
                     onChange={(e) => handleOtpChange(e.target.value, index)}
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   />
                 ))}
               </div>
 
-              <button 
-                type="button" 
-                onClick={handleVerify} 
-                disabled={otp.join("").length < 6 || isLoading} 
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${otp.join("").length === 6 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'}`}
+              <button
+                type="button"
+                onClick={handleVerify}
+                disabled={otp.join("").length < 6 || isLoading}
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  otp.join("").length === 6
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                }`}
               >
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
             </div>
-
-            <div className="text-center mt-6">
-              {timer > 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
-                </p>
-              ) : (
-                <button type="button" onClick={() => handleSendOtp("phone-otp")} className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity">
-                  Resend Code
-                </button>
-              )}
-            </div>
-            
-            <div className="mt-5 text-center">
-              <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                <Link href="/support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Contact Support</Link>
-              </p>
-            </div>
-            <div className="mt-8 p-4 rounded-xl flex gap-3 border transition-all bg-blue-50/80 backdrop-blur-sm border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
-              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                <span>Standard SMS rates may apply. Your mobile number is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.</span>
-              </p>
-            </div>
           </div>
         )}
+
+        <div className="mt-5 text-center">
+          <p className="text-sm font-normal">
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+            <Link href="/support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+              Contact Support
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-8 p-4 rounded-xl flex gap-3 border transition-all bg-blue-50/80 backdrop-blur-sm border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
+          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+          </svg>
+          <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
+            <span>Your business contact details are used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.</span>
+          </p>
+        </div>
       </div>
 
-      <p className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">        
+      <p className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </p>
     </div>
