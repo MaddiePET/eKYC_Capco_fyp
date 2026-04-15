@@ -11,8 +11,7 @@ import Image from "next/image";
 interface ProfileData {
   username: string;
   name: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   avatar: string;
   phone: string;
@@ -118,14 +117,10 @@ export default function Profile() {
               Personal Information
             </h4>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-              <div>
-                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">First Name</p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.firstName}</p>
-              </div>
-              <div>
-                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">Last Name</p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.lastName}</p>
-              </div>
+            <div className="lg:col-span-2">
+              <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">Full Name</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.fullName}</p>
+            </div>
               <div>
                 <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">Email address</p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">{profile.email}</p>
@@ -172,13 +167,9 @@ export default function Profile() {
           </h4>
           <form className="flex flex-col">
             <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-              <div>
-                <Label>First Name</Label>
-                <Input type="text" defaultValue={profile.firstName} />
-              </div>
-              <div>
-                <Label>Last Name</Label>
-                <Input type="text" defaultValue={profile.lastName} />
+              <div className="col-span-2">
+                <Label>Full Name</Label>
+                <Input type="text" defaultValue={profile.fullName} />
               </div>
               <div>
                 <Label>Email Address</Label>
