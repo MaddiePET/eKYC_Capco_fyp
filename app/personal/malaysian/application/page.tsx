@@ -73,6 +73,8 @@ export default function PersonalMalaysianApplication() {
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [preferredBranch, setPreferredBranch] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -112,10 +114,7 @@ export default function PersonalMalaysianApplication() {
     return distA - distB;
   });
 
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep(2);
-  };
+  
  const handleNextStep = async (e: React.FormEvent) => {
   e.preventDefault();
 
