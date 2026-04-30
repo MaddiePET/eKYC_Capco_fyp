@@ -241,8 +241,7 @@ export default function PersonalNonMalaysianMobilePassportCapture() {
 
             <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
               <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
-                You may now close this window and return to your desktop screen
-                to continue.
+                You may now close this window and return to your desktop screen to continue.
               </p>
             </div>
           </div>

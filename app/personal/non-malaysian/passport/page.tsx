@@ -83,8 +83,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
             </h2>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Verification failed after multiple attempts. Please return to the
-              home page to restart.
+              Verification failed after multiple attempts. Please return to the home page to restart.
             </p>
 
             <button
@@ -162,8 +161,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
           </h1>
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Open your mobile phone camera and scan the QR code below to securely
-            capture your Passport.
+            Open your mobile phone camera and scan the QR code below to securely capture your Passport.
           </p>
         </div>
 
@@ -275,8 +273,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
               </svg>
 
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Your data is encrypted and processed securely. We only use this
-                information for{" "}
+                Your data is encrypted and processed securely. We only use this information for{" "}
                 <span className="font-bold text-blue-700 dark:text-blue-300">
                   mandatory identity verification
                 </span>
@@ -288,8 +285,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
       </main>
 
       <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
-        &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights
-        reserved.
+        &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
   );
