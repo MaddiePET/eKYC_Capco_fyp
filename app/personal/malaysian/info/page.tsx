@@ -30,6 +30,71 @@ export default function PersonalMalaysianInfo() {
 
   const handleNavigation = () => router.push('/personal/malaysian/email');
 
+ // Handle form submission for personal info page
+ // Purpose:
+ // 1. Format the frontend form data
+ // 4. Continue to the email page if both inserts succeed
+ const handleNavigation = async () => {
+   if (isSubmitting) return;
+
+   try {
+     setIsSubmitting(true);
+     setSubmitError(null);
+
+     const monthMap: Record<string, string> = {
+       January: "01",
+       February: "02",
+       March: "03",
+       April: "04",
+       May: "05",
+       June: "06",
+       July: "07",
+       August: "08",
+       September: "09",
+       October: "10",
+       November: "11",
+       December: "12",
+    };
+
+    const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
+    const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
+
+    // Save personal info locally for final submission
+    localStorage.setItem(
+      "personalInfo",
+      JSON.stringify({
+        id_num: formData.nric,
+        full_name: formData.fullName,
+        id_type: "NRIC",
+        dob,
+        ph_no_1: fullPhone,
+        ph_no_2: null,
+        country: formData.country,
+      })
+    );
+
+    // Save home address locally for final submission
+    localStorage.setItem(
+      "homeAddress",
+      JSON.stringify({
+        add_type: "Home",
+        add_1: formData.streetAddress,
+        add_2: formData.city,
+        postcode: formData.postal,
+        state: formData.state,
+        country: formData.country,
+      })
+    );
+
+    router.push("/personal/malaysian/email");
+  } catch (error: any) {
+    console.error("Submission error:", error);
+    setSubmitError(error.message || "Failed to save application data.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
   const isFormValid = 
     formData.fullName.trim() !== "" &&
     formData.nric.trim() !== "" &&

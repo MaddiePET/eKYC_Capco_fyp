@@ -62,7 +62,7 @@ export default function PersonalMalaysianApplication() {
   const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
-    occupation: "",
+    occupation: "",getSelection,
     incomeRange: "",
     employmentType: "",
     sourceOfIncome: "",
@@ -116,9 +116,44 @@ export default function PersonalMalaysianApplication() {
     e.preventDefault();
     setStep(2);
   };
+ const handleNextStep = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    // Save savings account application details locally for final submission
+    localStorage.setItem(
+      "savingsApplication",
+      JSON.stringify({
+        occupation: formData.occupation,
+        monthly_income: formData.incomeRange,
+        income_source: formData.sourceOfIncome,
+        employment_type: formData.employmentType,
+        is18: formData.isOfAge,
+      })
+    );
+
+    // Move to next step only after local save
+    setStep(2);
+  } catch (error: any) {
+    console.error("Savings application save error:", error);
+    setSubmitError(error.message || "Failed to save savings application.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    localStorage.setItem(
+      "branchInfo",
+      JSON.stringify({
+        branch: preferredBranch,
+      })
+    )
     router.push("/personal/malaysian/account_creation");
   };
 

@@ -25,6 +25,32 @@ export default function PersonalMalaysianMailingAddress() {
 
   if (!mounted) return null;
 
+const handleNavigation = async () => {
+  try {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    // Save mailing address locally for final submission
+    localStorage.setItem(
+      "mailingAddress",
+      JSON.stringify({
+        add_type: "Mailing",
+        add_1: mailingData.streetAddress,
+        add_2: mailingData.city,
+        postcode: mailingData.postal,
+        state: mailingData.state,
+        country: mailingData.country,
+      })
+    );
+
+    router.push("/personal/malaysian/application");
+  } catch (error: any) {
+    console.error("Mailing address save error:", error);
+    setSubmitError(error.message || "Failed to save mailing address.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const isFormValid = 
     mailingData.streetAddress.trim() !== "" &&
     mailingData.postal.trim() !== "" &&
