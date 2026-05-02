@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Personal Account Malaysian MyKad Upload - DTCOB',
-  description: 'Personal Account Malaysian MyKad Upload page for DTCOB banking services.',
+  title: 'Personal Account Malaysian MyKad QR Code Scan - DTCOB',
+  description: 'Personal Account Malaysian MyKad QR Code Scan page for DTCOB banking services.',
 };
 
-export default function PersonalMalaysianMyKadLayout({
+export default function PersonalMalaysianMyKadQRCodeLayout({
   children,
 }: {
   children: React.ReactNode;

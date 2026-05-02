@@ -42,7 +42,7 @@ export default function PersonalNonMalaysianAddress() {
     Object.values(addressData.permanentAddress).every(val => val.trim() !== "") &&
     Object.values(addressData.mailingAddress).every(val => val.trim() !== "");
 
-  const handleNavigation = () => router.push('/personal/non-malaysian/email');
+  const handleNavigation = () => router.push('/personal/non-malaysian/application');
 
   const updateField = (type: keyof AddressState, field: keyof AddressFields, value: string) => {
     setAddressData((prev) => ({

@@ -1,147 +1,135 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import ChevronLeftIcon from "@/icons/chevron-left.svg"; 
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 
-export default function PersonalNonMalaysianPassport() {
+import ChevronLeftIcon from "@/icons/chevron-left.svg";
+
+export default function PersonalNonMalaysianPassportQRCode() {
   const router = useRouter();
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mobileUrl, setMobileUrl] = useState<string>("");
+  const [journeyId, setJourneyId] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isFailed, setIsFailed] = useState<boolean>(false);
 
-  const processFile = (file: File | undefined) => {
-    if (file && file.type.startsWith('image/')) {
-      setFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        // Extract base64 string from data URL (remove "data:image/jpeg;base64," prefix)
-        const base64String = dataUrl.split(',')[1];
-        setPreview(base64String);
-      };
-      reader.readAsDataURL(file);
+  useEffect(() => {
+    const jId = localStorage.getItem("journeyId") || `TEST-${Date.now()}`;
+
+    setJourneyId(jId);
+
+    if (!localStorage.getItem("journeyId")) {
+      localStorage.setItem("journeyId", jId);
     }
-  };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    processFile(event.target.files?.[0]);
-  };
+    const baseUrl = "https://83kw73hs-3000.asse.devtunnels.ms";
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+    setMobileUrl(
+      `${baseUrl}/personal/non-malaysian/passport/mobile?journeyId=${jId}`
+    );
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    processFile(file);
-  };
-
-  const handleSubmit = async () => {
-    if (file && preview) {
-      setIsLoading(true);
-
+    const checkStatus = setInterval(async () => {
       try {
-        const journeyId = localStorage.getItem("journeyId");
-        
-        if (!journeyId) {
-          alert("Journey ID not found. Please restart the registration process.");
-          setIsLoading(false);
-          return;
+        const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
+        const data = await res.json();
+
+        if (data.status === "verified") {
+          setIsVerified(true);
+          clearInterval(checkStatus);
+        } else if (data.status === "failed") {
+          setIsFailed(true);
+          clearInterval(checkStatus);
         }
-
-        // Send passport image to okayid API
-        const okayidResponse = await fetch("/api/ekyc/okayid", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            journeyId,
-            base64ImageString: preview,
-          }),
-        });
-
-        const okayidResult = await okayidResponse.json();
-        console.log("Passport OCR response:", okayidResult);
-        console.log("Passport OCR status:", okayidResponse.status);
-
-        if (!okayidResponse.ok) {
-          const errorMsg = okayidResult?.error || okayidResult?.details || "Unknown error";
-          console.error("Passport OCR failed:", okayidResult);
-          alert(`Failed to verify passport OCR (${okayidResponse.status}): ${errorMsg}. Please try again.`);
-          setIsLoading(false);
-          return;
-        }
-
-        // Send passport image to okaydoc API for authentication verification
-        const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            journeyId,
-            type: "passport",
-            country: okayidResult.country || "OTHER",
-            halfSizeImage: preview,
-            fullSizeImage: preview, // Send the same image for both fields since we only have one image from the user
-          }),
-        });
-
-        const okaydocResult = await okaydocResponse.json();
-        console.log("Passport auth response:", okaydocResult);
-        console.log("Passport auth status:", okaydocResponse.status);
-
-        if (!okaydocResponse.ok) {
-          const errorMsg = okaydocResult?.error || okaydocResult?.details || "Unknown error";
-          console.error("Passport authentication failed:", okaydocResult);
-          alert(`Failed to verify passport authentication (${okaydocResponse.status}): ${errorMsg}. Please try again.`);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log("Step 1 - OCR Extraction:", JSON.stringify(okayidResult, null, 2));
-        console.log("Step 2 - Authentication Verification:", JSON.stringify(okaydocResult, null, 2));
-
-        // Passport verified successfully, proceed
-        router.push('/personal/non-malaysian/info');
       } catch (error) {
-        console.error("Error uploading passport:", error);
-        alert("Error uploading passport. Please try again.");
-        setIsLoading(false);
+        console.error("Error checking verification status:", error);
       }
+    }, 3000);
+
+    return () => clearInterval(checkStatus);
+  }, []);
+
+  const handleNext = () => {
+    if (isVerified) {
+      router.push("/personal/non-malaysian/face_verification");
     }
   };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {isFailed && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Too Many Attempts
+            </h2>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Verification failed after multiple attempts. Please return to the home page to restart.
+            </p>
+
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
+            >
+              Go Back to Home
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-          <path className="fill-[#3D405B]" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-        </svg>
-      </div>
-      
-      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path className="fill-[#F0CA8E]" d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1440 320"
+        >
+          <path
+            className="fill-[#3D405B]/80"
+            d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          />
+
+          <path
+            className="fill-[#3D405B]"
+            d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          />
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
+      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1440 320"
+        >
+          <path
+            className="fill-[#F0CA8E]"
+            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
+          />
+        </svg>
+      </div>
+
+      <header className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
           onClick={() => router.push("/personal/nationality_selection")}
@@ -150,137 +138,155 @@ export default function PersonalNonMalaysianPassport() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-        <div className="flex items-center gap-2">
-          <Image src="/images/logo/logo-light.svg" alt="Logo" width={40} height={40} className="block dark:invert-0 invert" />
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">DTCOB</h1>
-        </div>
-      </div>
 
-      <div className="relative w-full max-w-2xl z-10">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/images/logo/logo-light.svg"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="block dark:invert-0 invert"
+          />
+
+          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+            DTCOB
+          </h1>
+        </div>
+      </header>
+
+      <main className="relative w-full max-w-2xl z-10">
         <div className="mb-10 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-            Upload Your Passport
+            Scan Your Passport
           </h1>
+
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Please upload a clear image of your passport bio-data page for verification.
+            Open your mobile phone camera and scan the QR code below to securely capture your Passport.
           </p>
         </div>
 
-        <div className="flex flex-col max-w-lg mx-auto">
-          <label className="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Passport Bio-data Page <span className="text-red-500">*</span>
-          </label>
+        <section className="flex flex-col items-center justify-center mb-8">
+          <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
+            <div
+              className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
+                isVerified
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
+              }`}
+            >
+              {mobileUrl ? (
+                <div className="relative">
+                  <QRCodeSVG
+                    value={mobileUrl}
+                    size={220}
+                    level="H"
+                    className={`rounded-xl transition-all duration-500 ${
+                      isVerified || isFailed
+                        ? "opacity-30 blur-sm"
+                        : "opacity-100"
+                    }`}
+                  />
 
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`relative group cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center h-64 backdrop-blur-sm
-              ${isDragging 
-                ? 'border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
-                : preview 
-                  ? 'border-[#F0CA8E] bg-white/90 ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
-                  : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E] dark:border-[#5c6185] dark:bg-gray-900/70 dark:hover:border-[#F0CA8E]'
-              }`
-            }
-          >
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleFileUpload} 
-            />
+                  {isVerified && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
+                        <svg
+                          className="w-8 h-8"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="3"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
 
-            {preview ? (
-              <>
-                <img src={`data:${file?.type};base64,${preview}`} alt="Passport Preview" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-sm font-medium bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
-                    Change Image
-                  </span>
+                      <span className="mt-3 font-bold text-gray-900 dark:text-white">
+                        Verified Successfully!
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="absolute top-3 right-3 bg-[#F0CA8E] text-black p-1 rounded-full shadow-lg">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center p-6 text-center pointer-events-none">
-                <svg 
-                    className={`w-10 h-10 mb-4 transition-colors ${isDragging ? 'text-[#F0CA8E]' : 'text-gray-400 group-hover:text-[#F0CA8E] dark:text-gray-500 dark:group-hover:text-[#F0CA8E]'}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth="1.5"
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                </svg>
-                <span className={`text-sm font-bold ${isDragging ? 'text-[#F0CA8E]' : 'text-gray-600 group-hover:text-[#F0CA8E] dark:text-gray-300 dark:group-hover:text-[#F0CA8E]'}`}>
-                  {isDragging ? 'Drop image here' : 'Click or drag to upload'}
+              ) : (
+                <div className="w-[220px] h-[220px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
+              )}
+            </div>
+
+            {!isVerified && !isFailed && (
+              <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
+
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
                 </span>
-                <span className="text-xs text-gray-400 mt-1 italic">JPG, JPEG, or PNG</span>
+
+                Waiting for Passport scan...
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         <div className="mt-6 w-full max-w-md mx-auto relative z-10">
           <button
-            onClick={handleSubmit}
-            disabled={!preview || isLoading}
-            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                (preview && !isLoading)
-                ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] dark:shadow-[0_0_20px_rgba(61,64,91,0.5)]' 
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+            onClick={handleNext}
+            disabled={!isVerified}
+            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 ${
+              isVerified
+                ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
             }`}
           >
-            {isLoading ? "Processing..." : "Submit"}
+            Continue
           </button>
-          
+
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                <Link 
-                  href="/support" 
-                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                >
-                  Contact Support
-                </Link>
+              <span className="text-gray-500 dark:text-gray-400">
+                Having trouble?{" "}
+              </span>
+
+              <Link
+                href="/support"
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                Contact Support
+              </Link>
             </p>
           </div>
 
-          <div className="mt-8 space-y-4">
-            <div className="p-4 rounded-xl flex gap-3 border transition-all backdrop-blur-sm bg-amber-50/80 border-amber-200 dark:bg-amber-900/20 dark:border-amber-500/40">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <div className="text-xs leading-relaxed text-amber-900 dark:text-amber-100">
-                <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">Important Notice:</p>
-                <ul className="list-disc ml-4 space-y-1">
-                  <li>Ensure the MRZ code (bottom two lines) is clearly visible and not cut off.</li>
-                  <li>Information is not obscured by fingers or shadows</li>
-                </ul>
-              </div>
-            </div>
-
+          <div className="mt-6 space-y-4">
             <div className="p-4 rounded-xl flex gap-3 border transition-all backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+              <svg
+                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
+
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Your data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
+                Your data is encrypted and processed securely. We only use this information for{" "}
+                <span className="font-bold text-blue-700 dark:text-blue-300">
+                  mandatory identity verification
+                </span>
+                .
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      <p className="relative mt-8 text-xs text-center text-gray-400 dark:text-gray-200 z-10">
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
-      </p>
+      </footer>
     </div>
   );
 }

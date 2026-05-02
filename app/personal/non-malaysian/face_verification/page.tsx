@@ -116,7 +116,7 @@ export default function PersonalNonMalaysianFaceVerification() {
   const handleBack = () => {
     if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
     stopCamera();
-    router.push("/personal/non-malaysian/phone");
+    router.push("/personal/non-malaysian/passport");
   };
 
   return (
@@ -252,7 +252,7 @@ export default function PersonalNonMalaysianFaceVerification() {
 
           {status === "success" && (
             <>
-              <button onClick={() => router.push("/personal/non-malaysian/application")} className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]">
+              <button onClick={() => router.push("/personal/non-malaysian/phone")} className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]">
                 Continue
               </button>
               <button onClick={handleRetake} className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900">
