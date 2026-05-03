@@ -13,6 +13,7 @@ export default function PersonalMalaysianMyKadQRCode() {
   const [mobileUrl, setMobileUrl] = useState<string>("");
   const [journeyId, setJourneyId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [hostWarning, setHostWarning] = useState<string | null>(null);
 
   useEffect(() => {
     const jId = localStorage.getItem("journeyId") || `TEST-${Date.now()}`;
@@ -23,11 +24,16 @@ export default function PersonalMalaysianMyKadQRCode() {
       localStorage.setItem("journeyId", jId);
     }
 
-    const baseUrl = "https://83kw73hs-3000.asse.devtunnels.ms";
+    const origin = window.location.origin;
+    const targetUrl = `${origin}/personal/malaysian/mykad/mobile?journeyId=${jId}`;
 
-    setMobileUrl(
-      `${baseUrl}/personal/malaysian/mykad/mobile?journeyId=${jId}`
-    );
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      setHostWarning(
+        "This app is loaded from localhost, which may not be reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
+      );
+    }
+
+    setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
       try {
@@ -122,6 +128,12 @@ export default function PersonalMalaysianMyKadQRCode() {
             Open your mobile phone camera and scan the QR code below to securely capture your MyKad.
           </p>
         </div>
+
+        {hostWarning && (
+          <div className="mb-6 rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-900 dark:bg-yellow-900/20 dark:border-yellow-700 dark:text-yellow-200">
+            {hostWarning}
+          </div>
+        )}
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">

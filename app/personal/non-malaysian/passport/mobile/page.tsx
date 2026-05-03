@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function PersonalNonMalaysianMobilePassportCapture() {
+function PersonalNonMalaysianMobilePassportCapture() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -373,5 +373,19 @@ export default function PersonalNonMalaysianMobilePassportCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
+  );
+}
+
+export default function PersonalNonMalaysianMobilePassportCapturePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      }
+    >
+      <PersonalNonMalaysianMobilePassportCapture />
+    </React.Suspense>
   );
 }
