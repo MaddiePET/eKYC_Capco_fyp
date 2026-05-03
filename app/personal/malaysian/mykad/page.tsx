@@ -27,7 +27,7 @@ export default function PersonalMalaysianMyKadQRCode() {
 
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
       setHostWarning(
-        "This app is loaded from localhost, which may not be reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
+        "This app is loaded from localhost, which is not be reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
       );
     }
 
@@ -85,8 +85,7 @@ export default function PersonalMalaysianMyKadQRCode() {
             </h2>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Verification failed after multiple attempts. Please return to the
-              home page to restart.
+              Verification failed after multiple attempts. Please return to the home page to restart.
             </p>
 
             <button
@@ -110,6 +109,7 @@ export default function PersonalMalaysianMyKadQRCode() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
+          
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -168,7 +168,7 @@ export default function PersonalMalaysianMyKadQRCode() {
         </div>
 
         {hostWarning && (
-          <div className="mb-6 rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-900 dark:bg-yellow-900/20 dark:border-yellow-700 dark:text-yellow-200">
+          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
             {hostWarning}
           </div>
         )}

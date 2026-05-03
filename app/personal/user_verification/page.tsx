@@ -15,7 +15,6 @@ export default function PersonalUserVerification() {
   const handleSelectNew = async () => {
     setIsLoading(true);
     try {
-      // Create a journey ID immediately when user selects 'new'
       const journeyRes = await fetch("/api/ekyc/journey", {
         method: "POST",
       });
@@ -28,7 +27,6 @@ export default function PersonalUserVerification() {
         return;
       }
       
-      // Store journeyId in localStorage
       localStorage.setItem("journeyId", journeyData.journeyId);
       setSelectedOption('new');
       setIsLoading(false);
@@ -89,6 +87,7 @@ export default function PersonalUserVerification() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
+          
           Home
         </button>
 

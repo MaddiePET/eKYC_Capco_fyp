@@ -13,9 +13,9 @@ type Step = "profile" | "password" | "pending";
 
 export default function PersonalMalaysianAccountCreation() {
   const router = useRouter();
+
   const [step, setStep] = useState<Step>("profile");
   const [mounted, setMounted] = useState(false);
-
   const [username, setUsername] = useState("");
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -23,10 +23,10 @@ export default function PersonalMalaysianAccountCreation() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -55,7 +55,6 @@ export default function PersonalMalaysianAccountCreation() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        // Extract base64 string from data URL (remove "data:image/jpeg;base64," prefix)
         const base64String = dataUrl.split(',')[1];
         setProfilePreview(base64String);
       };
@@ -129,7 +128,6 @@ export default function PersonalMalaysianAccountCreation() {
 
     console.log("Final submission success:", result.data);
 
-    // Optional: clear localStorage after successful submit
     localStorage.removeItem("phoneVerification");
     localStorage.removeItem("personalInfo");
     localStorage.removeItem("homeAddress");
@@ -149,15 +147,21 @@ export default function PersonalMalaysianAccountCreation() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-          <path className="fill-[#3D405B]" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-        </svg>
-      </div>
+        <svg 
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
+          preserveAspectRatio="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 1440 320"
+        >
+          <path 
+            className="fill-[#3D405B]/80" 
+            d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          />
 
-      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path className="fill-[#F0CA8E]" d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+          <path 
+            className="fill-[#3D405B]" 
+            d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          />
         </svg>
       </div>
 
@@ -168,11 +172,22 @@ export default function PersonalMalaysianAccountCreation() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
+          
           Back
         </button>
+
         <div className="flex items-center gap-2">
-          <Image src="/images/logo/logo-light.svg" alt="Logo" width={40} height={40} className="block dark:invert-0 invert" />
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">DTCOB</h1>
+          <Image 
+            src="/images/logo/logo-light.svg" 
+            alt="Logo" 
+            width={40} 
+            height={40} 
+            className="block dark:invert-0 invert" 
+          />
+
+          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+            DTCOB
+          </h1>
         </div>
       </div>
 
@@ -183,6 +198,7 @@ export default function PersonalMalaysianAccountCreation() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Create Your Account
               </h1>
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Choose your profile photo and username to get started.
               </p>
@@ -200,20 +216,47 @@ export default function PersonalMalaysianAccountCreation() {
                 >
                   {profilePreview ? (
                     <>
-                      <img src={`data:${profileFile?.type};base64,${profilePreview}`} className="w-full h-full object-cover" alt="Profile" />
+                      <img 
+                        src={`data:${profileFile?.type};base64,${profilePreview}`} 
+                        className="w-full h-full object-cover" 
+                        alt="Profile" 
+                      />
+
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
+                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">
+                          Change
+                        </span>
                       </div>
                     </>
                   ) : (
                     <div className="text-center p-2">
-                      <svg className="w-8 h-8 mx-auto text-gray-400 transition-colors group-hover:text-[#F0CA8E]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                      <svg 
+                        className="w-8 h-8 mx-auto text-gray-400 transition-colors group-hover:text-[#F0CA8E]" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24" 
+                        strokeWidth="1.5"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" 
+                        />
                       </svg>
-                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">Upload</span>
+
+                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">
+                        Upload
+                      </span>
                     </div>
                   )}
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleFileChange} 
+                  />
                 </div>
 
                 <div className="mt-4 flex gap-3">
@@ -222,17 +265,34 @@ export default function PersonalMalaysianAccountCreation() {
                       key={idx}
                       type="button"
                       onClick={() => setProfilePreview(url)}
-                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${profilePreview === url ? "border-[#3D405B] scale-110" : "border-transparent hover:border-gray-300"}`}
+                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${
+                        profilePreview === url 
+                          ? "border-[#3D405B] scale-110" 
+                          : "border-transparent hover:border-gray-300"
+                      }`}
                     >
-                      <img src={url} alt="Avatar option" className="w-full h-full object-cover" />
+                      <img 
+                        src={url} 
+                        alt="Avatar option" 
+                        className="w-full h-full object-cover" 
+                      />
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-gray-400">Select a preset or upload your own</p>
+
+                <p className="mt-2 text-[11px] text-gray-400">
+                  Select a preset or upload your own
+                </p>
               </div>
 
               <div>
-                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Username <span className="text-error-500">*</span></Label>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Username 
+                  <span className="text-error-500">
+                    *
+                  </span>
+                </Label>
+
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="e.g. dearrich"
@@ -259,6 +319,7 @@ export default function PersonalMalaysianAccountCreation() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Secure Your Account
               </h1>
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Set a strong password and a security phrase.
               </p>
@@ -266,13 +327,20 @@ export default function PersonalMalaysianAccountCreation() {
 
             <div className="space-y-5">
               <div>
-                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Security Phrase <span className="text-error-500">*</span></Label>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Security Phrase 
+                  <span className="text-error-500">
+                    *
+                  </span>
+                </Label>
+
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="e.g. see you rich rich dear"
                   value={securityPhrase}
                   onChange={(e) => setSecurityPhrase(e.target.value)}
                 />
+
                 <div className="mt-3 flex flex-wrap gap-2">
                   {phraseOptions.map((phrase, idx) => (
                     <button
@@ -288,7 +356,13 @@ export default function PersonalMalaysianAccountCreation() {
               </div>
 
               <div>
-                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Password <span className="text-error-500">*</span></Label>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Password 
+                  <span className="text-error-500">
+                    *
+                  </span>
+                </Label>
+
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -297,6 +371,7 @@ export default function PersonalMalaysianAccountCreation() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -316,6 +391,7 @@ export default function PersonalMalaysianAccountCreation() {
                     }`}
                   />
                 </div>
+                
                 <p className={`text-[10px] mt-1 italic font-bold uppercase transition-colors ${
                   password.length === 0 ? "text-gray-400" :
                   password.length < 6 ? "text-red-500" :
@@ -327,7 +403,13 @@ export default function PersonalMalaysianAccountCreation() {
               </div>
 
               <div>
-                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Confirm Password <span className="text-error-500">*</span></Label>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Confirm Password 
+                  <span className="text-error-500">
+                    *
+                  </span>
+                </Label>
+
                 <input
                   type="password"
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
@@ -339,19 +421,18 @@ export default function PersonalMalaysianAccountCreation() {
 
               {submitError && (
                 <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
-                {submitError}
+                  {submitError}
                 </div>
                )}
 
-             <button
-              type="button"
-              onClick={handleFinalSubmit}
-              disabled={!password || !securityPhrase || password !== confirmPassword || isSubmitting}
-              className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
-            >
-              {isSubmitting ? "Creating..." : "Create Account"}
-             </button>
-
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                disabled={!password || !securityPhrase || password !== confirmPassword || isSubmitting}
+                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+              >
+                {isSubmitting ? "Creating..." : "Create Account"}
+              </button>
             </div>
           </div>
         )}
@@ -360,22 +441,42 @@ export default function PersonalMalaysianAccountCreation() {
           <div className="text-center animate-in fade-in duration-700">
             <div className="flex justify-center mb-8">
               <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400">
-                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg 
+                  className="w-10 h-10" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  />
                 </svg>
               </div>
             </div>
+
             <h1 className="mb-4 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
               Verification Pending
             </h1>
+
             <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
               We've sent a confirmation email to
             </p>
-            <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">personalemail@example.com</p>
+
+            <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
+              personalemail@example.com
+            </p>
 
             <div className="mb-10 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
               <p className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-                Our team typically reviews applications within <span className="font-bold">24 hours</span>. Any additional documents needed will be informed via email.
+                Our team typically reviews applications within 
+                <span className="font-bold">
+                  24 hours
+                </span>
+                
+                . Any additional documents needed will be informed via email.
               </p>
             </div>
 
@@ -392,7 +493,10 @@ export default function PersonalMalaysianAccountCreation() {
         {step !== "pending" && (
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                Having trouble? 
+              </span>
+              
               <Link
                 href="/support"
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -404,9 +508,9 @@ export default function PersonalMalaysianAccountCreation() {
         )}
       </div>
 
-      <p className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
-      </p>
+      </footer>
     </div>
   );
 }
