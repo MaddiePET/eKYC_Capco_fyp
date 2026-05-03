@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -167,8 +167,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
-            <div
-              className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
+            <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
                   ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"

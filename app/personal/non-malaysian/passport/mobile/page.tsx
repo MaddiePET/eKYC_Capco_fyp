@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function PersonalNonMalaysianMobilePassportCapture() {
   const router = useRouter();
+
   const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId");
@@ -249,7 +250,7 @@ export default function PersonalNonMalaysianMobilePassportCapture() {
           <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
             <div className="mb-6 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-                Scan Your Passport
+                Verify Your Passport
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
