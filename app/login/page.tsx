@@ -15,35 +15,8 @@ interface User {
   name: string;
   avatar: string;
   securityPhrase: string;
-  password: string;
 }
 
-const mockUsers: User[] = [
-  {
-    username: "johndoe",
-    email: "john.doe@gmail.com",
-    name: "John Doe",
-    avatar: "/images/user/user-07.jpg",
-    securityPhrase: "My first pet's name",
-    password: "pw123",
-  },
-  {
-    username: "gogosdnbhd",
-    email: "gogo.sdnbhd@gmail.com",
-    name: "GoGo Sdn Bhd",
-    avatar: "/images/user/user-07.jpg",
-    securityPhrase: "My favorite drink",
-    password: "pw123",
-  },
-  {
-    username: "janedoe",
-    email: "jane.doe@gmail.com",
-    name: "Jane Doe",
-    avatar: "/images/user/user-06.jpg",
-    securityPhrase: "My favorite sport",
-    password: "pw123",
-  },
-];
 
 export default function LogIn() {
   const router = useRouter();
@@ -58,14 +31,24 @@ export default function LogIn() {
     setMounted(true);
   }, []);
 
-  const handleUsernameSubmit = (e: React.FormEvent) => {
+  const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = mockUsers.find((u) => u.username.toLowerCase() === username.toLowerCase());
-    if (user) {
+
+    try {
+      const res = await fetch(`/api/users/${username}`);
+
+      if (!res.ok) {
+        alert("Username not found. Please try again.");
+        return;
+      }
+
+      const user = await res.json();
+
       setCurrentUser(user);
       setStep("confirm");
-    } else {
-      alert("Username not found. Please try again.");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong.");
     }
   };
 
@@ -85,15 +68,39 @@ export default function LogIn() {
     }
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (currentUser && password === currentUser.password) {
-      localStorage.setItem("currentAccount", currentUser.name);
-      router.push("/dashboard");
-    } else {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
       alert("Incorrect password. Please try again.");
-    }
-  };
+      return;
+    } 
+
+    const data = await res.json();
+    console.log("LOGIN RESPONSE:", data);
+
+    localStorage.setItem("currentUsername", data.username);
+    localStorage.setItem("currentAccount", data.name);
+
+    console.log("STORED currentUsername:", localStorage.getItem("currentUsername"));
+    console.log("STORED currentAccount:", localStorage.getItem("currentAccount"));
+
+    router.push("/dashboard");
+    
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong.");
+  }
+};
 
   if (!mounted) {
     return <div className="min-h-screen bg-[#F9FAFB] dark:bg-gray-950" />;
@@ -175,7 +182,7 @@ export default function LogIn() {
               <h1 className="mb-6 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">Is this you?</h1>
               <div className="flex flex-col items-center gap-4 mb-6">
                 <div className="relative w-24 h-24 overflow-hidden rounded-full ring-4 ring-[#3D405B]/20">
-                  <Image src={currentUser.avatar} alt={currentUser.name} fill className="object-cover" />
+                  <Image src="/icons/user-line.svg" alt={currentUser.name} fill className="object-cover" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">{currentUser.name}</h2>
