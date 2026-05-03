@@ -38,7 +38,7 @@ export default function PersonalNonMalaysianPhone() {
     if (step === "otp") {
       setStep("input");
     } else {
-      router.push("/personal/non-malaysian/email");
+      router.push("/personal/non-malaysian/face_verification");
     }
   };
 
@@ -56,7 +56,7 @@ export default function PersonalNonMalaysianPhone() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      router.push("/personal/non-malaysian/face_verification");
+      router.push("/personal/non-malaysian/email");
     }, 800);
   };
 

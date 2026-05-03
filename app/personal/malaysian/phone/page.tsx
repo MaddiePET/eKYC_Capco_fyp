@@ -17,6 +17,11 @@ export default function PersonalMalaysianPhone() {
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
 
+  // Controls loading state while updating the verified phone number
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Stores any error message if phone update fails
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -71,6 +76,29 @@ export default function PersonalMalaysianPhone() {
       otpInputs.current[index - 1]?.focus();
     }
   };
+
+    // Save verified phone number locally and move to the next page
+ const handleVerifyPhone = async () => {
+  try {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    localStorage.setItem(
+      "phoneVerification",
+      JSON.stringify({
+        ph_no_1: `+60${phoneNumber}`,
+      })
+    );
+
+    router.push("/personal/malaysian/info");
+  } catch (error: any) {
+    console.error("Phone save error:", error);
+    setSubmitError(error.message || "Failed to save phone number.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
@@ -248,13 +276,19 @@ export default function PersonalMalaysianPhone() {
             </div>
 
             <div className="space-y-4">
+              {submitError && (
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+              {submitError}
+              </div>
+              )}
+
               <button
                 type="button"
-                onClick={() => router.push("/personal/malaysian/info")}
-                disabled={otp.join("").length < 6}
+                onClick={handleVerifyPhone}
+                disabled={otp.join("").length < 6 || isSubmitting}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${otp.join("").length === 6 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'}`}
               >
-                Verify
+                {isSubmitting ? "Verifying..." : "Verify"}
               </button>
 
               <div className="text-center">

@@ -18,6 +18,12 @@ export default function PersonalMalaysianEmail() {
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
 
+  // Controls loading state while updating the verified email
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+ // Stores any error message if email update fails
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -49,13 +55,28 @@ export default function PersonalMalaysianEmail() {
     }, 800);
   };
 
-  const handleVerifyOtp = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/personal/malaysian/mailing_address");
-    }, 800);
-  };
+  // Update customer's email after OTP verification
+  const handleVerifyOtp = async () => {
+  try {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    // Save verified email locally for final submission
+    localStorage.setItem(
+      "contactInfo",
+      JSON.stringify({
+        email,
+      })
+    );
+
+    router.push("/personal/malaysian/mailing_address");
+  } catch (error: any) {
+    console.error("Email save error:", error);
+    setSubmitError(error.message || "Failed to save email.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
@@ -152,8 +173,21 @@ export default function PersonalMalaysianEmail() {
                   />
                 ))}
               </div>
-              <button type="button" onClick={handleVerifyOtp} disabled={otp.join("").length < 6 || isLoading} className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${otp.join("").length === 6 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'}`}>
-                {isLoading ? "Verifying..." : "Verify"}
+
+              {submitError &&(
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                  {submitError}
+                </div>
+              )}
+              <button 
+              type="button" 
+              onClick={handleVerifyOtp} 
+              disabled={otp.join("").length < 6 || isSubmitting} 
+              className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                otp.join("").length === 6 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                }`}
+              >
+                {isSubmitting ? "Verifying..." : "Verify"}
               </button>
             </div>
 

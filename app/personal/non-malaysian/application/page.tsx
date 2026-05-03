@@ -144,7 +144,7 @@ export default function PersonalNonMalaysianApplication() {
     } else if (step === 2) {
       setStep(1);
     } else {
-      router.push("/personal/non-malaysian/face_verification");
+      router.push("/personal/non-malaysian/address");
     }
   };
 

@@ -25,6 +25,8 @@ export default function PersonalMalaysianAccountCreation() {
   const [showPassword, setShowPassword] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -73,6 +75,76 @@ export default function PersonalMalaysianAccountCreation() {
   };
 
   if (!mounted) return null;
+
+  const handleFinalSubmit = async () => {
+  try {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const phoneVerification = JSON.parse(localStorage.getItem("phoneVerification") || "{}");
+    const personalInfo = JSON.parse(localStorage.getItem("personalInfo") || "{}");
+    const homeAddress = JSON.parse(localStorage.getItem("homeAddress") || "{}");
+    const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
+    const mailingAddress = JSON.parse(localStorage.getItem("mailingAddress") || "{}");
+    const branchInfo = JSON.parse(localStorage.getItem("branchInfo") || "{}");
+    const savingsApplication = JSON.parse(localStorage.getItem("savingsApplication") || "{}");
+
+    const payload = {
+      customer: {
+        id_num: personalInfo.id_num,
+        full_name: personalInfo.full_name,
+        id_type: personalInfo.id_type,
+        dob: personalInfo.dob,
+        ph_no_1: phoneVerification.ph_no_1,
+        ph_no_2: null,
+        email: contactInfo.email,
+        country: personalInfo.country,
+      },
+      homeAddress,
+      mailingAddress,
+      savingsAccount: savingsApplication,
+      user: {
+        username,
+        password,
+        status: "Active",
+        img: profilePreview || null,
+        sec_phrase:securityPhrase,
+        branch: branchInfo.branch,
+      },
+    };
+
+    const response = await fetch("/api/msian_savings_account", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to create account.");
+    }
+
+    console.log("Final submission success:", result.data);
+
+    // Optional: clear localStorage after successful submit
+    localStorage.removeItem("phoneVerification");
+    localStorage.removeItem("personalInfo");
+    localStorage.removeItem("homeAddress");
+    localStorage.removeItem("contactInfo");
+    localStorage.removeItem("mailingAddress");
+    localStorage.removeItem("savingsApplication");
+
+    setStep("pending");
+  } catch (error: any) {
+    console.error("Final submission error:", error);
+    setSubmitError(error.message || "Failed to create account.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
@@ -265,14 +337,21 @@ export default function PersonalMalaysianAccountCreation() {
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!password || !securityPhrase || password !== confirmPassword}
-                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
-              >
-                Create Account
-              </button>
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                {submitError}
+                </div>
+               )}
+
+             <button
+              type="button"
+              onClick={handleFinalSubmit}
+              disabled={!password || !securityPhrase || password !== confirmPassword || isSubmitting}
+              className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+            >
+              {isSubmitting ? "Creating..." : "Create Account"}
+             </button>
+
             </div>
           </div>
         )}

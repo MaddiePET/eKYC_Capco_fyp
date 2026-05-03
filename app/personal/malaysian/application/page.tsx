@@ -61,14 +61,8 @@ export default function PersonalMalaysianApplication() {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
 
-  // Controls loading state while saving savings account data
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
- // Stores any error message if submission fails
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
   const [formData, setFormData] = useState({
-    occupation: "",
+    occupation: "",getSelection,
     incomeRange: "",
     employmentType: "",
     sourceOfIncome: "",
@@ -79,6 +73,8 @@ export default function PersonalMalaysianApplication() {
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [preferredBranch, setPreferredBranch] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -118,46 +114,31 @@ export default function PersonalMalaysianApplication() {
     return distA - distB;
   });
 
- // Handle Step 1 submission for personal account application
- // Purpose:
- // 1. Save occupation and income-related details into the Savings_account table
- // 2. Move to the next screen only if the database insert succeeds
+  
  const handleNextStep = async (e: React.FormEvent) => {
   e.preventDefault();
 
   try {
-   setIsSubmitting(true);
-   setSubmitError(null);
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    const response = await fetch("/api/application/savings-account", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: 1, // temporary placeholder
+    // Save savings account application details locally for final submission
+    localStorage.setItem(
+      "savingsApplication",
+      JSON.stringify({
         occupation: formData.occupation,
         monthly_income: formData.incomeRange,
         income_source: formData.sourceOfIncome,
         employment_type: formData.employmentType,
         is18: formData.isOfAge,
-        add_id: 1, // temporary placeholder
-      }),
-    });
+      })
+    );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Failed to save savings account.");
-    }
-
-    console.log("Savings account saved:", result.data);
-
-    // Move to next step only after successful save
+    // Move to next step only after local save
     setStep(2);
   } catch (error: any) {
-    console.error("Savings account submission error:", error);
-    setSubmitError(error.message || "Failed to save savings account.");
+    console.error("Savings application save error:", error);
+    setSubmitError(error.message || "Failed to save savings application.");
   } finally {
     setIsSubmitting(false);
   }
@@ -165,6 +146,13 @@ export default function PersonalMalaysianApplication() {
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    localStorage.setItem(
+      "branchInfo",
+      JSON.stringify({
+        branch: preferredBranch,
+      })
+    )
     router.push("/personal/malaysian/account_creation");
   };
 
@@ -273,11 +261,7 @@ export default function PersonalMalaysianApplication() {
                     </label>
                 </div>
               </div>
-               {submitError &&(
-                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600-sm text-center">
-                  {submitError}
-                </div>
-               )}
+
               <div className="pt-4 flex flex-col items-center">
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                   By clicking continue, you confirm that the information provided is accurate and belongs to you.
@@ -290,13 +274,12 @@ export default function PersonalMalaysianApplication() {
                   >
                     Cancel
                   </button>
-
                   <button 
                     type="submit" 
-                    disabled={!formData.isOfAge || isSubmitting} 
+                    disabled={!formData.isOfAge} 
                     className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
                   >
-                    {isSubmitting ? "Saving..." : "Continue"}
+                    Continue
                   </button>
                 </div>
                 <div className="mt-5 text-center">

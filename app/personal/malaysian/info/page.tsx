@@ -8,13 +8,9 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianInfo() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  // Controls loading state while saving data to the database
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Stores any submission error message
   const [submitError, setSubmitError] = useState<string | null>(null);
-
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "Jane Doe",
     nric: "000000-00-0000",
@@ -37,98 +33,59 @@ export default function PersonalMalaysianInfo() {
  // Handle form submission for personal info page
  // Purpose:
  // 1. Format the frontend form data
- // 2. Save customer details into the Customer table
- // 3. Save address details into the Address table
  // 4. Continue to the email page if both inserts succeed
-const handleNavigation = async () => {
-  if (isSubmitting) return;
-  try {
-    // Start loading and clear previous error
-    setIsSubmitting(true);
-    setSubmitError(null);
+ const handleNavigation = async () => {
+   if (isSubmitting) return;
 
-    // Split full name into first name and last name
-    const nameParts = formData.fullName.trim().split(" ");
-    const fname = nameParts[0] || "";
-    const lname = nameParts.slice(1).join(" ") || "-";
+   try {
+     setIsSubmitting(true);
+     setSubmitError(null);
 
-    // Convert month name into numeric month
-    const monthMap: Record<string, string> = {
-      January: "01",
-      February: "02",
-      March: "03",
-      April: "04",
-      May: "05",
-      June: "06",
-      July: "07",
-      August: "08",
-      September: "09",
-      October: "10",
-      November: "11",
-      December: "12",
+     const monthMap: Record<string, string> = {
+       January: "01",
+       February: "02",
+       March: "03",
+       April: "04",
+       May: "05",
+       June: "06",
+       July: "07",
+       August: "08",
+       September: "09",
+       October: "10",
+       November: "11",
+       December: "12",
     };
 
-    // Format DOB as YYYY-MM-DD for PostgreSQL
     const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
-
-    // Combine phone code and phone number
     const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
-    // ----------------------------
-    // Step 1: Save customer details
-    // ----------------------------
-    const customerResponse = await fetch("/api/application/customer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    // Save personal info locally for final submission
+    localStorage.setItem(
+      "personalInfo",
+      JSON.stringify({
         id_num: formData.nric,
-        fname,
-        lname,
+        full_name: formData.fullName,
         id_type: "NRIC",
         dob,
         ph_no_1: fullPhone,
         ph_no_2: null,
-        email: "temp@email.com",
         country: formData.country,
-      }),
-    });
+      })
+    );
 
-    const customerResult = await customerResponse.json();
-
-    if (!customerResponse.ok) {
-      throw new Error(customerResult.error || "Failed to save customer.");
-    }
-
-    // ----------------------------
-    // Step 2: Save address details
-    // ----------------------------
-    const addressResponse = await fetch("/api/application/address", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    // Save home address locally for final submission
+    localStorage.setItem(
+      "homeAddress",
+      JSON.stringify({
         add_type: "Home",
         add_1: formData.streetAddress,
+        add_2: formData.city,
         postcode: formData.postal,
-        city: formData.city,
         state: formData.state,
         country: formData.country,
-      }),
-    });
+      })
+    );
 
-    const addressResult = await addressResponse.json();
-
-    if (!addressResponse.ok) {
-      throw new Error(addressResult.error || "Failed to save address.");
-    }
-
-    console.log("Customer saved:", customerResult.data);
-    console.log("Address saved:", addressResult.data);
-
-    // Move to next page only after both inserts succeed
     router.push("/personal/malaysian/email");
   } catch (error: any) {
     console.error("Submission error:", error);
@@ -137,6 +94,7 @@ const handleNavigation = async () => {
     setIsSubmitting(false);
   }
 };
+
   const isFormValid = 
     formData.fullName.trim() !== "" &&
     formData.nric.trim() !== "" &&
@@ -304,32 +262,21 @@ const handleNavigation = async () => {
               </div>
             </div>
 
-             {/* Show submission error if database save fails */}
-             {submitError && (
-               <div className="md:col-span-2 mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
-               {submitError}
-               </div>
-              )}
-
             <div className="md:col-span-2 pt-4 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that the information provided is accurate and belongs to you.
               </p>
               
-              {/*Continue button:
-                 -disabled if form is incomplete
-                 -disabled while saving
-                 -saves customer and address before continuing */}
               <button 
                 onClick={handleNavigation} 
-                disabled={!isFormValid || isSubmitting}
+                disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
-                  isFormValid && !isSubmitting
+                  isFormValid 
                     ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                 }`}
               >
-                {isSubmitting ? "Saving..." : "Continue"}
+                Continue
               </button>
 
               <div className="mt-5 text-center">

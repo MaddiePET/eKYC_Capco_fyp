@@ -36,7 +36,7 @@ export default function PersonalNonMalaysianEmail() {
 
   const handleGlobalBack = () => {
     if (step === "otp") setStep("input");
-    else router.push("/personal/non-malaysian/address");
+    else router.push("/personal/non-malaysian/phone");
   };
 
   const handleSendOtp = (e?: React.FormEvent) => {
@@ -53,7 +53,7 @@ export default function PersonalNonMalaysianEmail() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      router.push("/personal/non-malaysian/phone");
+      router.push("/personal/non-malaysian/info");
     }, 800);
   };
 
