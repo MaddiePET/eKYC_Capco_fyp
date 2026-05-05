@@ -164,10 +164,7 @@ export default function PersonalNonMalaysianPhone() {
             >
               <div>
                 <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                  Mobile Number 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Mobile Number<span className="text-red-500">*</span>
                 </Label>
 
                 <div className="flex">
@@ -178,9 +175,7 @@ export default function PersonalNonMalaysianPhone() {
                       className="w-5 h-auto rounded-sm shadow-sm" 
                     />
                     
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                      +60
-                    </span>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
                   </div>
 
                   <input
@@ -217,12 +212,7 @@ export default function PersonalNonMalaysianPhone() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                We've sent a 6-digit code to 
-                <span className="font-bold text-gray-900 dark:text-white">
-                  +60 {phoneNumber}
-                </span>
-                
-                . Please provide the code to proceed with the registration.
+                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">+60 {phoneNumber}</span>. Please provide the code to proceed with the registration.
               </p>
             </div>
 
@@ -259,10 +249,7 @@ export default function PersonalNonMalaysianPhone() {
               <div className="text-center">
                 {timer > 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Resend code in 
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {timer}s
-                    </span>
+                    Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
                   </p>
                 ) : (
                   <button 
@@ -280,9 +267,7 @@ export default function PersonalNonMalaysianPhone() {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble? 
-            </span>
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
             <Link 
               href="/support" 
@@ -307,17 +292,7 @@ export default function PersonalNonMalaysianPhone() {
           </svg>
 
           <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-            Standard SMS rates may apply. Your mobile number is used solely for 
-            <span className="font-bold text-blue-700 dark:text-blue-300">
-              secure account registration
-            </span> 
-            
-            and 
-            <span className="font-bold text-blue-700 dark:text-blue-300">
-              identity verification
-            </span>
-            
-            .
+            Standard SMS rates may apply. Your mobile number is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
           </p>
         </div>
       </div>

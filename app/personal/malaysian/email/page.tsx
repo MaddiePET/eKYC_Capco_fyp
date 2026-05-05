@@ -175,10 +175,7 @@ export default function PersonalMalaysianEmail() {
             >
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Email Address 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Email Address<span className="text-red-500">*</span>
                 </label>
 
                 <input 
@@ -214,12 +211,7 @@ export default function PersonalMalaysianEmail() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                We've sent a 6-digit code to 
-                <span className="font-bold text-gray-900 dark:text-white">
-                  {email}
-                </span>
-                
-                . Please provide the code to proceed with the registration.
+                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed with the registration.
               </p>
             </div>
             
@@ -263,10 +255,7 @@ export default function PersonalMalaysianEmail() {
             <div className="text-center mt-6">
               {timer > 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Resend code in 
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {timer}s
-                  </span>
+                  Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
                 </p>
               ) : (
                 <button 
@@ -283,9 +272,7 @@ export default function PersonalMalaysianEmail() {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble? 
-            </span>
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
             
             <Link 
               href="/support" 
@@ -310,17 +297,7 @@ export default function PersonalMalaysianEmail() {
           </svg>
 
           <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-            Standard email rates may apply. Your email address is used solely for 
-            <span className="font-bold text-blue-700 dark:text-blue-300">
-              secure account registration
-            </span>
-            
-              and 
-            <span className="font-bold text-blue-700 dark:text-blue-300">
-              identity verification
-            </span>
-            
-            .
+            Standard email rates may apply. Your email address is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
           </p>
         </div>
       </div>

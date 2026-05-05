@@ -79,6 +79,20 @@ const handleNavigation = async () => {
           />
         </svg>
       </div>
+      
+      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
+        <svg 
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
+          preserveAspectRatio="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 1440 320"
+        >
+          <path 
+            className="fill-[#F0CA8E]" 
+            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
+          />
+        </svg>
+      </div>
 
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
@@ -131,10 +145,7 @@ const handleNavigation = async () => {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                Street Address 
-                <span className="text-red-500">
-                  *
-                </span>
+                Street Address<span className="text-red-500">*</span>
               </label>
 
               <input
@@ -148,10 +159,7 @@ const handleNavigation = async () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Postal Code 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Postal Code<span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -164,10 +172,7 @@ const handleNavigation = async () => {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  City 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  City <span className="text-red-500">*</span>
                 </label>
                 
                 <input
@@ -182,10 +187,7 @@ const handleNavigation = async () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  State 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  State <span className="text-red-500">*</span>
                 </label>
                 
                 <input
@@ -198,10 +200,7 @@ const handleNavigation = async () => {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Country 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Country <span className="text-red-500">*</span>
                 </label>
                 
                 <input
@@ -220,7 +219,7 @@ const handleNavigation = async () => {
             </p>
 
             <button 
-              onClick={() => router.push("/personal/malaysian/face_verification")} 
+              onClick={() => router.push("/personal/malaysian/application")} 
               disabled={!isFormValid}
               className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 active:scale-[0.98] ${
                 isFormValid 
@@ -235,9 +234,7 @@ const handleNavigation = async () => {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble? 
-            </span>
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
             <Link 
               href="/support" 

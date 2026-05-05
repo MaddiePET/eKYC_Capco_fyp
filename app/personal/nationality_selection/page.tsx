@@ -95,10 +95,7 @@ export default function PersonalNationalitySelection() {
         <div className="space-y-6">
           <div>
             <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
-              Nationality 
-              <span className="text-error-500">
-                *
-              </span>
+              Nationality<span className="text-error-500">*</span>
             </Label>
 
             <div className="relative">
@@ -147,9 +144,7 @@ export default function PersonalNationalitySelection() {
 
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble? 
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
               <Link
                 href="/support"
@@ -175,17 +170,7 @@ export default function PersonalNationalitySelection() {
               </svg>
 
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Malaysian citizens are required to have their 
-                <span className="font-bold text-blue-700 dark:text-blue-300">
-                  MyKad
-                </span> 
-                
-                ready for e-KYC verification. Non-Malaysians must provide a valid 
-                <span className="font-bold text-blue-700 dark:text-blue-300">
-                  Passport
-                </span>
-                
-                .
+                Malaysian citizens are required to have their <span className="font-bold text-blue-700 dark:text-blue-300">MyKad</span> ready for e-KYC verification. Non-Malaysians must provide a valid <span className="font-bold text-blue-700 dark:text-blue-300">Passport</span>.
               </p>
             </div>
           </div>

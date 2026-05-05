@@ -63,10 +63,7 @@ export default function PersonalNonMalaysianAddress() {
       <div className="space-y-5">
         <div>
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-            Address Line 1 
-            <span className="text-red-500">
-              *
-            </span>
+            Address Line 1<span className="text-red-500">*</span>
           </label>
 
           <input 
@@ -80,10 +77,7 @@ export default function PersonalNonMalaysianAddress() {
 
         <div>
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-            Address Line 2 
-            <span className="text-red-500">
-              *
-            </span>
+            Address Line 2<span className="text-red-500">*</span>
           </label>
 
           <input 
@@ -98,10 +92,7 @@ export default function PersonalNonMalaysianAddress() {
         <div className="grid grid-cols-2 gap-5">
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              Postal Code 
-              <span className="text-red-500">
-                *
-              </span>
+              Postal Code<span className="text-red-500">*</span>
             </label>
 
             <input 
@@ -115,10 +106,7 @@ export default function PersonalNonMalaysianAddress() {
 
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              City 
-              <span className="text-red-500">
-                *
-              </span>
+              City<span className="text-red-500">*</span>
             </label>
 
             <input 
@@ -134,10 +122,7 @@ export default function PersonalNonMalaysianAddress() {
         <div className="grid grid-cols-2 gap-5">
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              State 
-              <span className="text-red-500">
-                *
-              </span>
+              State<span className="text-red-500">*</span>
             </label>
 
             <input 
@@ -151,10 +136,7 @@ export default function PersonalNonMalaysianAddress() {
 
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              Country 
-              <span className="text-red-500">
-                *
-              </span>
+              Country <span className="text-red-500">*</span>
             </label>
 
             <input 
@@ -275,9 +257,7 @@ export default function PersonalNonMalaysianAddress() {
 
           <div className="mt-5 text-center">
             <p className="text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble? 
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
               <Link 
                 href="/support" 

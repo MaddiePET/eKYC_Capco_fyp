@@ -167,9 +167,7 @@ export default function PersonalNonMalaysianAccountCreation() {
 
                       <img src={`data:${profileFile?.type};base64,${profilePreview}`} className="w-full h-full object-cover" alt="Profile" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">
-                          Change
-                        </span>
+                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
                       </div>
                     </>
                   ) : (
@@ -188,9 +186,7 @@ export default function PersonalNonMalaysianAccountCreation() {
                         />
                       </svg>
 
-                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">
-                        Upload
-                      </span>
+                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">Upload</span>
                     </div>
                   )}
                   <input 
@@ -230,10 +226,7 @@ export default function PersonalNonMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Username 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Username<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -271,10 +264,7 @@ export default function PersonalNonMalaysianAccountCreation() {
             <div className="space-y-5">
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Security Phrase 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Security Phrase<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -300,10 +290,7 @@ export default function PersonalNonMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Password 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Password<span className="text-error-500">*</span>
                 </Label>
 
                 <div className="relative">
@@ -347,10 +334,7 @@ export default function PersonalNonMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Confirm Password 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Confirm Password<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -408,12 +392,7 @@ export default function PersonalNonMalaysianAccountCreation() {
             
             <div className="mb-10 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
                 <p className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-                  Our team typically reviews applications within 
-                  <span className="font-bold">
-                    24 hours
-                  </span>
-                  
-                  . Any additional documents needed will be informed via email.
+                  Our team typically reviews applications within <span className="font-bold">24 hours</span>. Any additional documents needed will be informed via email.
                 </p>
             </div>
 
@@ -430,9 +409,7 @@ export default function PersonalNonMalaysianAccountCreation() {
         {step !== "pending" && (
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble? 
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
                
               <Link 
                 href="/support" 

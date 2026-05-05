@@ -321,9 +321,7 @@ function PersonalNonMalaysianMobilePassportCapture() {
         <section className="mt-4 w-full max-w-md mx-auto relative z-10">
           <div className="text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble?{" "}
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
               <Link
                 href="/support"

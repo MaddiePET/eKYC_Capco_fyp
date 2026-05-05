@@ -164,6 +164,20 @@ export default function PersonalMalaysianAccountCreation() {
           />
         </svg>
       </div>
+      
+      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
+        <svg 
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
+          preserveAspectRatio="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 1440 320"
+        >
+          <path 
+            className="fill-[#F0CA8E]" 
+            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
+          />
+        </svg>
+      </div>
 
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
@@ -223,9 +237,7 @@ export default function PersonalMalaysianAccountCreation() {
                       />
 
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">
-                          Change
-                        </span>
+                        <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
                       </div>
                     </>
                   ) : (
@@ -244,9 +256,7 @@ export default function PersonalMalaysianAccountCreation() {
                         />
                       </svg>
 
-                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">
-                        Upload
-                      </span>
+                      <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">Upload</span>
                     </div>
                   )}
 
@@ -287,10 +297,7 @@ export default function PersonalMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Username 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Username<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -328,10 +335,7 @@ export default function PersonalMalaysianAccountCreation() {
             <div className="space-y-5">
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Security Phrase 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Security Phrase<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -357,10 +361,7 @@ export default function PersonalMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Password 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Password<span className="text-error-500">*</span>
                 </Label>
 
                 <div className="relative">
@@ -404,10 +405,7 @@ export default function PersonalMalaysianAccountCreation() {
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Confirm Password 
-                  <span className="text-error-500">
-                    *
-                  </span>
+                  Confirm Password<span className="text-error-500">*</span>
                 </Label>
 
                 <input
@@ -471,12 +469,7 @@ export default function PersonalMalaysianAccountCreation() {
 
             <div className="mb-10 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
               <p className="text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-                Our team typically reviews applications within 
-                <span className="font-bold">
-                  24 hours
-                </span>
-                
-                . Any additional documents needed will be informed via email.
+                Our team typically reviews applications within <span className="font-bold">24 hours</span>. Any additional documents needed will be informed via email.
               </p>
             </div>
 
@@ -493,9 +486,7 @@ export default function PersonalMalaysianAccountCreation() {
         {step !== "pending" && (
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble? 
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
               
               <Link
                 href="/support"

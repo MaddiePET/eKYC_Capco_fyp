@@ -117,7 +117,7 @@ export default function PersonalNonMalaysianInfo() {
               <div className="grid grid-cols-4 gap-4">
                 <div className="col-span-1">
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Title
+                    Title<span className="text-red-500">*</span>
                   </label>
 
                   <div className="relative">
@@ -149,10 +149,7 @@ export default function PersonalNonMalaysianInfo() {
 
                 <div className="col-span-3">
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Full Name 
-                    <span className="text-red-500">
-                      *
-                    </span>
+                    Full Name<span className="text-red-500">*</span>
                   </label>
 
                   <input 
@@ -166,10 +163,7 @@ export default function PersonalNonMalaysianInfo() {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Passport Number 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Passport Number<span className="text-red-500">*</span>
                 </label>
 
                 <input 
@@ -182,10 +176,7 @@ export default function PersonalNonMalaysianInfo() {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Date of Birth 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Date of Birth<span className="text-red-500">*</span>
                 </label>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -270,10 +261,7 @@ export default function PersonalNonMalaysianInfo() {
             <div className="space-y-6">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  ID Issuing Office 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  ID Issuing Office<span className="text-red-500">*</span>
                 </label>
 
                 <input 
@@ -286,10 +274,7 @@ export default function PersonalNonMalaysianInfo() {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Nationality 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Nationality<span className="text-red-500">*</span>
                 </label>
 
                 <input 
@@ -303,10 +288,7 @@ export default function PersonalNonMalaysianInfo() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Date of Issue 
-                    <span className="text-red-500">
-                      *
-                    </span>
+                    Date of Issue<span className="text-red-500">*</span>
                   </label>
 
                   <input 
@@ -319,10 +301,7 @@ export default function PersonalNonMalaysianInfo() {
 
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Date of Expiry 
-                    <span className="text-red-500">
-                      *
-                    </span>
+                    Date of Expiry <span className="text-red-500">*</span>
                   </label>
 
                   <input 
@@ -354,9 +333,7 @@ export default function PersonalNonMalaysianInfo() {
 
               <div className="mt-5 text-center">
                 <p className="text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Having trouble? 
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
                   <Link 
                     href="/support" 

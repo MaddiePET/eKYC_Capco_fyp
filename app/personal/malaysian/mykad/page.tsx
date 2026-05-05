@@ -138,6 +138,7 @@ export default function PersonalMalaysianMyKadQRCode() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
+          
           Back
         </button>
 
@@ -213,9 +214,7 @@ export default function PersonalMalaysianMyKadQRCode() {
                         </svg>
                       </div>
 
-                      <span className="mt-3 font-bold text-gray-900 dark:text-white">
-                        Verified Successfully!
-                      </span>
+                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}
                 </div>
@@ -252,9 +251,7 @@ export default function PersonalMalaysianMyKadQRCode() {
 
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble?{" "}
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
               <Link
                 href="/support"
@@ -280,11 +277,7 @@ export default function PersonalMalaysianMyKadQRCode() {
               </svg>
 
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Your data is encrypted and processed securely. We only use this information for{" "}
-                <span className="font-bold text-blue-700 dark:text-blue-300">
-                  mandatory identity verification
-                </span>
-                .
+                Your data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
               </p>
             </div>
           </div>

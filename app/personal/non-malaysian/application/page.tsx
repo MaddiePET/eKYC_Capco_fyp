@@ -42,11 +42,7 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
   <div className="relative">
     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
       {label} 
-      {required && 
-        <span className="text-red-500">
-          *
-        </span>
-      }
+      {required && <span className="text-red-500">*</span>}
     </label>
 
     <div className="relative">
@@ -279,10 +275,7 @@ export default function PersonalNonMalaysianApplication() {
 
               <div className="pt-4 text-center">
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Are you at least 18 years old? 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  Are you at least 18 years old?<span className="text-red-500">*</span>
                 </label>
 
                 <div className="flex justify-center gap-8 mt-2">
@@ -337,9 +330,7 @@ export default function PersonalNonMalaysianApplication() {
 
                 <div className="mt-5 text-center">
                   <p className="text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Having trouble? 
-                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
                     <Link 
                       href="/support" 
@@ -388,10 +379,7 @@ export default function PersonalNonMalaysianApplication() {
 
                   <div className="mb-6">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Name of Document 
-                      <span className="text-red-500">
-                        *
-                      </span>
+                      Name of Document<span className="text-red-500">*</span>
                     </label>
 
                     <input 
@@ -406,11 +394,13 @@ export default function PersonalNonMalaysianApplication() {
                   <div 
                     onClick={() => document.getElementById(`file-${doc.id}`)?.click()} 
                     onDragOver={(e) => { e.preventDefault(); setDraggingId(doc.id); }} 
-                    onDragLeave={() => setDraggingId(null)} onDrop={(e) => { e.preventDefault(); setDraggingId(null); handleFile(doc.id, e.dataTransfer.files?.[0]); }} 
+                    onDragLeave={() => setDraggingId(null)} 
+                    onDrop={(e) => { e.preventDefault(); setDraggingId(null); handleFile(doc.id, e.dataTransfer.files?.[0]); }} 
                     className={`relative group cursor-pointer overflow-hidden rounded-xl border-2 transition-all duration-300 flex items-center px-4 py-3 ${
                       draggingId === doc.id 
                         ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E]' 
-                        : doc.preview ? 'border-[#F0CA8E] bg-white dark:bg-gray-900/90 dark:border-[#F0CA8E]' 
+                        : doc.preview 
+                        ? 'border-[#F0CA8E] bg-white dark:bg-gray-900/90 dark:border-[#F0CA8E]' 
                         : 'border-2 border-dashed border-gray-200 bg-white hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900'
                     }`}
                   >
@@ -428,21 +418,20 @@ export default function PersonalNonMalaysianApplication() {
                           <svg 
                             className="w-5 h-5 text-[#3D405B] dark:text-[#F0CA8E]" 
                             fill="none" stroke="currentColor" 
-                            viewBox="0 0 24 24"><path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth="2" 
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth="2" 
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                            />
                           </svg>
 
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[250px]">
-                            {doc.preview}
-                          </span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[250px]">{doc.preview}</span>
                         </div>
 
-                        <span className="text-xs text-[#3D405B] dark:text-[#F0CA8E] font-semibold">
-                          Change
-                        </span>
+                        <span className="text-xs text-[#3D405B] dark:text-[#F0CA8E] font-semibold">Change</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3 w-full pointer-events-none">
@@ -499,9 +488,7 @@ export default function PersonalNonMalaysianApplication() {
 
                 <div className="mt-5 text-center">
                   <p className="text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Having trouble? 
-                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
                     <Link 
                       href="/support" 
@@ -607,10 +594,7 @@ export default function PersonalNonMalaysianApplication() {
 
             <div className="grid grid-cols-1 gap-4">
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                Available Branches 
-                <span className="text-red-500">
-                  *
-                </span>
+                Available Branches<span className="text-red-500">*</span>
               </label>
 
               {sortedBranches.map((branch) => {
@@ -653,10 +637,7 @@ export default function PersonalNonMalaysianApplication() {
                       </p>
                     </div>
 
-                    {distance && 
-                    <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">
-                      {distance} km
-                    </span>}
+                    {distance && <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>}
                   </div>
                 );
               })}
@@ -677,9 +658,7 @@ export default function PersonalNonMalaysianApplication() {
               
               <div className="mt-5 text-center">
                 <p className="text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Having trouble? 
-                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
                   <Link 
                     href="/support" 
