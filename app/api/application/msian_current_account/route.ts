@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { hashPassword } from "@/hashpw";
 
 export async function POST(req: Request) {
   const data = await req.json();
@@ -82,6 +83,9 @@ console.log("business details:", data.businessParticulars);
 
     const cust_id = customerRes.rows[0].cust_id;
 
+    const rawPassword = data.account?.password;
+    const hashedPassword = await hashPassword(rawPassword);
+
     // 3. Insert User
     const userRes = await client.query(
       `
@@ -100,7 +104,7 @@ console.log("business details:", data.businessParticulars);
       [
         cust_id,
         data.account?.username || null,
-        data.account?.password || null,
+        hashedPassword || null,
         "PENDING",
         data.account?.profilePreview || null,
         data.account?.securityPhrase || null,
