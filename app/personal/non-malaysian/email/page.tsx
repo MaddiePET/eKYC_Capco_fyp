@@ -293,6 +293,12 @@ export default function PersonalNonMalaysianEmail() {
                 ))}
               </div>
               
+              {message && (
+              <p className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                {message}
+              </p>
+            )}
+              
               <button 
                 type="button" 
                 onClick={handleVerifyOtp} 
@@ -306,12 +312,7 @@ export default function PersonalNonMalaysianEmail() {
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
             </div>
-            {message && (
-              <p className="text-cemter text-sm font-medium text-gray-700 dark:text-gray-200">
-                {message}
-              </p>
-            )}
-
+            
             <div className="text-center mt-6">
               {timer > 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
