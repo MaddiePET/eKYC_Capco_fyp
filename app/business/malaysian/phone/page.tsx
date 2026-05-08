@@ -102,9 +102,7 @@ export default function BusinessMalaysianPhone() {
     ...prev,
     phoneVerification: {
       ...prev?.phoneVerification,
-      ph_no_1: originalPhoneNumber,
-      ph_no_2: isChangedNumberFlow ? newPhoneNumber : "",
-      verified_phone: activePhoneNumber,
+      phoneNumber: activePhoneNumber,
       phone_was_changed: isChangedNumberFlow,
     },
   }));

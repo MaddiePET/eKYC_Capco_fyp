@@ -61,12 +61,11 @@ console.log("business details:", data.businessParticulars);
         full_name,
         id_type,
         dob,
-        ph_no_1,
-        ph_no_2,
+        ph_no,
         email,
         home_add
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
       RETURNING cust_id
       `,
       [
@@ -74,8 +73,7 @@ console.log("business details:", data.businessParticulars);
         data.personalInfo?.fullName || null,
         "IC",
         data.personalInfo?.dob || null,
-        data.phoneVerification?.ph_no_1 || null,
-        data.phoneVerification?.ph_no_2 || "-", 
+        data.phoneVerification?.phoneNumber || null,
         data.contactInfo?.email || null,
         home_add,
       ]

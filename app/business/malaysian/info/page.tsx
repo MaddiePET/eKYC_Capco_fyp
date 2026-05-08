@@ -66,10 +66,7 @@ export default function BusinessMalaysianInfo() {
   }, [mounted, formData]);
 
   const displayPhone =
-  formData?.phoneVerification?.verified_phone ??
-  formData?.phoneVerification?.ph_no_2 ??
-  formData?.phoneVerification?.ph_no_1 ??
-  "";
+  formData?.phoneVerification?.phoneNumber|| "";
 
   const phoneCode = "+60";
   const hasPhone = String(displayPhone).trim() !== "";
