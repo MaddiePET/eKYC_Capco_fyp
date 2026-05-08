@@ -1,6 +1,7 @@
 import fs from "fs";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { hashPassword } from "@/hashpw";
 import * as admin from "firebase-admin";
 
 function loadFirebaseServiceAccount() {
@@ -174,11 +175,10 @@ export async function POST(req: Request) {
         id_type,
         dob,
         ph_no_1,
-        ph_no_2,
         email,
         home_add
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING cust_id
       `,
       [
@@ -187,7 +187,6 @@ export async function POST(req: Request) {
         customer.id_type || "IC",
         customer.dob,
         customer.ph_no_1,
-        customer.ph_no_2 || null,
         customer.email,
         homeAddId,
       ]
@@ -195,6 +194,17 @@ export async function POST(req: Request) {
 
     // Store generated customer ID for User table
     const custId = customerResult.rows[0].cust_id;
+
+    //Ensures the passwords exists before hashing
+    if (!user.password) {
+      throw new Error("Password is missing");
+    }
+
+   //Gets the plain password from user from final submission payload
+    const rawPassword = user.password;
+
+    //Prevents storing password in plain text and hashed password before saving it in db
+    const hashedPassword = await hashPassword(rawPassword);
 
     // 4. Insert user/login details and link to customer using cust_id
     const userResult = await client.query(
@@ -215,7 +225,7 @@ export async function POST(req: Request) {
       [
         custId,
         user.username,
-        user.password,
+        hashedPassword, //Stores hashed password
         user.status || "Pending",
         user.img || null,
         user.sec_phrase,

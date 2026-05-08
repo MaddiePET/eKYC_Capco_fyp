@@ -148,8 +148,7 @@ if (
         full_name: personalInfo.full_name,
         id_type: personalInfo.id_type,
         dob: personalInfo.dob,
-        ph_no_1: phoneVerification.ph_no_1,
-        ph_no_2: null,
+        ph_no_1: phoneVerification.ph_no_1, // Store the verified or updated phone number as the customer's main phone number
         email: contactInfo.email,
         country: personalInfo.country,
       },

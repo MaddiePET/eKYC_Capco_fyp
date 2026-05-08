@@ -153,14 +153,23 @@ export default function PersonalMalaysianApplication() {
     setIsSubmitting(false);
   }
 };
+  
+  const selectedBranchDetails = BRANCHES.find(
+  (branch) => branch.id === preferredBranch
+);
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!selectedBranchDetails) {
+    alert("Please select a branch before continuing.");
+    return;
+  }
+
     localStorage.setItem(
       "branchInfo",
       JSON.stringify({
-        branch: preferredBranch,
+        branch: selectedBranchDetails.name,
       })
     )
     router.push("/personal/malaysian/account_creation");
