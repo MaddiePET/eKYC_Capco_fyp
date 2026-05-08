@@ -112,11 +112,10 @@ export async function POST(req: Request) {
         id_type,
         dob,
         ph_no_1,
-        ph_no_2,
         email,
         home_add
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING cust_id
       `,
       [
@@ -125,7 +124,6 @@ export async function POST(req: Request) {
         customer.id_type || "IC",
         customer.dob,
         customer.ph_no_1,
-        customer.ph_no_2 || null,
         customer.email,
         homeAddId,
       ]

@@ -80,6 +80,8 @@ export default function PersonalMalaysianPhone() {
     setIsSubmitting(true);
     setSubmitError(null);
 
+     // Save the verified phone number temporarily for final submission.
+    // If the user changed their number, the new number replaces the original and is saved as ph_no_1.
     localStorage.setItem(
       "phoneVerification",
       JSON.stringify({
