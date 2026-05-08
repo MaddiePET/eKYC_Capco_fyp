@@ -19,9 +19,16 @@ let jpnDb: admin.firestore.Firestore | null = null;
 
 function getJimDb() {
   if (!jimDb) {
-    const jimApp = admin.initializeApp({
-      credential: admin.credential.cert(loadFirebaseServiceAccount('jim')),
-    }, 'jim-app');
+    const appName = "jim-app";
+
+    const jimApp = admin.apps.find((app) => app?.name === appName)
+      || admin.initializeApp(
+        {
+          credential: admin.credential.cert(loadFirebaseServiceAccount("jim")),
+        },
+        appName
+      );
+
     jimDb = jimApp.firestore();
   }
   return jimDb;
@@ -29,9 +36,16 @@ function getJimDb() {
 
 function getJpnDb() {
   if (!jpnDb) {
-    const jpnApp = admin.initializeApp({
-      credential: admin.credential.cert(loadFirebaseServiceAccount('jpn')),
-    }, 'jpn-app');
+    const appName = "jpn-app";
+
+    const jpnApp = admin.apps.find((app) => app?.name === appName)
+      || admin.initializeApp(
+        {
+          credential: admin.credential.cert(loadFirebaseServiceAccount("jpn")),
+        },
+        appName
+      );
+
     jpnDb = jpnApp.firestore();
   }
   return jpnDb;
@@ -62,7 +76,7 @@ async function verifyIdentityInFirebase(idNum: string) {
 
   const passportQuery = await db
     .collection(JIM_NONRESIDENTS_COLLECTION)
-    .where("passport_number", "==", idNum)
+    .where("passport_no", "==", idNum)
     .limit(1)
     .get();
 
