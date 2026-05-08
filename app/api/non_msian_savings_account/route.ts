@@ -1,5 +1,41 @@
+import fs from "fs";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import * as admin from "firebase-admin";
+
+function loadFirebaseServiceAccount(project: 'jim' | 'jpn') {
+  const envVar = project === 'jim' ? 'FIREBASE_JIM_SERVICE_ACCOUNT_PATH' : 'FIREBASE_JPN_SERVICE_ACCOUNT_PATH';
+  const jsonPath = process.env[envVar];
+
+  if (!jsonPath) {
+    throw new Error(`Missing ${envVar} environment variable`);
+  }
+
+  return JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+}
+
+let jimDb: admin.firestore.Firestore | null = null;
+let jpnDb: admin.firestore.Firestore | null = null;
+
+function getJimDb() {
+  if (!jimDb) {
+    const jimApp = admin.initializeApp({
+      credential: admin.credential.cert(loadFirebaseServiceAccount('jim')),
+    }, 'jim-app');
+    jimDb = jimApp.firestore();
+  }
+  return jimDb;
+}
+
+function getJpnDb() {
+  if (!jpnDb) {
+    const jpnApp = admin.initializeApp({
+      credential: admin.credential.cert(loadFirebaseServiceAccount('jpn')),
+    }, 'jpn-app');
+    jpnDb = jpnApp.firestore();
+  }
+  return jpnDb;
+}
 
 // Generates a random 16 digit savings account number
 function generateAccountNumber() {
@@ -10,6 +46,37 @@ function generateAccountNumber() {
   }
 
   return accountNo;
+}
+
+const JIM_NONRESIDENTS_COLLECTION = "jim_nonresidents";
+
+async function verifyIdentityInFirebase(idNum: string) {
+  if (!idNum) return false;
+
+  const db = getJimDb();
+  const docRef = db.collection(JIM_NONRESIDENTS_COLLECTION).doc(idNum);
+  const docSnapshot = await docRef.get();
+  if (docSnapshot.exists) {
+    return true;
+  }
+
+  const passportQuery = await db
+    .collection(JIM_NONRESIDENTS_COLLECTION)
+    .where("passport_number", "==", idNum)
+    .limit(1)
+    .get();
+
+  if (!passportQuery.empty) {
+    return true;
+  }
+
+  const icQuery = await db
+    .collection(JIM_NONRESIDENTS_COLLECTION)
+    .where("ic_number", "==", idNum)
+    .limit(1)
+    .get();
+
+  return !icQuery.empty;
 }
 
 export async function POST(req: Request) {
@@ -65,6 +132,19 @@ export async function POST(req: Request) {
     if (!user.username || !user.password || !user.sec_phrase || !user.branch) {
       throw new Error("User account information is incomplete");
     }
+
+    const isVerified = await verifyIdentityInFirebase(id_num);
+    if (!isVerified) {
+      return NextResponse.json(
+        {
+          error:
+            "eKYC verification failed: the provided passport/ID number was not found in the government identity records.",
+        },
+        { status: 403 }
+      );
+    }
+
+    await client.query("BEGIN");
 
     // 1. Insert address first because Customer needs home_add as a foreign key
     const addressResult = await client.query(

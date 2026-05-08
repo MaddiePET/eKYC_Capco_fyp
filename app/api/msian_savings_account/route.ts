@@ -1,5 +1,29 @@
+import fs from "fs";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import * as admin from "firebase-admin";
+
+function loadFirebaseServiceAccount() {
+  const jsonPath = process.env.FIREBASE_JPN_SERVICE_ACCOUNT_PATH;
+
+  if (!jsonPath) {
+    throw new Error("Missing FIREBASE_JPN_SERVICE_ACCOUNT_PATH environment variable");
+  }
+
+  return JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+}
+
+let db: admin.firestore.Firestore | null = null;
+
+function getDb() {
+  if (!db) {
+    admin.initializeApp({
+      credential: admin.credential.cert(loadFirebaseServiceAccount()),
+    });
+    db = admin.firestore();
+  }
+  return db;
+}
 
 // Generates a random 16 digit savings account number
 function generateAccountNumber() {
@@ -10,6 +34,27 @@ function generateAccountNumber() {
   }
 
   return accountNo;
+}
+
+const JPN_CITIZENS_COLLECTION = "jpn_citizens";
+
+async function verifyIdentityInFirebase(icNum: string) {
+  if (!icNum) return false;
+
+  const db = getDb();
+  const docRef = db.collection(JPN_CITIZENS_COLLECTION).doc(icNum);
+  const docSnapshot = await docRef.get();
+  if (docSnapshot.exists) {
+    return true;
+  }
+
+  const icQuery = await db
+    .collection(JPN_CITIZENS_COLLECTION)
+    .where("ic_number", "==", icNum)
+    .limit(1)
+    .get();
+
+  return !icQuery.empty;
 }
 
 export async function POST(req: Request) {
@@ -33,6 +78,24 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Missing required submission sections." },
         { status: 400 }
+      );
+    }
+
+    if (!customer.ic_num || !customer.full_name || !customer.dob) {
+      return NextResponse.json(
+        { error: "Customer IC number, full name, and date of birth are required." },
+        { status: 400 }
+      );
+    }
+
+    const isVerified = await verifyIdentityInFirebase(customer.ic_num);
+    if (!isVerified) {
+      return NextResponse.json(
+        {
+          error:
+            "eKYC verification failed: the provided IC number was not found in the government identity records.",
+        },
+        { status: 403 }
       );
     }
 

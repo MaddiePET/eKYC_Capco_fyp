@@ -52,7 +52,23 @@ export async function POST(req: Request) {
       }, { status: okayidResponse.status });
     }
 
-    return NextResponse.json(okayidResult, { status: 200 });
+    const fieldMaps =
+      (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+
+    const passportNo =
+      fieldMaps.find((field: any) => field.FieldType === 2)?.Field_Visual ||
+      fieldMaps.find((field: any) => field.FieldType === 2)?.Field_MRZ ||
+      "";
+
+    return NextResponse.json(
+      {
+        ...okayidResult,
+        extracted: {
+          passport_no: passportNo,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("OkayID route error:", message, error instanceof Error ? error.stack : "");
