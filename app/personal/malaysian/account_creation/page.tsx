@@ -158,7 +158,7 @@ if (
       user: {
         username,
         password,
-        status: "Active",
+        status: "Pending",
         img: profilePreview || null,
         sec_phrase:securityPhrase,
         branch: branchInfo.branch,

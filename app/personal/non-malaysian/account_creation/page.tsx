@@ -70,6 +70,7 @@ export default function PersonalNonMalaysianAccountCreation() {
     const savedInfo = JSON.parse(localStorage.getItem("nonMsianInfo") || "{}");
     const savedAddress = JSON.parse(localStorage.getItem("nonMsianAddress") || "{}");
     const savedApplication = JSON.parse(localStorage.getItem("nonMsianApplication") || "{}");
+    const branchInfo = JSON.parse(localStorage.getItem("branchInfo") || "{}");
 
     //Combine all saved page data into the structure expected by APO route
     const finalData = {
@@ -79,7 +80,6 @@ export default function PersonalNonMalaysianAccountCreation() {
       dob: savedInfo.dob,
 
       ph_no_1: savedPhone.ph_no_1,
-      ph_no_2: savedPhone.ph_no_2 || null,
       email: savedEmail.email,
 
       address: savedAddress.address,
@@ -92,16 +92,20 @@ export default function PersonalNonMalaysianAccountCreation() {
       user: {
         username,
         password,
-        status: "PENDING",
+        status: "Pending",
         img: profilePreview,
         sec_phrase: securityPhrase,
-        branch: savedApplication.preferredBranch,
+        branch: branchInfo.branch,
       },
 
       savings_account: savedApplication.savings_account,
     };
+    console.log(
+     "NON-MSIAN SUPPORTING DOCS BEFORE SUBMIT:",
+     savedApplication.non_msian_supporting_docs
+    );
 
-   // console.log("FINAL NON-MSIAN DATA:", finalData); // helps with debugging by showing final payload before sending to backend 
+   console.log("FINAL NON-MSIAN DATA:", finalData); // helps with debugging by showing final payload before sending to backend 
 
     //sends the complete non-msian application data to backend route for db insert
     const response = await fetch("/api/non_msian_savings_account", {

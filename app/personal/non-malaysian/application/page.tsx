@@ -196,8 +196,7 @@ const handleApplicationContinue = () => {
     // Prepare supporting document details for database insertion.
     non_msian_supporting_docs: documents.map((doc) => ({
       doc_name: doc.name,
-      doc_file:  null, //set to null first to test
-    //doc_file: doc.fileBase64 || null 
+      doc_file: doc.fileBase64 || null 
     })),
 
     preferredBranch,

@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import Label from "@/components/form/Label";
-
 type Step = "input" | "otp";
 
 export default function PersonalNonMalaysianPhone() {
@@ -66,7 +65,6 @@ const handleVerifyOtp = () => {
       "nonMsianPhone",
       JSON.stringify({
         ph_no_1: phoneNumber,
-        ph_no_2: null,
       })
     );
 
@@ -248,7 +246,6 @@ const handleVerifyOtp = () => {
                   />
                 ))}
               </div>
-
               <button 
                 type="button" 
                 onClick={handleVerifyOtp} 

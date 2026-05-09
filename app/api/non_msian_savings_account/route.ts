@@ -2,6 +2,7 @@ import fs from "fs";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import * as admin from "firebase-admin";
+import { hashPassword } from "@/hashpw";
 
 function loadFirebaseServiceAccount(project: 'jim' | 'jpn') {
   const envVar = project === 'jim' ? 'FIREBASE_JIM_SERVICE_ACCOUNT_PATH' : 'FIREBASE_JPN_SERVICE_ACCOUNT_PATH';
@@ -107,7 +108,6 @@ export async function POST(req: Request) {
       full_name,
       dob,
       ph_no_1,
-      ph_no_2,
       email,
       address,
       non_msian_details,
@@ -115,8 +115,6 @@ export async function POST(req: Request) {
       user,
       savings_account,
     } = body;
-
-    await client.query("BEGIN");
 
     // Check required sections before inserting into database
     if (!address) {
@@ -197,11 +195,10 @@ export async function POST(req: Request) {
         id_type,
         dob,
         ph_no_1,
-        ph_no_2,
         email,
         home_add
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING cust_id
       `,
       [
@@ -210,7 +207,6 @@ export async function POST(req: Request) {
         id_type || "Passport",
         dob,
         ph_no_1,
-        ph_no_2 || null,
         email,
         addId,
       ]
@@ -266,7 +262,9 @@ export async function POST(req: Request) {
         );
       }
     }
-    const plainPassword = user.password;
+
+    const rawPassword = user.password;
+    const hashedPassword = await hashPassword(rawPassword);
 
     // 6. Insert login/user profile details
     const userResult = await client.query(
@@ -287,7 +285,7 @@ export async function POST(req: Request) {
       [
         custId,
         user.username,
-        plainPassword,
+        hashedPassword,
         user.status || "PENDING",
         user.img || null,
         user.sec_phrase,
