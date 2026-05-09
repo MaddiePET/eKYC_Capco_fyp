@@ -18,12 +18,3 @@ export const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT) || 5432,
 });
-
-export async function hashPassword(password) {
-  if (!password || typeof password !== "string") {
-    throw new Error("Password is required");
-  }
-
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  return hashedPassword;
-}
