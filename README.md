@@ -48,6 +48,7 @@ Create two Firebase projects/services:
 - JPN Firestore
 
 Download the service account JSON files.
+Place the credential JSON files locally and configure the paths in `.env.local`.
 
 Example:
 
@@ -56,6 +57,7 @@ serviceAccountKey-JIM.json
 serviceAccountKey-JPN.json
 ```
 
+Contact the project owner for the credential files.
 ---
 
 ### 2. Configure Environment Variables
