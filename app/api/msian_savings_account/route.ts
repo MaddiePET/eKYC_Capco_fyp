@@ -109,18 +109,16 @@ export async function POST(req: Request) {
       `
       INSERT INTO banka."Address"
       (
-        add_type,
         add_1,
         add_2,
         postcode,
         state,
         country
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING add_id
       `,
       [
-        homeAddress.add_type || "Home",
         homeAddress.add_1,
         homeAddress.add_2,
         homeAddress.postcode,
@@ -141,18 +139,16 @@ export async function POST(req: Request) {
         `
         INSERT INTO banka."Address"
         (
-          add_type,
           add_1,
           add_2,
           postcode,
           state,
           country
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING add_id
         `,
         [
-          mailingAddress.add_type || "Mailing",
           mailingAddress.add_1,
           mailingAddress.add_2,
           mailingAddress.postcode,
