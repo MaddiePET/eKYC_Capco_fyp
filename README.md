@@ -145,3 +145,11 @@ npm run dev
 *.json
 .env.local
 ```
+This project uses multiple Firebase service integrations (JPN, SSM and JIM simulation databases) within a single Next.js application.
+
+### IMPORTANT:
+Do NOT run `npm install` inside subfolders such as:
+
+```text
+jim-db/
+jpn-db/
