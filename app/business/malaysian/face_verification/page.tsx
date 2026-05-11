@@ -144,10 +144,10 @@ export default function BusinessMalaysianFaceVerification() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image src="/images/logo/logo-light.svg" alt="Logo" width={40} height={40} className="block dark:invert-0 invert" />
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">DTCOB</h1>
-        </div>
+        </Link>
       </div>
 
       <div className="relative w-full max-w-md animate-in fade-in duration-500 z-10">
