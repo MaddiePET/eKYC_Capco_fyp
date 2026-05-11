@@ -3,12 +3,14 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { hashPassword } from "@/hashpw";
 import * as admin from "firebase-admin";
+export const runtime = "nodejs";
 
-function loadFirebaseServiceAccount() {
-  const jsonPath = process.env.FIREBASE_JPN_SERVICE_ACCOUNT_PATH;
+function loadFirebaseServiceAccount(project: 'jim' | 'jpn') {
+  const envVar = project === 'jpn' ? 'FIREBASE_JPN_SERVICE_ACCOUNT_PATH' : 'FIREBASE_JIM_SERVICE_ACCOUNT_PATH';
+  const jsonPath = process.env[envVar];
 
   if (!jsonPath) {
-    throw new Error("Missing FIREBASE_JPN_SERVICE_ACCOUNT_PATH environment variable");
+    throw new Error(`Missing ${envVar} environment variable`);
   }
 
   return JSON.parse(fs.readFileSync(jsonPath, "utf8"));
