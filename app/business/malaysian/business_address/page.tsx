@@ -218,7 +218,7 @@ export default function BusinessMalaysianBusinessAddress() {
           Back
         </button>
 
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -230,7 +230,7 @@ export default function BusinessMalaysianBusinessAddress() {
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
-        </div>
+        </Link>
       </div>
 
       <div className={`relative w-full z-10 animate-in fade-in duration-500 ${step === 3 ? "max-w-2xl" : "max-w-md"}`}>
