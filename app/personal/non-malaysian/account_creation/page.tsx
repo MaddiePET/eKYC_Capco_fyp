@@ -53,8 +53,7 @@ export default function PersonalNonMalaysianAccountCreation() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        const base64String = dataUrl.split(',')[1];
-        setProfilePreview(base64String);
+        setProfilePreview(dataUrl); 
       };
       reader.readAsDataURL(file);
     }
@@ -253,7 +252,6 @@ const handleNext = () => {
                         alt="Profile" 
                       />
 
-                      <img src={`data:${profileFile?.type};base64,${profilePreview}`} className="w-full h-full object-cover" alt="Profile" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
                       </div>
@@ -277,6 +275,7 @@ const handleNext = () => {
                       <span className="text-[10px] text-gray-400 uppercase font-bold group-hover:text-[#F0CA8E] transition-colors">Upload</span>
                     </div>
                   )}
+
                   <input 
                     type="file" 
                     ref={fileInputRef} 
@@ -292,11 +291,7 @@ const handleNext = () => {
                       key={idx}
                       type="button"
                       onClick={() => setProfilePreview(url)}
-                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${
-                        profilePreview === url 
-                          ? 'border-[#3D405B] scale-110' 
-                          : 'border-transparent hover:border-gray-300'
-                      }`}
+                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${profilePreview === url ? 'border-[#3D405B] scale-110' : 'border-transparent hover:border-gray-300'}`}
                     >
                       <img 
                         src={url} 

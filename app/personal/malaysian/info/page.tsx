@@ -19,7 +19,7 @@ export default function PersonalMalaysianInfo() {
     fullName: "",
     nric: "",
     dobDay: "",
-    dobMonth: "January",
+    dobMonth: "",
     dobYear: "",
     phoneCode: "+60",
     phoneNumber: "",
