@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianInfo() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const journeyId = searchParams.get("journeyId") || "";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -229,7 +230,11 @@ export default function PersonalMalaysianInfo() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
-          onClick={() => router.push("/personal/malaysian/email")}
+          onClick={() => 
+            router.push(
+              `/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`
+            )
+          }
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />

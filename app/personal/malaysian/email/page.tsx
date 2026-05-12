@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 type Step = "input" | "otp";
@@ -21,6 +21,12 @@ export default function PersonalMalaysianEmail() {
   
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const searchParams = useSearchParams();
+    const journeyId =
+      searchParams.get("journeyId") ||
+      (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+      "";
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -37,7 +43,9 @@ export default function PersonalMalaysianEmail() {
 
   const handleGlobalBack = () => {
     if (step === "otp") setStep("input");
-    else router.push("/personal/malaysian/phone");
+    else router.push(
+      `/personal/malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
+    );
   };
 
  const handleSendOtp = async (e?: React.FormEvent) => {
@@ -47,6 +55,12 @@ export default function PersonalMalaysianEmail() {
   // Start loading state and clear previous messages.
   setIsLoading(true);
   setMessage("");
+
+  if (!journeyId) {
+    setMessage("Journey ID missing. Please restart MyKad verification.");
+    setIsLoading(false);
+    return;
+  }
 
   try {
     // Call the backend API route that generates and sends the OTP email.
@@ -63,6 +77,7 @@ export default function PersonalMalaysianEmail() {
     // Show an error message if the OTP email fails to send.
     if (!res.ok) {
       setMessage(data.error || "Failed to send email OTP.");
+      setIsLoading(false);
       return;
     }
 
@@ -110,6 +125,7 @@ export default function PersonalMalaysianEmail() {
     // Show an error message if the OTP is incorrect, expired, or missing.
     if (!res.ok) {
       setMessage(data.error || "Invalid OTP. Please try again.");
+      setIsLoading(false);
       return;
     }
 
@@ -122,8 +138,32 @@ export default function PersonalMalaysianEmail() {
       })
     );
 
+    // GET IC NUMBER FROM PREVIOUS STEP TO PASS TO NEXT PAGE
+    const statusRes = await fetch(
+      `/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
+    );
+
+    const statusData = await statusRes.json();
+
+    console.log("Status API response:", statusData);
+
+    const icNo =
+      statusData?.id_num ||
+      statusData?.data?.id_num ||
+      statusData?.identity?.id_num ||
+      "";
+
+    if (!icNo) {
+      console.error("Missing IC number from journey status:", statusData);
+      setMessage("IC number missing. Please restart verification.");
+      setIsLoading(false);
+      return;
+    }
+
     // Move to the personal information page only after successful verification.
-    router.push("/personal/malaysian/info");
+    router.push(
+      `/personal/malaysian/info?id_type=ic&id_num=${encodeURIComponent(icNo)}&journeyId=${encodeURIComponent(journeyId)}`
+    );
   } catch (error) {
     // Log the technical error for debugging and show a user-friendly message.
     console.error("Verify OTP error:", error);
