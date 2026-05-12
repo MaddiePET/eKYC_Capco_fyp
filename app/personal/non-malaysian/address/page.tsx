@@ -3,7 +3,7 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 interface AddressFields {
@@ -149,6 +149,12 @@ const AddressSection = ({
 export default function PersonalNonMalaysianAddress() {
   const router = useRouter();
   const [mounted, setMounted] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  
+    const journeyId =
+      searchParams.get("journeyId") ||
+      (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+      "";
 
   const [addressData, setAddressData] = useState<AddressState>({
     permanentAddress: {
@@ -196,9 +202,7 @@ const updateField = (
   }));
 };
 
-// Saves the residential and mailing address before moving to the application details page.
-const handleNavigation = () => {
-  // Convert frontend address field names into backend database field names.
+const saveAddressToLocalStorage = () => {
   const addressInfo = {
     address: {
       add_type: "Home",
@@ -221,9 +225,15 @@ const handleNavigation = () => {
     },
   };
 
-  // Store address data temporarily for the final backend submission.
-  localStorage.setItem("nonMsianAddress", JSON.stringify(addressInfo));
+  localStorage.setItem(
+    "nonMsianAddress",
+    JSON.stringify(addressInfo)
+  );
+};
 
+// Saves the residential and mailing address before moving to the application details page.
+const handleNavigation = () => {
+  saveAddressToLocalStorage();
   router.push("/personal/non-malaysian/application");
 };
 
@@ -267,7 +277,13 @@ const handleNavigation = () => {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
-          onClick={() => router.push("/personal/non-malaysian/info")}
+          onClick={() => {
+            saveAddressToLocalStorage();
+
+            router.push(
+              `/personal/non-malaysian/info?journeyId=${encodeURIComponent(journeyId)}`
+            );
+          }}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />

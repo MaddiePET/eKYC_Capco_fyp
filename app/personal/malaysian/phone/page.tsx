@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import Label from "@/components/form/Label";
 
@@ -22,6 +22,9 @@ export default function PersonalMalaysianPhone() {
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const searchParams = useSearchParams();
+  const journeyId = searchParams.get("journeyId") || "";
+  
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timer > 0) {
@@ -89,7 +92,7 @@ export default function PersonalMalaysianPhone() {
       })
     );
 
-    router.push("/personal/malaysian/email");
+    router.push(`/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
   } catch (error: any) {
     console.error("Phone save error:", error);
     setSubmitError(error.message || "Failed to save phone number.");

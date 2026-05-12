@@ -11,16 +11,24 @@ export default function PersonalMalaysianMyKadQRCode() {
   const router = useRouter();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
+  const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
 
   useEffect(() => {
-    const jId = localStorage.getItem("journeyId") || `TEST-${Date.now()}`;
+    const jId = localStorage.getItem("journeyId") || "";
+
+    if (!jId) {
+      console.error("Journey ID missing");
+      return;
+    }
 
     if (!localStorage.getItem("journeyId")) {
       localStorage.setItem("journeyId", jId);
     }
+
+    setJourneyId(jId);
 
     const origin = window.location.origin;
     const targetUrl = `${origin}/personal/malaysian/mykad/mobile?journeyId=${jId}`;
@@ -55,7 +63,9 @@ export default function PersonalMalaysianMyKadQRCode() {
 
   const handleNext = () => {
     if (isVerified) {
-      router.push("/personal/malaysian/face_verification");
+      router.push(
+        `/personal/malaysian/face_verification?journeyId=${encodeURIComponent(journeyId)}`
+      );
     }
   };
 

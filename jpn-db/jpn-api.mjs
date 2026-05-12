@@ -69,7 +69,7 @@ function formatJPNFormData(data) {
     title: getTitleFromSex(data.sex),
     full_name: data.full_name,
     date_of_birth: data.date_of_birth,
-    phone_registered: data.phone_registered,
+    phone_number: data.phone_registered,
     address_line_1: data.add1,
     address_line_2: data.add2,
     postcode: data.postcode,

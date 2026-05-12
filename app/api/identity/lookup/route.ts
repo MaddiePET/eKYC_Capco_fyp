@@ -7,7 +7,11 @@ async function lookupIdentity(idType: string, idNum: string) {
 
   const normalizedIdType = idType.toLowerCase();
 
-  if (normalizedIdType === "ic") {
+  if (
+    normalizedIdType === "ic" || 
+    normalizedIdType === "mykad" || 
+    normalizedIdType === "nric"
+  ) {
     return await lookupJPNIdentity(idNum);
   }
 

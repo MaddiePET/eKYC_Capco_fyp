@@ -49,6 +49,17 @@ function PersonalMalaysianMobileMyKadCapture() {
     }
   }, [journeyId]);
 
+  function extractMyKadNumber(okayIdResult: any) {
+    const fields =
+      okayIdResult?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+
+    const idField = fields.find(
+      (field: any) => field.FieldType === 2 || field.wFieldType === 2
+    );
+
+    return idField?.Field_Visual || "";
+  }
+
   const handleVerification = useCallback(async (fImg: string, bImg: string) => {
     if (!journeyId || isLoading) return;
 
@@ -97,10 +108,23 @@ function PersonalMalaysianMobileMyKadCapture() {
         throw new Error(backDocData.message || "not meeting quality standards");
       }
 
+      const icNo = extractMyKadNumber(frontIdData);
+
+      console.log("Extracted IC number:", icNo);
+
+      if (!icNo) {
+        throw new Error("IC number could not be extracted");
+      }
+
       await fetch("/api/ekyc/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ journeyId, status: "verified" })
+        body: JSON.stringify({
+          journeyId,
+          status: "verified",
+          id_type: "ic",
+          id_num: icNo,
+        }),
       });
 
       setSuccess(true);
@@ -152,7 +176,7 @@ function PersonalMalaysianMobileMyKadCapture() {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !journeyId) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {

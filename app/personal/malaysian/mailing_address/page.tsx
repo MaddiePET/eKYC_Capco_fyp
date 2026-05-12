@@ -4,20 +4,35 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianMailingAddress() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const journeyId = searchParams.get("journeyId") || "";
+
+  const journeyId =
+    searchParams.get("journeyId") ||
+    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+    "";
+
+  const idType =
+    searchParams.get("id_type") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
+    "ic";
+
+  const idNum =
+    searchParams.get("id_num") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
+    "";
 
   const [mounted, setMounted] = useState(false);
   const [mailingData, setMailingData] = useState({
-    permanentAddress: "Jalan SS15/1H, 40000 Subang Jaya, Selangor, Malaysia",
-    streetAddress: "Jalan SS15/1H",
-    postal: "40000",
-    city: "Subang Jaya",
-    state: "Selangor",
+    permanentAddress: "",
+    add1: "",
+    add2: "",
+    postal: "",
+    state: "",
     country: "Malaysia",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +40,29 @@ export default function PersonalMalaysianMailingAddress() {
 
   useEffect(() => {
     setMounted(true);
+
+    const savedHomeAddress = JSON.parse(
+      localStorage.getItem("homeAddress") || "{}"
+    );
+
+    const permanentAddress = [
+      savedHomeAddress.add_1,
+      savedHomeAddress.add_2,
+      savedHomeAddress.postcode,
+      savedHomeAddress.state,
+      savedHomeAddress.country,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    setMailingData({
+      permanentAddress,
+      add1: savedHomeAddress.add_1 || "",
+      add2: savedHomeAddress.add_2 || "",
+      postal: savedHomeAddress.postcode || "",
+      state: savedHomeAddress.state || "",
+      country: savedHomeAddress.country || "Malaysia",
+    });
   }, []);
 
   if (!mounted) return null;
@@ -35,16 +73,16 @@ const handleNavigation = async () => {
     setSubmitError(null);
 
     localStorage.setItem(
-      "mailingAddress",
-      JSON.stringify({
-        add_type: "Mailing",
-        add_1: mailingData.streetAddress,
-        add_2: mailingData.city,
-        postcode: mailingData.postal,
-        state: mailingData.state,
-        country: mailingData.country,
-      })
-    );
+    "mailingAddress",
+    JSON.stringify({
+      add_type: "Mailing",
+      add_1: mailingData.add1,
+      add_2: mailingData.add2,
+      postcode: mailingData.postal,
+      state: mailingData.state,
+      country: mailingData.country,
+    })
+  );
 
     router.push("/personal/malaysian/application");
   } catch (error: any) {
@@ -55,9 +93,9 @@ const handleNavigation = async () => {
   }
 };
   const isFormValid = 
-    mailingData.streetAddress.trim() !== "" &&
+    mailingData.add1.trim() !== "" &&
+    mailingData.add2.trim() !== "" &&
     mailingData.postal.trim() !== "" &&
-    mailingData.city.trim() !== "" &&
     mailingData.state.trim() !== "" &&
     mailingData.country.trim() !== "";
 
@@ -99,7 +137,11 @@ const handleNavigation = async () => {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
-          onClick={() => router.push(`/personal/malaysian/info?journeyId=${encodeURIComponent(journeyId)}`)}
+          onClick={() =>
+            router.push(
+              `/personal/malaysian/info?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`
+            )
+          }
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -147,14 +189,26 @@ const handleNavigation = async () => {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                Street Address<span className="text-red-500">*</span>
+                Address 1<span className="text-red-500">*</span>
               </label>
 
               <input
                 type="text"
                 className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                value={mailingData.streetAddress}
-                onChange={(e) => setMailingData({ ...mailingData, streetAddress: e.target.value })}
+                value={mailingData.add1}
+                onChange={(e) => setMailingData({ ...mailingData, add1: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                Address 2 <span className="text-red-500">*</span>
+              </label>
+              
+              <input
+                type="text"
+                className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                value={mailingData.add2}
+                onChange={(e) => setMailingData({ ...mailingData, add2: e.target.value })}
               />
             </div>
             
@@ -174,21 +228,6 @@ const handleNavigation = async () => {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  City <span className="text-red-500">*</span>
-                </label>
-                
-                <input
-                  type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                  value={mailingData.city}
-                  onChange={(e) => setMailingData({ ...mailingData, city: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   State <span className="text-red-500">*</span>
                 </label>
                 
@@ -199,21 +238,20 @@ const handleNavigation = async () => {
                   onChange={(e) => setMailingData({ ...mailingData, state: e.target.value })}
                 />
               </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                
-                <input
-                  type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                  value={mailingData.country}
-                  onChange={(e) => setMailingData({ ...mailingData, country: e.target.value })}
-                />
-              </div>
             </div>
           </div>
+            <div>
+              <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                Country <span className="text-red-500">*</span>
+              </label>
+              
+              <input
+                type="text"
+                className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                value={mailingData.country}
+                onChange={(e) => setMailingData({ ...mailingData, add2: e.target.value })}
+              />
+            </div>
 
           <div className="space-y-6">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
@@ -221,7 +259,7 @@ const handleNavigation = async () => {
             </p>
 
             <button 
-              onClick={() => router.push("/personal/malaysian/application")} 
+              onClick={handleNavigation} 
               disabled={!isFormValid}
               className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 active:scale-[0.98] ${
                 isFormValid 

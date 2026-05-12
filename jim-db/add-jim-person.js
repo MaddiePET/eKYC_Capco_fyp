@@ -16,16 +16,16 @@ const db = admin.firestore();
 
 // The person data you provided
 const personData = {
-  "passport_no": "MF676842",
-  "full_name": "MYAT PAN EI THU",
-  "date_of_birth": "1998-10-22",
+  "passport_no": "X3852717",
+  "full_name": "GABRIELLA TIO PARDEDE",
+  "date_of_birth": "2004-10-12",
   "sex": "F",
-  "exp_date": "2027-02-17",
-  "nationality": "Myanmar",
-  "country": "MMR",
-  "issue_date": "2022-02-18",
-  "issue_office": "YANGON",
-  "passport_photo": "\\xffd8ffe000104a464946",
+  "exp_date": "2030-05-06",
+  "nationality": "Indonesia",
+  "country": "IDN",
+  "issue_date": "2025-05-06",
+  "issue_office": "KBRI KUALA LUMPUR",
+  "passport_photo": "\\xcwqe23094833hisfd",
   "visa_type": "Student",
   "photo_pattern": "DEF123"
 };
