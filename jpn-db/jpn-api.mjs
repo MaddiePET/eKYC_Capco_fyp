@@ -1,15 +1,11 @@
 import * as admin from 'firebase-admin';
 import fs from 'fs';
 import path from "path";
-import { fileURLToPath } from "url";
 import crypto from 'crypto';
 
 function generateHashID(identifier) {
   return crypto.createHash('sha256').update(identifier).digest('hex');
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 let jpnApp;
 let jpnDb;
@@ -23,10 +19,9 @@ function initializeJPN() {
     if (existingApp) {
       jpnApp = existingApp;
     } else {
-      const serviceAccountPath = path.join(
-        __dirname,
-        "serviceAccountKey-JPN.json"
-      );
+      const serviceAccountPath =
+        process.env.FIREBASE_JPN_SERVICE_ACCOUNT_PATH ||
+        path.join(process.cwd(), "jpn-db", "serviceAccountKey-JPN.json");
 
       const serviceAccount = JSON.parse(
         fs.readFileSync(serviceAccountPath, "utf8")

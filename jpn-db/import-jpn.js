@@ -3,7 +3,17 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const serviceAccount = require('./serviceAccountKey-JPN.json');
+const path = require('path');
+
+const keyPath = path.join(
+  process.cwd(),
+  'jpn-db',
+  'serviceAccountKey-JPN.json'
+);
+
+const serviceAccount = JSON.parse(
+  fs.readFileSync(keyPath, 'utf8')
+);
 
 function generateHashID(identifier) {
   return crypto.createHash('sha256').update(identifier).digest('hex');
