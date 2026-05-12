@@ -20,13 +20,28 @@ let db: admin.firestore.Firestore | null = null;
 
 function getDb() {
   if (!db) {
+    const app =
+      admin.apps.length > 0
+        ? admin.app()
+        : admin.initializeApp({
+            credential: admin.credential.cert(loadFirebaseServiceAccount("jpn")),
+          });
+
+    db = app.firestore();
+  }
+
+  return db;
+}
+
+/*function getDb() {
+  if (!db) {
     admin.initializeApp({
-      credential: admin.credential.cert(loadFirebaseServiceAccount()),
+      credential: admin.credential.cert(loadFirebaseServiceAccount("jpn")),
     });
     db = admin.firestore();
   }
   return db;
-}
+}*/
 
 // Generates a random 16 digit savings account number
 function generateAccountNumber() {
@@ -84,14 +99,14 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!customer.ic_num || !customer.full_name || !customer.dob) {
+    if (!customer.id_num || !customer.full_name || !customer.dob) {
       return NextResponse.json(
         { error: "Customer IC number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
 
-    const isVerified = await verifyIdentityInFirebase(customer.ic_num);
+    const isVerified = await verifyIdentityInFirebase(customer.id_num);
     if (!isVerified) {
       return NextResponse.json(
         {
@@ -172,7 +187,7 @@ export async function POST(req: Request) {
         full_name,
         id_type,
         dob,
-        ph_no_1,
+        ph_no,
         email,
         home_add
       )
@@ -184,7 +199,7 @@ export async function POST(req: Request) {
         customer.full_name,
         customer.id_type || "IC",
         customer.dob,
-        customer.ph_no_1,
+        customer.ph_no,
         customer.email,
         homeAddId,
       ]

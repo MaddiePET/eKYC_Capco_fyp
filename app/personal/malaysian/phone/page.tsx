@@ -88,7 +88,7 @@ export default function PersonalMalaysianPhone() {
     localStorage.setItem(
       "phoneVerification",
       JSON.stringify({
-        ph_no_1: `+60${phoneNumber}`,
+        ph_no: `+60${phoneNumber}`,
       })
     );
 
