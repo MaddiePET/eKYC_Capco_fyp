@@ -35,7 +35,14 @@ async function uploadJPN() {
       }
       const hashedID = generateHashID(citizen.ic_number);
       const docRef = db.collection('jpn_citizens').doc(hashedID);
-      batch.set(docRef, citizen);
+      batch.set(
+        docRef,
+        {
+          ...citizen,
+          sex: citizen.sex || "Unknown",
+        },
+        { merge: true }
+      );
     });
 
     // Upload Face Templates with Deterministic Hashed IDs
