@@ -18,6 +18,7 @@ export default function BusinessMalaysianEmail() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [message, setMessage] = useState("");
 
   const { formData, setFormData } = useFormData();
 
@@ -53,35 +54,98 @@ export default function BusinessMalaysianEmail() {
     else router.push("/business/malaysian/phone");
   };
 
-  const handleSendOtp = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setIsLoading(true);
+  const handleSendOtp = async (e?: React.FormEvent) => {
+  // Prevent the form from refreshing the page.
+  if (e) e.preventDefault();
 
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep("otp");
-      setTimer(60);
-    }, 800);
-  };
+  // Start loading state and clear previous messages.
+  setIsLoading(true);
+  setMessage("");
 
-  const handleVerifyOtp = () => {
-    if (!email.trim()) return;
+  try {
+    // Call the shared email OTP backend route to generate and send the OTP.
+    const res = await fetch("/api/otp/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: email.trim() }),
+    });
 
-    setIsLoading(true);
+    const data = await res.json();
 
-    setTimeout(() => {
-      setFormData((prev: any) => ({
-        ...prev,
-        contactInfo: {
-          ...prev?.contactInfo,
-          email: email.trim(),
-        },
-      }));
+    // Stop the flow if the OTP email fails to send.
+    if (!res.ok) {
+      setMessage(data.error || "Failed to send email OTP.");
+      return;
+    }
 
-      setIsLoading(false);
-      router.push("/business/malaysian/info");
-    }, 800);
-  };
+    // Move to the OTP screen only after the email is sent successfully.
+    setStep("otp");
+    setTimer(60);
+    setMessage("OTP sent successfully. Please check your email.");
+  } catch (error) {
+    // Log the technical error for debugging and show a user-friendly message.
+    console.error("Send business email OTP error:", error);
+    setMessage("Something went wrong while sending the OTP.");
+  } finally {
+    // Stop loading state whether the request succeeds or fails.
+    setIsLoading(false);
+  }
+};
+  const handleVerifyOtp = async () => {
+  // Stop if the email field is empty.
+  if (!email.trim()) return;
+
+  // Combine the 6 separate OTP boxes into one OTP string.
+  const enteredOtp = otp.join("");
+
+  // Start loading state and clear previous messages.
+  setIsLoading(true);
+  setMessage("");
+
+  try {
+    // Call the shared email OTP backend route to verify the entered OTP.
+    const res = await fetch("/api/otp/email/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email.trim(),
+        otp: enteredOtp,
+      }),
+    });
+
+    const data = await res.json();
+
+    // Stop the flow if the OTP is incorrect, expired, or missing.
+    if (!res.ok) {
+      setMessage(data.error || "Invalid OTP. Please try again.");
+      return;
+    }
+
+    // Save the verified business email into the shared form context.
+    setFormData((prev: any) => ({
+      ...prev,
+      contactInfo: {
+        ...prev?.contactInfo,
+        email: email.trim(),
+        emailVerified: true,
+      },
+    }));
+
+    // Move to the next business Malaysian step only after successful verification.
+    router.push("/business/malaysian/info");
+  } catch (error) {
+    // Log the technical error for debugging and show a user-friendly message.
+    console.error("Verify business email OTP error:", error);
+    setMessage("Something went wrong while verifying the OTP.");
+  } finally {
+    // Stop loading state whether verification succeeds or fails.
+    setIsLoading(false);
+  }
+};
 
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
@@ -208,6 +272,12 @@ export default function BusinessMalaysianEmail() {
               >
                 {isLoading ? "Processing..." : "Continue"}
               </button>
+
+              {message && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                  {message}
+                 </div>
+                )}
             </form>
           </div>
         )}
@@ -240,6 +310,12 @@ export default function BusinessMalaysianEmail() {
                   />
                 ))}
               </div>
+
+              {message && (
+               <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                {message}
+              </div>
+              )}
 
               <button
                 type="button"
