@@ -144,7 +144,7 @@ export default function PersonalMalaysianPhone() {
           Back
         </button>
 
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo"
@@ -156,7 +156,7 @@ export default function PersonalMalaysianPhone() {
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
-        </div>
+        </Link>
       </div>
 
       <div className="relative w-full max-w-md z-10">
