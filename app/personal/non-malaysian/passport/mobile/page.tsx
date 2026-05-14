@@ -46,6 +46,22 @@ function PersonalNonMalaysianMobilePassportCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
+  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image(); 
+      img.src = `data:image/jpeg;base64,${base64}`;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(800 / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
+      };
+    });
+  };
+
   const handleCapture = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -121,7 +137,8 @@ function PersonalNonMalaysianMobilePassportCapture() {
         throw new Error("not meeting quality standards");
       }
 
-      localStorage.setItem("ekyc_id_image", base64String);
+      const compressedBase64 = await compressImage(base64String); 
+      localStorage.setItem("ekyc_id_image", compressedBase64);
       
       await fetch("/api/ekyc/status", {
         method: "POST",

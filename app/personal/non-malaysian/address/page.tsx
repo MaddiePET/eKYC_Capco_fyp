@@ -45,8 +45,8 @@ const AddressSection = ({
   disabled = false,
   headerRight,
 }: AddressSectionProps) => {
-  const inputBaseClasses = `w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 disabled:opacity-60 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800/80 dark:disabled:border-gray-700`;
-
+  const inputBaseClasses = `w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 disabled:opacity-60 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800/80 dark:disabled:border-gray-700 appearance-none`;
+  
   return (
     <div className="flex-1">
       <div className="flex justify-between items-end mb-6 border-b border-gray-200 dark:border-gray-800 pb-2">
@@ -101,7 +101,7 @@ const AddressSection = ({
               type="text"
               maxLength={5}
               className={`${inputBaseClasses} appearance-none`}
-              placeholder="e.g. 47610"
+              placeholder="Enter your postal code"
               value={addressData[type].postal}
               disabled={disabled}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -118,7 +118,7 @@ const AddressSection = ({
             <input
               type="text"
               className={`${inputBaseClasses} appearance-none`}
-              placeholder="e.g. Subang Jaya"
+              placeholder="Enter your city"
               value={addressData[type].city}
               disabled={disabled}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -137,7 +137,7 @@ const AddressSection = ({
             <input
               type="text"
               className={`${inputBaseClasses} appearance-none`}
-              placeholder="e.g. Selangor"
+              placeholder="Enter your state"
               value={addressData[type].state}
               disabled={disabled}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -151,31 +151,44 @@ const AddressSection = ({
               Country <span className="text-red-500">*</span>
             </label>
 
-            <select
-              className={`${inputBaseClasses} ${
-                !addressData[type].country
-                  ? "!text-gray-400 dark:!text-gray-400"
-                  : ""
-              }`}
-              value={addressData[type].country}
-              disabled={disabled}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                updateField(type, "country", e.target.value)
-              }
-            >
-              <option value="" disabled className="text-gray-400 dark:text-gray-400">
-                Select Country
-              </option>
-              {COUNTRIES.map((country) => (
-                <option 
-                  key={country} 
-                  value={country} 
-                  className="text-gray-800 dark:text-white"
-                >
-                  {country}
+            <div className="relative">
+              <select
+                className={`${inputBaseClasses} ${
+                  !addressData[type].country ? "!text-gray-400 dark:!text-gray-400" : ""
+                }`}
+                value={addressData[type].country}
+                disabled={disabled}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                  updateField(type, "country", e.target.value)
+                }
+              >
+                <option value="" disabled className="text-gray-400 dark:text-gray-400">
+                  Select Country
                 </option>
-              ))}
-            </select>
+                
+                {COUNTRIES.map((country) => (
+                  <option key={country} value={country} className="text-gray-800 dark:text-white">
+                    {country}
+                  </option>
+                ))}
+              </select>
+
+              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>

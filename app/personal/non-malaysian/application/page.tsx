@@ -49,14 +49,21 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
     <div className="relative">
       <select 
         required={required} 
-        className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none" 
+        className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none ${
+          !value ? "!text-gray-400" : ""
+        }`} 
         value={value} 
         onChange={onChange}
       >
-        <option value="">
+        <option value="" disabled className="text-gray-400">
           Please Select
         </option>
-        {options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value} className="text-gray-800 dark:text-white">
+            {opt.label}
+          </option>
+        ))}
       </select>
 
       <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -98,6 +105,13 @@ export default function PersonalNonMalaysianApplication() {
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [preferredBranch, setPreferredBranch] = useState("");
+
+  const isFormValid = 
+  formData.occupation !== "" &&
+  formData.incomeRange !== "" &&
+  formData.employmentType !== "" &&
+  formData.sourceOfIncome !== "" &&
+  formData.isOfAge === true;
 
   useEffect(() => {
     setMounted(true);
@@ -376,7 +390,7 @@ export default function PersonalNonMalaysianApplication() {
 
                   <button 
                     type="submit" 
-                    disabled={!formData.isOfAge} 
+                    disabled={!isFormValid} 
                     className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
                   >
                     Continue
@@ -442,7 +456,10 @@ export default function PersonalNonMalaysianApplication() {
                       placeholder="e.g. Working Permit, Visa, Letter of Confirmation" 
                       className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       value={doc.name} 
-                      onChange={(e) => updateDoc(doc.id, { name: e.target.value })} 
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/[^a-zA-Z0-9_ ]/g, "");
+                        updateDoc(doc.id, { name: sanitized });
+                      }}
                     />
                   </div>
 
