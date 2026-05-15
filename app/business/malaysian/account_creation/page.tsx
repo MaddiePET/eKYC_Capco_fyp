@@ -17,6 +17,7 @@ export default function BusinessMalaysianAccountCreation() {
   
   const [step, setStep] = useState<Step>("profile");
   const [mounted, setMounted] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -39,13 +40,22 @@ export default function BusinessMalaysianAccountCreation() {
     "https://api.dicebear.com/7.x/initials/svg?seed=DT&backgroundColor=0ea5e9",
   ];
 
-  const phraseOptions: string[] = ["see you", "dear rich", "ash trevino"];
+  const phraseOptions: string[] = ["Whale Hello There!", "Sofa So Good..", "Donut Worry Be Happy!"];
+  const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(password);
+  const score = (password.length >= 8 ? 1 : 0) + (/[0-9]/.test(password) ? 1 : 0) + (/[A-Z]/.test(password) ? 1 : 0) + (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
   const getPasswordStrength = (): string => {
     if (password.length === 0) return "";
-    if (password.length < 6) return "Weak";
-    if (password.length < 10) return "Medium";
-    if (password.length < 14) return "Strong";
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1) return "Weak";
+    if (score === 2) return "Medium";
+    if (score === 3) return "Strong";
     return "Very Strong";
   };
 
@@ -154,7 +164,10 @@ export default function BusinessMalaysianAccountCreation() {
           Back
         </button>
 
-        <Link href="/" className="flex items-center gap-2">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2"
+        >
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -239,7 +252,11 @@ export default function BusinessMalaysianAccountCreation() {
                       key={idx}
                       type="button"
                       onClick={() => setProfilePreview(url)}
-                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${profilePreview === url ? 'border-[#3D405B] scale-110' : 'border-transparent hover:border-gray-300'}`}
+                      className={`w-10 h-10 rounded-full border-2 transition-all overflow-hidden ${
+                        profilePreview === url 
+                          ? 'border-[#3D405B] scale-110' 
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
                     >
                       <img 
                         src={url} 
@@ -262,16 +279,19 @@ export default function BusinessMalaysianAccountCreation() {
 
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  placeholder="e.g. dearrich"
+                  placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
+                    setUsername(sanitized);
+                  }}
                 />
               </div>
 
               <button 
                 type="button" 
                 onClick={handleNext} 
-                disabled={!username || !profilePreview} 
+                disabled={!username || username.length < 5 || !profilePreview} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
               >
                 Continue
@@ -300,9 +320,12 @@ export default function BusinessMalaysianAccountCreation() {
 
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  placeholder="e.g. see you rich rich dear"
+                  placeholder="Enter your security phrase"
                   value={securityPhrase}
-                  onChange={(e) => setSecurityPhrase(e.target.value)}
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/[^a-zA-Z!,.\s]/g, "");
+                    setSecurityPhrase(sanitized);
+                  }}
                 />
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -341,23 +364,38 @@ export default function BusinessMalaysianAccountCreation() {
                     {showPassword ? <EyeIcon className="w-5 h-5" /> : <EyeCloseIcon className="w-5 h-5" />}
                   </button>
                 </div>
+
+                {password.length > 0 && !isPasswordValid && (
+                  <div className="mt-2 text-[10px] space-y-1 animate-in slide-in-from-top-1 fade-in duration-300">
+                    <p className={password.length >= 8 ? "text-green-500" : "text-gray-400"}>
+                      {password.length >= 8 ? "✓" : "○"} At least 8 characters
+                    </p>
+                    <p className={/[0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[0-9]/.test(password) ? "✓" : "○"} At least one number
+                    </p>
+                    <p className={/[A-Z]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[A-Z]/.test(password) ? "✓" : "○"} At least one capital letter
+                    </p>
+                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} At least one special character
+                    </p>
+                  </div>
+                )}
                 
                 <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full mt-3 overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-500 ${
+                  <div className={`h-full transition-all duration-500 ${
                       password.length === 0 ? 'w-0' :
-                      password.length < 6 ? 'w-1/4 bg-red-500' :
-                      password.length < 10 ? 'w-2/4 bg-yellow-500' :
-                      password.length < 14 ? 'w-3/4 bg-blue-400' : 'w-full bg-green-500'
+                      score <= 1 ? 'w-1/4 bg-red-500' :
+                      score === 2 ? 'w-2/4 bg-yellow-500' :
+                      score === 3 ? 'w-3/4 bg-blue-400' : 'w-full bg-green-500'
                     }`} 
                   />
                 </div>
 
                 <p className={`text-[10px] mt-1 italic font-bold uppercase transition-colors ${
-                  password.length === 0 ? 'text-gray-400' :
-                  password.length < 6 ? 'text-red-500' :
-                  password.length < 10 ? 'text-yellow-600' :
-                  password.length < 14 ? 'text-blue-400' : 'text-green-500'
+                  score <= 1 ? 'text-red-500' :
+                  score === 2 ? 'text-yellow-600' :
+                  score === 3 ? 'text-blue-400' : 'text-green-500'
                 }`}>
                   {getPasswordStrength()}
                 </p>
@@ -418,7 +456,7 @@ export default function BusinessMalaysianAccountCreation() {
             </p>
 
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
-              personalemail@example.com
+              {userEmail}
             </p>
             
             <div className="mb-10 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">

@@ -201,7 +201,7 @@ export default function PersonalMalaysianMailingAddress() {
               <input
                 type="text"
                 className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                placeholder="House no, Building name"
+                placeholder="Enter your house number, building name"
                 value={mailingData.add1}
                 onChange={(e) => 
                   setMailingData({ 
@@ -220,7 +220,7 @@ export default function PersonalMalaysianMailingAddress() {
               <input
                 type="text"
                 className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                placeholder="Street name, Area"
+                placeholder="Enter your street name, area"
                 value={mailingData.add2}
                 onChange={(e) => 
                   setMailingData({ 
@@ -269,18 +269,28 @@ export default function PersonalMalaysianMailingAddress() {
 
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-              Country <span className="text-red-500">*</span>
+              Country<span className="text-red-500">*</span>
             </label>
-              
-            <input
-              type="text"
-              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-              placeholder="Enter your country"
-              value={mailingData.country}
-              onChange={(e) => setMailingData({ 
-                ...mailingData, 
-                country: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
-            />
+
+            <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                {mailingData.country}
+              </span>
+
+              <svg 
+                className="w-4 h-4 text-gray-400 ml-auto" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                />
+              </svg>
+            </div>
           </div>
 
           <div className="space-y-6">

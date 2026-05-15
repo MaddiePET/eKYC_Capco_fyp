@@ -24,8 +24,8 @@ export default function PersonalMalaysianInfo() {
     phoneCode: "+60",
     phoneNumber: "",
     add1: "",
-    postal: "",
     add2: "",
+    postal: "",
     state: "",
     country: "Malaysia",
   });
@@ -75,8 +75,8 @@ export default function PersonalMalaysianInfo() {
       phoneCode: "+60",
       phoneNumber: identity.ph_no_1 || identity.phone_number || identity.phoneNumber || "",
       add1: identity.add1 || identity.address_line_1 || identity.address || identity.home_address || "",
-      postal: identity.postcode || identity.postal_code || identity.postal || "",
       add2: identity.add2 || identity.address_line_2 || "",
+      postal: identity.postcode || identity.postal_code || identity.postal || "",
       state: identity.state || "",
       country: identity.country || "Malaysia",
     };
@@ -314,9 +314,8 @@ export default function PersonalMalaysianInfo() {
                 <input 
                   type="text" 
                   readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={formData.fullName} 
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} 
                 />
               </div>
 
@@ -328,9 +327,8 @@ export default function PersonalMalaysianInfo() {
                 <input 
                   type="text" 
                   readOnly 
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={formData.nric} 
-                  onChange={(e) => setFormData({ ...formData, nric: e.target.value })} 
                 />
               </div>
 
@@ -342,26 +340,23 @@ export default function PersonalMalaysianInfo() {
                 <div className="grid grid-cols-3 gap-3">
                   <input
                     type="text" 
+                    readOnly
                     value={formData.dobDay} 
-                    disabled
-                    onChange={(e) => setFormData({ ...formData, dobDay: e.target.value })} 
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   />
 
                   <input
                     type="text"
+                    readOnly
                     value={formData.dobMonth} 
-                    disabled
-                    onChange={(e) => setFormData({ ...formData, dobMonth: e.target.value })} 
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   />
       
                   <input
                     type="text"
+                    readOnly
                     value={formData.dobYear} 
-                    disabled
-                    onChange={(e) => setFormData({ ...formData, dobYear: e.target.value })} 
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   />     
                 </div>
               </div>
@@ -385,9 +380,8 @@ export default function PersonalMalaysianInfo() {
                   <input 
                     type="text" 
                     readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 cursor-not-allowed" 
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-r-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={formData.phoneNumber} 
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} 
                   />
                 </div>
               </div>
@@ -402,13 +396,12 @@ export default function PersonalMalaysianInfo() {
                 <input 
                   type="text" 
                   readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={formData.add1} 
-                  onChange={(e) => setFormData({ ...formData, add1: e.target.value })} 
                 />
               </div>
             
-            <div>
+              <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 2<span className="text-red-500">*</span>
                 </label>
@@ -416,11 +409,10 @@ export default function PersonalMalaysianInfo() {
                 <input 
                   type="text" 
                   readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={formData.add2} 
-                  onChange={(e) => setFormData({ ...formData, add2: e.target.value })} 
                 />
-            </div>
+              </div>
 
               <div className="grid grid-cols-2 gap-5">
                 <div>
@@ -431,25 +423,23 @@ export default function PersonalMalaysianInfo() {
                   <input 
                     type="text" 
                     readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={formData.postal} 
-                    onChange={(e) => setFormData({ ...formData, postal: e.target.value })} 
                   />
                 </div>
 
                 <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  State<span className="text-red-500">*</span>
-                </label>
+                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                    State<span className="text-red-500">*</span>
+                  </label>
 
-                <input 
-                  type="text" 
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.state} 
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })} 
-                />
-              </div>
+                  <input 
+                    type="text" 
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
+                    value={formData.state} 
+                  />
+                </div>
               </div>
 
               <div>
@@ -457,11 +447,11 @@ export default function PersonalMalaysianInfo() {
                   Country<span className="text-red-500">*</span>
                 </label>
 
-                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
 
                   <svg 
-                    className="w-4 h-4 text-gray-400" 
+                    className="w-4 h-4 text-gray-400 ml-auto" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"

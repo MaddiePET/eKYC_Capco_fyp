@@ -43,8 +43,9 @@ const AddressSection = ({
   addressData,
   updateField,
   disabled = false,
+  lockedCountry = false,
   headerRight,
-}: AddressSectionProps) => {
+}: AddressSectionProps & { lockedCountry?: boolean }) => {
   const inputBaseClasses = `w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 disabled:opacity-60 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800/80 dark:disabled:border-gray-700 appearance-none`;
   
   return (
@@ -65,7 +66,7 @@ const AddressSection = ({
           <input
             type="text"
             className={`${inputBaseClasses} appearance-none`}
-            placeholder="House no, Building name"
+            placeholder="Enter your house number, building name"
             value={addressData[type].streetAddress1}
             disabled={disabled}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -82,7 +83,7 @@ const AddressSection = ({
           <input
             type="text"
             className={`${inputBaseClasses} appearance-none`}
-            placeholder="Street name, Area"
+            placeholder="Enter your street name, area"
             value={addressData[type].streetAddress2}
             disabled={disabled}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -151,44 +152,59 @@ const AddressSection = ({
               Country <span className="text-red-500">*</span>
             </label>
 
-            <div className="relative">
-              <select
-                className={`${inputBaseClasses} ${
-                  !addressData[type].country ? "!text-gray-400 dark:!text-gray-400" : ""
-                }`}
-                value={addressData[type].country}
-                disabled={disabled}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                  updateField(type, "country", e.target.value)
-                }
-              >
-                <option value="" disabled className="text-gray-400 dark:text-gray-400">
-                  Select Country
-                </option>
-                
-                {COUNTRIES.map((country) => (
-                  <option key={country} value={country} className="text-gray-800 dark:text-white">
-                    {country}
-                  </option>
-                ))}
-              </select>
+            {lockedCountry ? (
+              <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                  {addressData[type].country || "Malaysia"}
+                </span>
 
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
+                <svg 
+                  className="w-4 h-4 text-gray-400 ml-auto" 
+                  fill="none" 
+                  stroke="currentColor" 
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
                   />
                 </svg>
               </div>
-            </div>
+            ) : (
+              <div className="relative">
+                <select
+                  className={`${inputBaseClasses} ${
+                    !addressData[type].country ? "!text-gray-400 dark:!text-gray-400" : ""
+                  }`}
+                  value={addressData[type].country}
+                  disabled={disabled}
+                  onChange={(e) => updateField(type, "country", e.target.value)}
+                >
+                  <option value="" disabled className="text-gray-400 dark:text-gray-400">
+                    Select Country
+                  </option>
+                  {COUNTRIES.map((c) => <option key={c} value={c} className="text-gray-800 dark:text-white">{c}</option>)}
+                </select>
+
+                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -199,7 +215,6 @@ const AddressSection = ({
 export default function PersonalNonMalaysianAddress() {
   const router = useRouter();
   const [mounted, setMounted] = useState<boolean>(false);
-  const [isSameAsPermanent, setIsSameAsPermanent] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
@@ -242,18 +257,6 @@ export default function PersonalNonMalaysianAddress() {
     checkAddressValid(addressData.permanentAddress) &&
     checkAddressValid(addressData.mailingAddress);
 
-  const handleSameAddressToggle = (e: ChangeEvent<HTMLInputElement>) => {
-    const isChecked = e.target.checked;
-    setIsSameAsPermanent(isChecked);
-
-    if (isChecked) {
-      setAddressData((prev) => ({
-        ...prev,
-        mailingAddress: { ...prev.permanentAddress },
-      }));
-    }
-  };
-
   const updateField = (
     type: keyof AddressState,
     field: keyof AddressFields,
@@ -267,10 +270,6 @@ export default function PersonalNonMalaysianAddress() {
           [field]: value,
         },
       };
-
-      if (isSameAsPermanent && type === "permanentAddress") {
-        newData.mailingAddress = { ...newData.permanentAddress };
-      }
 
       return newData;
     });
@@ -405,31 +404,7 @@ export default function PersonalNonMalaysianAddress() {
             type="mailingAddress"
             addressData={addressData}
             updateField={updateField}
-            disabled={isSameAsPermanent}
-            headerRight={
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <div className="relative flex items-center justify-center">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 transition-all border-2 border-gray-300 rounded peer appearance-none checked:bg-[#3D405B] checked:border-[#3D405B] dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-[#F0CA8E] dark:checked:border-[#F0CA8E]"
-                    checked={isSameAsPermanent}
-                    onChange={handleSameAddressToggle}
-                  />
-                  <svg
-                    className="absolute w-3 h-3 text-white dark:text-[#3D405B] opacity-0 peer-checked:opacity-100 pointer-events-none"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-white transition-colors">
-                  Same as Permanent
-                </span>
-              </label>
-            }
+            lockedCountry={true}
           />
         </div>
 

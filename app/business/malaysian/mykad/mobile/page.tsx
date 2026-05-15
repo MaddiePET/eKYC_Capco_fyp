@@ -199,7 +199,6 @@ function BusinessMalaysianMobileMyKadCapture() {
       </div>
 
       <header className="absolute top-6 left-0 w-full px-8 flex justify-end items-center max-w-7xl mx-auto z-20">
-        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -211,7 +210,6 @@ function BusinessMalaysianMobileMyKadCapture() {
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
-        </Link>
       </header>
 
       <main className="relative w-full max-w-2xl z-10 flex flex-col items-center">

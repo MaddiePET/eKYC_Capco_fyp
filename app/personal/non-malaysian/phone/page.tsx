@@ -213,7 +213,7 @@ export default function PersonalNonMalaysianPhone() {
                     type="tel"
                     maxLength={10} 
                     required
-                    placeholder="123456789"
+                    placeholder="Enter your mobile number"
                     className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}

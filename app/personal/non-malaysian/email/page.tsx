@@ -284,7 +284,7 @@ export default function PersonalNonMalaysianEmail() {
                 <input 
                   type="email" 
                   required 
-                  placeholder="name@example.com" 
+                  placeholder="Enter your email" 
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))} 

@@ -181,7 +181,10 @@ export default function BusinessMalaysianInfo() {
           Back
         </button>
 
-        <Link href="/" className="flex items-center gap-2">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2"
+        >
           <Image
             src="/images/logo/logo-light.svg"
             alt="Logo"
@@ -217,9 +220,9 @@ export default function BusinessMalaysianInfo() {
 
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                  readOnly
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={localData.fullName}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
                 />
               </div>
 
@@ -230,9 +233,9 @@ export default function BusinessMalaysianInfo() {
 
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                  readOnly
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={localData.nric}
-                  onChange={(e) => handleChange("nric", e.target.value)}
                 />
               </div>
 
@@ -244,29 +247,23 @@ export default function BusinessMalaysianInfo() {
                 <div className="grid grid-cols-3 gap-3">
                   <input
                     type="text"
-                    inputMode="numeric"
-                    placeholder="DD"
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={localData.dobDay}
-                    onChange={(e) => handleChange("dobDay", e.target.value.replace(/\D/g, "").slice(0, 2))}
                   />
 
                   <input
                     type="text"
-                    inputMode="numeric"
-                    placeholder="MM"
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={localData.dobMonth}
-                    onChange={(e) => handleChange("dobMonth", e.target.value.replace(/\D/g, "").slice(0, 2))}
                   />
 
                   <input
                     type="text"
-                    inputMode="numeric"
-                    placeholder="YYYY"
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={localData.dobYear}
-                    onChange={(e) => handleChange("dobYear", e.target.value.replace(/\D/g, "").slice(0, 4))}
                   />
                 </div>
               </div>
@@ -289,9 +286,9 @@ export default function BusinessMalaysianInfo() {
 
                   <input
                     type="text"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-r-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={displayPhone}
-                    disabled
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-r-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400"
                   />
                 </div>
               </div>
@@ -305,9 +302,9 @@ export default function BusinessMalaysianInfo() {
 
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                  readOnly
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={localData.streetAddress}
-                  onChange={(e) => handleChange("streetAddress", e.target.value)}
                 />
               </div>
 
@@ -319,9 +316,9 @@ export default function BusinessMalaysianInfo() {
 
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={localData.postal}
-                    onChange={(e) => handleChange("postal", e.target.value)}
                   />
                 </div>
 
@@ -332,9 +329,9 @@ export default function BusinessMalaysianInfo() {
 
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    readOnly
+                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                     value={localData.city}
-                    onChange={(e) => handleChange("city", e.target.value)}
                   />
                 </div>
               </div>
@@ -346,9 +343,9 @@ export default function BusinessMalaysianInfo() {
 
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                  readOnly
+                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
                   value={localData.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
                 />
               </div>
 

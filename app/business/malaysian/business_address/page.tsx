@@ -218,7 +218,10 @@ export default function BusinessMalaysianBusinessAddress() {
           Back
         </button>
 
-        <Link href="/" className="flex items-center gap-2">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2"
+        >
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -266,8 +269,11 @@ export default function BusinessMalaysianBusinessAddress() {
                   <input
                     type="text"
                     className={inputClasses}
+                    placeholder="Enter your building name, street name, area"
                     value={businessAddress.streetAddress}
-                    onChange={(e) => setBusinessAddress({ ...businessAddress, streetAddress: e.target.value })}
+                    onChange={(e) => setBusinessAddress({ 
+                    ...businessAddress, 
+                    streetAddress: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, "") })}
                   />
                 </div>
 
@@ -279,9 +285,13 @@ export default function BusinessMalaysianBusinessAddress() {
 
                     <input
                       type="text"
+                      maxLength={5}
                       className={inputClasses}
+                      placeholder="Enter your postal code"
                       value={businessAddress.postal}
-                      onChange={(e) => setBusinessAddress({ ...businessAddress, postal: e.target.value })}
+                      onChange={(e) => setBusinessAddress({ 
+                      ...businessAddress, 
+                      postal: e.target.value.replace(/[^0-9]/g, "") })}
                     />
                   </div>
 
@@ -293,8 +303,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     <input
                       type="text"
                       className={inputClasses}
+                      placeholder="Enter your city"
                       value={businessAddress.city}
-                      onChange={(e) => setBusinessAddress({ ...businessAddress, city: e.target.value })}
+                      onChange={(e) => setBusinessAddress({ 
+                      ...businessAddress, 
+                      city: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
                     />
                   </div>
                 </div>
@@ -308,8 +321,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     <input
                       type="text"
                       className={inputClasses}
+                      placeholder="Enter your state"
                       value={businessAddress.state}
-                      onChange={(e) => setBusinessAddress({ ...businessAddress, state: e.target.value })}
+                      onChange={(e) => setBusinessAddress({ 
+                      ...businessAddress, 
+                      state: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
                     />
                   </div>
 
@@ -318,12 +334,25 @@ export default function BusinessMalaysianBusinessAddress() {
                       Country<span className="text-red-500">*</span>
                     </label>
 
-                    <input
-                      type="text"
-                      className={inputClasses}
-                      value={businessAddress.country}
-                      onChange={(e) => setBusinessAddress({ ...businessAddress, country: e.target.value })}
-                    />
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                        {businessAddress.country || "Malaysia"}
+                      </span>
+                      
+                      <svg 
+                        className="w-4 h-4 text-gray-400 ml-auto" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -416,8 +445,14 @@ export default function BusinessMalaysianBusinessAddress() {
                   <input
                     type="text"
                     className={inputClasses}
+                    placeholder="Enter your building name, street name, area"
                     value={mailingAddress.streetAddress}
-                    onChange={(e) => setMailingAddress({ ...mailingAddress, streetAddress: e.target.value })}
+                    onChange={(e) => 
+                      setMailingAddress({ 
+                        ...mailingAddress, 
+                        streetAddress: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, "") 
+                      })
+                    }
                   />
                 </div>
 
@@ -429,9 +464,13 @@ export default function BusinessMalaysianBusinessAddress() {
 
                     <input
                       type="text"
+                      maxLength={5} 
                       className={inputClasses}
+                      placeholder="Enter your postal code"
                       value={mailingAddress.postal}
-                      onChange={(e) => setMailingAddress({ ...mailingAddress, postal: e.target.value })}
+                      onChange={(e) => setMailingAddress({ 
+                      ...mailingAddress, 
+                      postal: e.target.value.replace(/[^0-9]/g, "") })}
                     />
                   </div>
 
@@ -443,8 +482,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     <input
                       type="text"
                       className={inputClasses}
+                      placeholder="Enter your city"
                       value={mailingAddress.city}
-                      onChange={(e) => setMailingAddress({ ...mailingAddress, city: e.target.value })}
+                      onChange={(e) => setMailingAddress({ 
+                      ...mailingAddress, 
+                      city: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
                     />
                   </div>
                 </div>
@@ -458,8 +500,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     <input
                       type="text"
                       className={inputClasses}
+                      placeholder="Enter your state"
                       value={mailingAddress.state}
-                      onChange={(e) => setMailingAddress({ ...mailingAddress, state: e.target.value })}
+                      onChange={(e) => setMailingAddress({ 
+                      ...mailingAddress, 
+                      state: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
                     />
                   </div>
 
@@ -468,12 +513,25 @@ export default function BusinessMalaysianBusinessAddress() {
                       Country<span className="text-red-500">*</span>
                     </label>
 
-                    <input
-                      type="text"
-                      className={inputClasses}
-                      value={mailingAddress.country}
-                      onChange={(e) => setMailingAddress({ ...mailingAddress, country: e.target.value })}
-                    />
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                        {businessAddress.country || "Malaysia"}
+                      </span>
+                      
+                      <svg 
+                        className="w-4 h-4 text-gray-400 ml-auto" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
