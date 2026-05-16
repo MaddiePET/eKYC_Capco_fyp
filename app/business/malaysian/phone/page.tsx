@@ -12,7 +12,6 @@ type Step = "confirm" | "change" | "otp";
 
 export default function BusinessMalaysianPhone() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
@@ -24,7 +23,10 @@ export default function BusinessMalaysianPhone() {
   const [timer, setTimer] = useState(0);
 
   const { formData, setFormData } = useFormData();
+  
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   
