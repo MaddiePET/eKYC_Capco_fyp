@@ -19,25 +19,63 @@ interface User {
 
 export default function LogIn() {
   const router = useRouter();
+
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<"username" | "confirm" | "password">("username");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [attempts, setAttempts] = useState(3);
+  const [cooldown, setCooldown] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
+  const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
+    const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (cooldown > 0) {
+      interval = setInterval(() => {
+        setCooldown((prev) => prev - 1);
+      }, 1000);
+    } else if (cooldown === 0 && attempts <= 0) {
+      setAttempts(1);
+    }
+
+    return () => clearInterval(interval);
+  }, [cooldown, attempts]);
+
+  const checkUsername = async (val: string) => {
+    if (val.length < 3) { 
+      setIsUsernameValid(null); 
+      return; 
+    }
+    setIsValidating(true);
+    try {
+      const res = await fetch(`/api/users/${val}`);
+      setIsUsernameValid(res.ok);
+    } catch { 
+      setIsUsernameValid(false); 
+    }
+    setIsValidating(false);
+  };
+
   const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUsernameError("");
 
     try {
       const res = await fetch(`/api/users/${username}`);
 
       if (!res.ok) {
-        alert("Username not found. Please try again.");
+        setUsernameError("Username not found. Please try again.");
+        setIsUsernameValid(false);
         return;
       }
 
@@ -54,9 +92,10 @@ export default function LogIn() {
 
       setCurrentUser(user);
       setStep("confirm");
+      setUsernameError("");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      setUsernameError("Something went wrong. Please try again.");
     }
   };
 
@@ -65,6 +104,9 @@ export default function LogIn() {
   };
 
   const handleGlobalBack = () => {
+    setUsernameError("");
+    setPasswordError("");
+    
     if (step === "username") {
       router.push("/");
     } else if (step === "confirm") {
@@ -77,39 +119,52 @@ export default function LogIn() {
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!res.ok) {
-      alert("Incorrect password.");
-      return;
-    } 
-
-    const data = await res.json();
+    e.preventDefault();
+    if (cooldown > 0) return;
+    setPasswordError("");
 
     try {
-      localStorage.setItem("currentUsername", data.username);
-      localStorage.setItem("currentAccount", data.name);
-      localStorage.setItem("currentUserAvatar", data.avatar); 
-      localStorage.setItem("currentUserEmail", data.email);
-    } catch (storageError) {
-      console.warn("Avatar too large for localStorage.");
-      localStorage.setItem("currentUserAvatar", "");
-    }
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    router.push("/dashboard");
-    
-  } catch (err) {
-    console.error(err);
-    alert("Server connection failed.");
-  }
-};
+      if (!res.ok) {
+        const newAttempts = attempts - 1;
+        setAttempts(newAttempts);
+
+        if (newAttempts <= 0) {
+          setCooldown(60);
+          setPasswordError("Too many failed attempts. ");
+          setAttempts(0);
+        } else {
+          setPasswordError(`Wrong password. You have ${newAttempts} attempts remaining.`);
+        }
+        return;
+      }
+
+      setAttempts(3);
+
+      const data = await res.json();
+
+      try {
+        localStorage.setItem("currentUsername", data.username);
+        localStorage.setItem("currentAccount", data.name);
+        localStorage.setItem("currentUserAvatar", data.avatar); 
+        localStorage.setItem("currentUserEmail", data.email);
+      } catch (storageError) {
+        console.warn("Avatar too large for localStorage.");
+        localStorage.setItem("currentUserAvatar", "");
+      }
+
+      router.push("/dashboard");
+      
+    } catch (err) {
+      console.error(err);
+      setPasswordError("Server connection failed.");
+    }
+  };
 
   if (!mounted) {
     return <div className="min-h-screen bg-[#F9FAFB] dark:bg-gray-950" />;
@@ -118,42 +173,42 @@ export default function LogIn() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#3D405B]/80" 
+          <path
+            className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-          
-          <path 
-            className="fill-[#3D405B]" 
+
+          <path
+            className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#F0CA8E]" 
+          <path
+            className="fill-[#F0CA8E]"
             d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
           />
         </svg>
       </div>
 
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
-        <button
-          type="button"
-          onClick={handleGlobalBack}
+        <button 
+          type="button" 
+          onClick={handleGlobalBack} 
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -171,8 +226,8 @@ export default function LogIn() {
             width={40} 
             height={40} 
             className="block dark:invert-0 invert" 
-          />
-
+          />          
+          
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
@@ -192,6 +247,12 @@ export default function LogIn() {
               </p>
             </div>
             
+            {usernameError && (
+              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                {usernameError}
+              </div>
+            )}
+
             <form onSubmit={handleUsernameSubmit}>
               <div className="space-y-6">
                 <div>
@@ -199,20 +260,33 @@ export default function LogIn() {
                     Username<span className="text-error-500">*</span>
                   </Label>
 
-                  <input
-                    className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
-                    placeholder="Enter your username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
+                  <div className="relative w-full">
+                    <input
+                      className={`w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 ${
+                        isUsernameValid === true
+                          ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
+                          : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                      }`}
+                      placeholder="Enter your username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setUsernameError("");
+                        checkUsername(e.target.value);
+                      }}
+                      required
+                    />
+                    {isUsernameValid === true && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
+                    )}
+                  </div>
                 </div>
                 
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
-                >
+                  disabled={isValidating || username.length === 0}
+                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"                >
                   Continue
                 </button>
               </div>
@@ -268,17 +342,17 @@ export default function LogIn() {
             </div>
 
             <div className="space-y-3">
-              <button
-                type="button"
-                onClick={handleConfirmYes}
+              <button 
+                type="button" 
+                onClick={handleConfirmYes} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 Yes, that's me
               </button>
 
-              <button
-                type="button"
-                onClick={handleGlobalBack}
+              <button 
+                type="button" 
+                onClick={handleGlobalBack} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
               >
                 No, use different account
@@ -288,7 +362,7 @@ export default function LogIn() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                
+
                 <Link 
                   href="/support" 
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400"
@@ -321,6 +395,17 @@ export default function LogIn() {
                 </p>
               </div>
             </div>
+
+            {passwordError && (
+              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                {passwordError}
+                {cooldown > 0 && (
+                  <span>
+                    Please retry in {cooldown}s.
+                  </span>
+                )}
+              </div>
+            )}
             
             <form onSubmit={handlePasswordSubmit}>
               <div className="space-y-6">
@@ -331,30 +416,31 @@ export default function LogIn() {
 
                   <div className="relative">
                     <input
+                      disabled={cooldown > 0}
                       className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setPasswordError(""); 
+                      }}
                       required
                     />
 
-                    <span
-                      onClick={() => setShowPassword(!showPassword)}
+                    <span 
+                      onClick={() => setShowPassword(!showPassword)} 
                       className="absolute z-30 cursor-pointer -translate-y-1/2 right-4 top-1/2"
                     >
-                      {showPassword ? (
-                        <EyeIcon className="w-5 h-5 fill-gray-500 dark:fill-gray-400" />
-                      ) : (
-                        <EyeCloseIcon className="w-5 h-5 fill-gray-500 dark:fill-gray-400" />
-                      )}
+                      {showPassword ? <EyeIcon className="w-5 h-5 fill-gray-500 dark:fill-gray-400" /> : <EyeCloseIcon className="w-5 h-5 fill-gray-500 dark:fill-gray-400" />}
                     </span>
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                <button 
+                  disabled={cooldown > 0} 
+                  type="submit" 
+                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:opacity-50"
                 >
                   Log In
                 </button>
