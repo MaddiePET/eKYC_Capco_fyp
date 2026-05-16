@@ -8,11 +8,11 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianMailingAddress() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
 
   const journeyId =
     searchParams.get("journeyId") ||
@@ -29,8 +29,6 @@ export default function PersonalMalaysianMailingAddress() {
     (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
     "";
 
-  const [mounted, setMounted] = useState(false);
-
   const [mailingData, setMailingData] = useState({
     permanentAddress: "",
     add1: "",
@@ -39,6 +37,30 @@ export default function PersonalMalaysianMailingAddress() {
     state: "",
     country: "Malaysia",
   });
+
+  const fetchIdentity = async (type: string, num: string) => {
+    if (!num) return;
+
+    try {
+      const response = await fetch(`/api/identity/lookup?id_type=${encodeURIComponent(type)}&id_num=${encodeURIComponent(num)}`);
+      const data = await response.json();
+
+      if (response.ok && data.success && data.identity) {
+        const identityData = data.formData || data.identity;
+
+        setMailingData((prev) => ({
+          ...prev,
+          add1: identityData.add1 || identityData.address_line_1 || identityData.address || identityData.home_address || "",
+          add2: identityData.add2 || identityData.address_line_2 || "",
+          postal: identityData.postcode || identityData.postal_code || identityData.postal || "",
+          state: identityData.state || "",
+          country: identityData.country || "Malaysia",
+        }));
+      }
+    } catch (error: any) {
+      console.error("Unable to load identity data.", error);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -57,15 +79,15 @@ export default function PersonalMalaysianMailingAddress() {
       .filter(Boolean)
       .join(", ");
 
-      setMailingData({
-        permanentAddress,
-        add1: savedHomeAddress.add_1 || "",
-        add2: savedHomeAddress.add_2 || "",
-        postal: savedHomeAddress.postcode || "",
-        state: savedHomeAddress.state || "",
-        country: savedHomeAddress.country || "Malaysia",
-      });
-  },[]);
+    setMailingData((prev) => ({
+      ...prev,
+      permanentAddress
+    }));
+
+    if (idNum) {
+      fetchIdentity(idType, idNum);
+    }
+  }, [idType, idNum]);
 
   if (!mounted) return null;
 
@@ -75,16 +97,16 @@ export default function PersonalMalaysianMailingAddress() {
       setSubmitError(null);
 
       localStorage.setItem(
-      "mailingAddress",
-      JSON.stringify({
-        add_type: "Mailing",
-        add_1: mailingData.add1,
-        add_2: mailingData.add2,
-        postcode: mailingData.postal,
-        state: mailingData.state,
-        country: mailingData.country,
-      })
-    );
+        "mailingAddress",
+        JSON.stringify({
+          add_type: "Mailing",
+          add_1: mailingData.add1,
+          add_2: mailingData.add2,
+          postcode: mailingData.postal,
+          state: mailingData.state,
+          country: mailingData.country,
+        })
+      );
 
       router.push("/personal/malaysian/application");
     } catch (error: any) {
@@ -94,44 +116,44 @@ export default function PersonalMalaysianMailingAddress() {
       setIsSubmitting(false);
     }
   };
-  
-  const isFormValid = 
-  mailingData.add1.trim() !== "" &&
-  mailingData.add2.trim() !== "" &&
-  mailingData.postal.trim() !== "" &&
-  mailingData.state.trim() !== "" &&
-  mailingData.country.trim() !== "";
+
+  const isFormValid =
+    mailingData.add1.trim() !== "" &&
+    mailingData.add2.trim() !== "" &&
+    mailingData.postal.trim() !== "" &&
+    mailingData.state.trim() !== "" &&
+    mailingData.country.trim() !== "";
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#3D405B]/80" 
+          <path
+            className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
 
-          <path 
-            className="fill-[#3D405B]" 
+          <path
+            className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#F0CA8E]" 
+          <path
+            className="fill-[#F0CA8E]"
             d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
           />
         </svg>
@@ -148,22 +170,22 @@ export default function PersonalMalaysianMailingAddress() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          
+
           Back
         </button>
 
         <Link 
-          href="/"
+          href="/" 
           className="flex items-center gap-2"
         >
-          <Image 
-            src="/images/logo/logo-light.svg" 
-            alt="Logo" 
-            width={40} 
-            height={40} 
-            className="block dark:invert-0 invert" 
+          <Image
+            src="/images/logo/logo-light.svg"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="block dark:invert-0 invert"
           />
-
+          
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
@@ -184,7 +206,6 @@ export default function PersonalMalaysianMailingAddress() {
             <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
               {mailingData.permanentAddress}
             </p>
-
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Registered Address
             </p>
@@ -203,10 +224,10 @@ export default function PersonalMalaysianMailingAddress() {
                 className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                 placeholder="Enter your house number, building name"
                 value={mailingData.add1}
-                onChange={(e) => 
-                  setMailingData({ 
-                    ...mailingData, 
-                    add1: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, "") 
+                onChange={(e) =>
+                  setMailingData({
+                    ...mailingData,
+                    add1: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
                   })
                 }
               />
@@ -216,21 +237,21 @@ export default function PersonalMalaysianMailingAddress() {
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                 Address 2 <span className="text-red-500">*</span>
               </label>
-              
+
               <input
                 type="text"
                 className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                 placeholder="Enter your street name, area"
                 value={mailingData.add2}
-                onChange={(e) => 
-                  setMailingData({ 
-                    ...mailingData, 
-                    add2: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, "") 
+                onChange={(e) =>
+                  setMailingData({
+                    ...mailingData,
+                    add2: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
                   })
                 }
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -238,14 +259,17 @@ export default function PersonalMalaysianMailingAddress() {
                 </label>
 
                 <input
-                  type="text"                  
+                  type="text"
                   maxLength={5}
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                   placeholder="Enter your postal code"
                   value={mailingData.postal}
-                  onChange={(e) => setMailingData({ 
-                    ...mailingData, 
-                    postal: e.target.value.replace(/[^0-9]/g, "") })}
+                  onChange={(e) =>
+                    setMailingData({
+                      ...mailingData,
+                      postal: e.target.value.replace(/[^0-9]/g, ""),
+                    })
+                  }
                 />
               </div>
 
@@ -253,15 +277,18 @@ export default function PersonalMalaysianMailingAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   State <span className="text-red-500">*</span>
                 </label>
-                
+
                 <input
                   type="text"
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                   placeholder="Enter your state"
                   value={mailingData.state}
-                  onChange={(e) => setMailingData({ 
-                    ...mailingData, 
-                    state: e.target.value.replace(/[^a-zA-Z ]/g, "") })}
+                  onChange={(e) =>
+                    setMailingData({
+                      ...mailingData,
+                      state: e.target.value.replace(/[^a-zA-Z ]/g, ""),
+                    })
+                  }
                 />
               </div>
             </div>
@@ -277,17 +304,17 @@ export default function PersonalMalaysianMailingAddress() {
                 {mailingData.country}
               </span>
 
-              <svg 
-                className="w-4 h-4 text-gray-400 ml-auto" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-4 h-4 text-gray-400 ml-auto"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                 />
               </svg>
             </div>
@@ -298,16 +325,16 @@ export default function PersonalMalaysianMailingAddress() {
               By clicking continue, you confirm that the information provided is accurate and belongs to you.
             </p>
 
-            <button 
-              onClick={handleNavigation} 
-              disabled={!isFormValid}
+            <button
+              onClick={handleNavigation}
+              disabled={!isFormValid || isSubmitting}
               className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 active:scale-[0.98] ${
-                isFormValid 
-                  ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                isFormValid
+                  ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
               }`}
             >
-              Continue
+              {isSubmitting ? "Saving..." : "Continue"}
             </button>
           </div>
         </div>
@@ -316,8 +343,8 @@ export default function PersonalMalaysianMailingAddress() {
           <p className="text-sm font-normal">
             <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
-            <Link 
-              href="/support" 
+            <Link
+              href="/support"
               className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               Contact Support

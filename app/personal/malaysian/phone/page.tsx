@@ -11,9 +11,11 @@ type Step = "confirm" | "change" | "otp";
 
 export default function PersonalMalaysianPhone() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
+  const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
-  const [phoneNumber, setPhoneNumber] = useState("123456789");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -22,9 +24,54 @@ export default function PersonalMalaysianPhone() {
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const searchParams = useSearchParams();
   const journeyId = searchParams.get("journeyId") || "";
   
+  const idType =
+    searchParams.get("id_type") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
+    "ic";
+
+  const idNum =
+    searchParams.get("id_num") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
+    "";
+
+  const fetchIdentity = async (type: string, num: string) => {
+    if (!num) return;
+
+    try {
+      const response = await fetch(`/api/identity/lookup?id_type=${encodeURIComponent(type)}&id_num=${encodeURIComponent(num)}`);
+      const data = await response.json();
+
+      if (response.ok && data.success && data.identity) {
+        const identityData = data.formData || data.identity;
+        const rawPhone = identityData.ph_no_1 || identityData.phone_number || identityData.phoneNumber || "";
+
+        if (rawPhone) {
+          let digitsOnly = rawPhone.replace(/\D/g, "");
+          
+          if (digitsOnly.startsWith("60")) {
+            digitsOnly = digitsOnly.substring(2);
+          } 
+          else if (digitsOnly.startsWith("0")) {
+            digitsOnly = digitsOnly.substring(1);
+          }
+          
+          setPhoneNumber(digitsOnly);
+        }
+      }
+    } catch (error: any) {
+      console.error("Unable to load identity data.", error);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    if (idNum) {
+      fetchIdentity(idType, idNum);
+    }
+  }, [idType, idNum]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timer > 0) {
@@ -57,7 +104,7 @@ export default function PersonalMalaysianPhone() {
       return;
     }
 
-  const newOtp = [...otp];
+    const newOtp = [...otp];
     if (cleanValue.length > 1) {
       const pastedChars = cleanValue.slice(0, 6).split("");
       pastedChars.forEach((char, i) => {
@@ -79,26 +126,28 @@ export default function PersonalMalaysianPhone() {
   };
 
   const handleVerifyPhone = async () => {
-  try {
-    setIsSubmitting(true);
-    setSubmitError(null);
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
 
-    localStorage.setItem(
-      "phoneVerification",
-      JSON.stringify({
-        ph_no_1: `+60${phoneNumber}`,
-      })
-    );
+      localStorage.setItem(
+        "phoneVerification",
+        JSON.stringify({
+          ph_no_1: `+60${phoneNumber}`,
+        })
+      );
 
-    router.push(`/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
-  } catch (error: any) {
-    console.error("Phone save error:", error);
-    setSubmitError(error.message || "Failed to save phone number.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-  
+      router.push(`/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
+    } catch (error: any) {
+      console.error("Phone save error:", error);
+      setSubmitError(error.message || "Failed to save phone number.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!mounted) return null;
+
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
@@ -156,7 +205,7 @@ export default function PersonalMalaysianPhone() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
+          
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
@@ -170,7 +219,6 @@ export default function PersonalMalaysianPhone() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Phone Number Verification
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Is this still your current mobile number?
               </p>
@@ -178,7 +226,7 @@ export default function PersonalMalaysianPhone() {
 
             <div className="relative p-4 mb-6 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
               <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                +60 ****** {phoneNumber.slice(-2)}
+                +60 ****** {phoneNumber.slice(-4)}
               </p>
               
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -190,8 +238,12 @@ export default function PersonalMalaysianPhone() {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={isLoading}
-                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                disabled={isLoading || !phoneNumber}
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg ${
+                  phoneNumber && !isLoading
+                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                }`}
               >
                 {isLoading ? "Sending Code..." : "Yes, send code"}
               </button>
@@ -208,7 +260,7 @@ export default function PersonalMalaysianPhone() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
+                
                 <Link
                   href="/support"
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -226,7 +278,6 @@ export default function PersonalMalaysianPhone() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Update Your Phone Number
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your new mobile number to proceed with the registration.
               </p>
@@ -246,7 +297,6 @@ export default function PersonalMalaysianPhone() {
                         alt="MY"
                         className="w-5 h-auto rounded-sm shadow-sm"
                       />
-
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
                     </div>
 
@@ -280,7 +330,7 @@ export default function PersonalMalaysianPhone() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
+                
                 <Link
                   href="/support"
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -360,7 +410,7 @@ export default function PersonalMalaysianPhone() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
+                
                 <Link
                   href="/support"
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

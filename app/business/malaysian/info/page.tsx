@@ -218,12 +218,28 @@ export default function BusinessMalaysianInfo() {
                   Full Name <span className="text-red-500">*</span>
                 </label>
 
-                <input
-                  type="text"
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                  value={localData.fullName}
-                />
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
+                    value={localData.fullName}
+                  />
+
+                  <svg 
+                    className="w-4 h-4 text-gray-400 ml-auto" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="2" 
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div>
@@ -231,40 +247,104 @@ export default function BusinessMalaysianInfo() {
                   NRIC<span className="text-red-500">*</span>
                 </label>
 
-                <input
-                  type="text"
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                  value={localData.nric}
-                />
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
+                    value={localData.nric}
+                  />
+
+                  <svg 
+                    className="w-4 h-4 text-gray-400 ml-auto" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="2" 
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Date of Birth<span className="text-red-500">*</span>
                 </label>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={localData.dobDay}
+                    />
+                    
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={localData.dobDay}
-                  />
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={localData.dobMonth}
+                    />
+                    
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={localData.dobMonth}
-                  />
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={localData.dobYear}
+                    />
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={localData.dobYear}
-                  />
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -284,12 +364,28 @@ export default function BusinessMalaysianInfo() {
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{phoneCode}</span>
                   </div>
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-r-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={displayPhone}
-                  />
+                  <div className="flex-1 flex items-center gap-2 px-4 py-2.5 border-2 rounded-r-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={displayPhone}
+                    />
+
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
@@ -300,12 +396,28 @@ export default function BusinessMalaysianInfo() {
                   Street Address<span className="text-red-500">*</span>
                 </label>
 
-                <input
-                  type="text"
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                  value={localData.streetAddress}
-                />
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    value={localData.streetAddress}
+                  />
+
+                  <svg
+                    className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-5">
@@ -314,12 +426,28 @@ export default function BusinessMalaysianInfo() {
                     Postal Code<span className="text-red-500">*</span>
                   </label>
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={localData.postal}
-                  />
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={localData.postal}
+                    />
+
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
                 </div>
 
                 <div>
@@ -327,12 +455,28 @@ export default function BusinessMalaysianInfo() {
                     City<span className="text-red-500">*</span>
                   </label>
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                    value={localData.city}
-                  />
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={localData.city}
+                    />
+
+                    <svg
+                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -341,12 +485,28 @@ export default function BusinessMalaysianInfo() {
                   State<span className="text-red-500">*</span>
                 </label>
 
-                <input
-                  type="text"
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium bg-gray-50 border-2 rounded-xl outline-none border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-900/60 dark:border-[#5c6185] dark:text-gray-400" 
-                  value={localData.state}
-                />
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    value={localData.state}
+                  />
+
+                  <svg
+                    className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div>

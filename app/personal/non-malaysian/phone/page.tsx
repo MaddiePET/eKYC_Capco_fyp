@@ -223,9 +223,9 @@ export default function PersonalNonMalaysianPhone() {
 
               <button 
                 type="submit" 
-                disabled={isLoading || phoneNumber.length < 8} 
+                disabled={isLoading || phoneNumber.length < 9} 
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  phoneNumber.length >= 8 
+                  phoneNumber.length >= 9 
                   ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                 }`}
@@ -264,6 +264,7 @@ export default function PersonalNonMalaysianPhone() {
                   />
                 ))}
               </div>
+
               <button 
                 type="button" 
                 onClick={handleVerifyOtp} 

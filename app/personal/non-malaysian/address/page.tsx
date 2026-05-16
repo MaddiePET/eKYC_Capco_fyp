@@ -182,7 +182,7 @@ const AddressSection = ({
                   disabled={disabled}
                   onChange={(e) => updateField(type, "country", e.target.value)}
                 >
-                  <option value="" disabled className="text-gray-400 dark:text-gray-400">
+                  <option value="" disabled>
                     Select Country
                   </option>
                   {COUNTRIES.map((c) => <option key={c} value={c} className="text-gray-800 dark:text-white">{c}</option>)}
