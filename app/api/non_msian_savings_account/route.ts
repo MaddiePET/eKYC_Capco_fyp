@@ -93,9 +93,11 @@ async function verifyIdentityInFirebase(idNum: string) {
 }
 
 export async function POST(req: Request) {
-  const client = await pool.connect();
+  let client;
 
   try {
+    client = await pool.connect();
+  
     const body = await req.json();
 
     const {
@@ -346,8 +348,10 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    await client.query("ROLLBACK");
+    } catch (error: any) {
+    if (client) {
+      await client.query("ROLLBACK").catch(() => {});
+    }
 
     console.error("Non-Malaysian savings account error:", error);
 
@@ -360,6 +364,8 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 }

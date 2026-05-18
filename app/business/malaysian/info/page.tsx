@@ -4,23 +4,16 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
 
 export default function BusinessMalaysianInfo() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const searchParams = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
-  const [lookupError, setLookupError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
   const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -37,85 +30,6 @@ export default function BusinessMalaysianInfo() {
     state: "",
     country: "Malaysia",
   });
-
-  const formatDateForFields = (value: unknown) => {
-    if (!value) return { day: "", month: "January", year: "" };
-    const date = new Date(String(value));
-    if (!Number.isNaN(date.getTime())) {
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
-      ];
-      return {
-        day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "January",
-        year: date.getFullYear().toString(),
-      };
-    }
-
-    const isoMatch = String(value).match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
-    if (isoMatch) {
-      const year = isoMatch[1];
-      const month = Number(isoMatch[2]);
-      const day = Number(isoMatch[3]);
-      return {
-        day: day.toString().padStart(2, "0"),
-        month: [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ][month - 1] || "January",
-        year,
-      };
-    }
-
-    return { day: "", month: "January", year: "" };
-  };
-
-  const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
-    const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
-    const { day, month, year } = formatDateForFields(dob);
-    return {
-      fullName: identity.full_name || identity.name || identity.fullName || "",
-      nric: identity.ic_number || identity.nric || identity.id_num || idNum,
-      dobDay: day || "",
-      dobMonth: month,
-      dobYear: year || "",
-      phoneCode: "+60",
-      phoneNumber: identity.ph_no_1 || identity.phone_number || identity.phoneNumber || "",
-      add1: identity.add1 || identity.address_line_1 || identity.address || identity.home_address || "",
-      add2: identity.add2 || identity.address_line_2 || "",
-      postal: identity.postcode || identity.postal_code || identity.postal || "",
-      state: identity.state || "",
-      country: identity.country || "Malaysia",
-    };
-  };
-
-  const fetchIdentity = async (idType: string, idNum: string) => {
-    if (!idNum) return;
-    setLookupStatus("fetching");
-    setLookupError(null);
-
-    try {
-      const response = await fetch(`/api/identity/lookup?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}`);
-      const data = await response.json();
-
-      if (response.ok && data.success && data.identity) {
-        const identityData = data.formData || data.identity;
-
-        setFormData((prev) => ({
-          ...prev,
-          ...normalizeIdentity(identityData, idType, idNum),
-        }));
-        setLookupStatus("done");
-      } else {
-        setLookupStatus("not-found");
-        setLookupError(data.message || "No identity data found.");
-      }
-    } catch (error: any) {
-      setLookupStatus("not-found");
-      setLookupError(error?.message || "Unable to load identity data.");
-    }
-  };
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
@@ -428,7 +342,6 @@ export default function BusinessMalaysianInfo() {
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Full Name<span className="text-red-500">*</span>
-                  Full Name<span className="text-red-500">*</span>
                 </label>
 
                 <input 
@@ -554,13 +467,8 @@ export default function BusinessMalaysianInfo() {
                       src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg`} 
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
-                    <img 
-                      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg`} 
-                      alt="MY" 
-                      className="w-5 h-auto rounded-sm" 
                     />
 
-                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
@@ -578,7 +486,6 @@ export default function BusinessMalaysianInfo() {
             <div className="space-y-6">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Address 1<span className="text-red-500">*</span>
                   Address 1<span className="text-red-500">*</span>
                 </label>
 
@@ -644,7 +551,7 @@ export default function BusinessMalaysianInfo() {
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
 
                   <svg 
-                    className="w-4 h-4 text-gray-400 ml-auto" 
+                    className="w-4 h-4 text-gray-400" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -667,14 +574,8 @@ export default function BusinessMalaysianInfo() {
               
               <button 
                 onClick={handleNavigation} 
-              
-              <button 
-                onClick={handleNavigation} 
                 disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
-                  isFormValid 
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   isFormValid 
                     ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
@@ -686,9 +587,6 @@ export default function BusinessMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
-                  <Link 
-                    href="/support" 
 
                   <Link 
                     href="/support" 

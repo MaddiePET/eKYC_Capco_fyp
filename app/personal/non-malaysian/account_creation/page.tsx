@@ -24,6 +24,7 @@ export default function PersonalNonMalaysianAccountCreation() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -431,6 +432,12 @@ export default function PersonalNonMalaysianAccountCreation() {
                     <p className={/[A-Z]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[A-Z]/.test(password) ? "✓" : "○"} At least one capital letter
                     </p>
+                    <p className={/[a-z]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[a-z]/.test(password) ? "✓" : "○"} At least one lowercase letter
+                    </p>
+                    <p className={!/\s/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {!/\s/.test(password) ? "✓" : "○"} No spaces
+                    </p>
                     <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} At least one special character
                     </p>
@@ -456,18 +463,32 @@ export default function PersonalNonMalaysianAccountCreation() {
                 </p>
               </div>
 
-              <div>
-                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Confirm Password<span className="text-error-500">*</span>
-                </Label>
-
+              <div className="relative">
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
+
+                {confirmPassword.length > 0 && password !== confirmPassword && (
+                  <p className="mt-2 text-[10px] text-red-500">
+                    Passwords do not match
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  {showConfirmPassword ? (
+                    <EyeIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeCloseIcon className="w-5 h-5" />
+                  )}
+                </button>
               </div>
 
               <button 

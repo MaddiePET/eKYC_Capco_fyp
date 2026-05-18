@@ -13,10 +13,8 @@ export default function PersonalMalaysianFaceQRCode() {
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
   const searchParams = useSearchParams();
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
+  const [journeyId, setJourneyId] = useState<string>("");
+
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);

@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
 
@@ -14,10 +13,10 @@ type MessageType = "success" | "error" | "";
 export default function BusinessMalaysianEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
-    const journeyId =
-      searchParams.get("journeyId") ||
-      (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-      "";
+  const journeyId =
+    searchParams.get("journeyId") ||
+    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+    "";
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [email, setEmail] = useState("");
@@ -30,11 +29,7 @@ export default function BusinessMalaysianEmail() {
   const { formData, setFormData } = useFormData();
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
-  
-  const searchParams = useSearchParams();
-
-  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||  "";
-  
+ 
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -382,11 +377,6 @@ export default function BusinessMalaysianEmail() {
               >
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
-              {message && (
-                <p className="text-center text-sm font-medium text-red-600">
-                  {message}
-                </p>
-              )}
             </div>
 
             <div className="text-center mt-6">
