@@ -3,17 +3,28 @@ type EmailOtpRecord = {
   expiresAt: number;
 };
 
-const emailOtpStore = new Map<string, EmailOtpRecord>();
+declare global {
+  var emailOtpStore: Map<string, EmailOtpRecord> | undefined;
+}
+
+const emailOtpStore =
+  global.emailOtpStore ?? new Map<string, EmailOtpRecord>();
+
+global.emailOtpStore = emailOtpStore;
+
+function normalizeEmail(email: string) {
+  return email.toLowerCase().trim();
+}
 
 export function saveEmailOtp(email: string, otp: string) {
-  emailOtpStore.set(email, {
-    otp,
+  emailOtpStore.set(normalizeEmail(email), {
+    otp: otp.trim(),
     expiresAt: Date.now() + 5 * 60 * 1000,
   });
 }
 
 export function verifyEmailOtp(email: string, otp: string) {
-  const record = emailOtpStore.get(email);
+  const record = emailOtpStore.get(normalizeEmail(email));
 
   if (!record) {
     return {
@@ -23,7 +34,7 @@ export function verifyEmailOtp(email: string, otp: string) {
   }
 
   if (Date.now() > record.expiresAt) {
-    emailOtpStore.delete(email);
+    emailOtpStore.delete(normalizeEmail(email));
 
     return {
       success: false,
@@ -31,14 +42,14 @@ export function verifyEmailOtp(email: string, otp: string) {
     };
   }
 
-  if (record.otp !== otp) {
+  if (record.otp !== otp.trim()) {
     return {
       success: false,
       message: "Invalid OTP code.",
     };
   }
 
-  emailOtpStore.delete(email);
+  emailOtpStore.delete(normalizeEmail(email));
 
   return {
     success: true,
