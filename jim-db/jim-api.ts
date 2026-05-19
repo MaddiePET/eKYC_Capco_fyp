@@ -1,15 +1,10 @@
 import * as admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
+import { decrypt, hashLookup } from "../lib/cryptoSecurity";
 
-import crypto from "crypto";
-
-function generateHashID(identifier) {
-  return crypto.createHash('sha256').update(identifier).digest('hex');
-}
-
-let jimApp;
-let jimDb;
+let jimApp: admin.app.App | undefined;
+let jimDb: FirebaseFirestore.Firestore | undefined;
 
 function initializeJIM() {
   if (!jimDb) {
@@ -46,7 +41,7 @@ function initializeJIM() {
 
 const JIM_NONRESIDENTS_COLLECTION = "jim_nonresidents";
 
-function getTitleFromSex(sex) {
+function getTitleFromSex(sex?: string) {
   const normalizedSex = sex?.toLowerCase();
 
   if (normalizedSex === "male" || normalizedSex === "m") {
@@ -60,7 +55,24 @@ function getTitleFromSex(sex) {
   return "";
 }
 
-function formatJIMFormData(data) {
+function decryptJIMData(data: any) {
+  return {
+    passport_no: decrypt(data.passport_no, "jim"),
+    full_name: decrypt(data.full_name, "jim"),
+    date_of_birth: decrypt(data.date_of_birth, "jim"),
+    sex: decrypt(data.sex, "jim"),
+    exp_date: decrypt(data.exp_date, "jim"),
+    nationality: decrypt(data.nationality, "jim"),
+    country: decrypt(data.country, "jim"),
+    issue_date: decrypt(data.issue_date, "jim"),
+    issue_office: decrypt(data.issue_office, "jim"),
+    passport_photo: decrypt(data.passport_photo, "jim"),
+    visa_type: decrypt(data.visa_type, "jim"),
+    photo_pattern: decrypt(data.photo_pattern, "jim"),
+  };
+}
+
+function formatJIMFormData(data: any) {
   return {
     id_type: "passport",
     id_number: data.passport_no,
@@ -78,38 +90,31 @@ function formatJIMFormData(data) {
   };
 }
 
-async function lookupJIMIdentity(idNum) {
+async function lookupJIMIdentity(idNum: string) {
   const db = initializeJIM();
 
   if (!idNum) return null;
 
-  const hashedID = generateHashID(idNum);
+  const normalizedPassport = idNum.trim();
+  const lookupHash = hashLookup(normalizedPassport);
 
-  const docRef = db.collection(JIM_NONRESIDENTS_COLLECTION).doc(hashedID);
-  const docSnapshot = await docRef.get();
+  const querySnapshot = await db
+    .collection(JIM_NONRESIDENTS_COLLECTION)
+    .where("lookup_hash", "==", lookupHash)
+    .limit(1)
+    .get();
 
-  let data = null;
-
-  if (docSnapshot.exists) {
-    data = docSnapshot.data();
-  } else {
-    const querySnapshot = await db
-      .collection(JIM_NONRESIDENTS_COLLECTION)
-      .where("passport_no", "==", idNum)
-      .limit(1)
-      .get();
-
-    if (querySnapshot.empty) {
-      return null;
-    }
-
-    data = querySnapshot.docs[0].data();
+  if (querySnapshot.empty) {
+    return null;
   }
+
+  const encryptedData = querySnapshot.docs[0].data();
+  const decryptedData = decryptJIMData(encryptedData);
 
   return {
     source: "jim",
-    identity: data,
-    formData: formatJIMFormData(data),
+    identity: decryptedData,
+    formData: formatJIMFormData(decryptedData),
   };
 }
 
