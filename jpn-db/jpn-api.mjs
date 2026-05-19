@@ -20,7 +20,6 @@ function initializeJPN() {
       jpnApp = existingApp;
     } else {
       const serviceAccountPath =
-        process.env.FIREBASE_JPN_SERVICE_ACCOUNT_PATH ||
         path.join(process.cwd(), "jpn-db", "serviceAccountKey-JPN.json");
 
       const serviceAccount = JSON.parse(

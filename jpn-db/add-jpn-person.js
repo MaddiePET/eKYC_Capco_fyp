@@ -16,14 +16,14 @@ const db = admin.firestore();
 
 // The person data you provided
 const personData = {
-  ic_number: "011226101829",
-  full_name: "JAIND RAAJ SINGH A/L RAJINDER SINGH",
-  date_of_birth: "2001-12-26",
-  phone_registered: "1111890138",
-  add1: "186 JALAN SS 14",
+  ic_number: "A62595296",
+  full_name: "ASHLEY TANG WAY YAN",
+  date_of_birth: "2003-09-09",
+  phone_registered: "1133394826",
+  add1: "123 JALAN FAKE ADD",
   add2: "47500, Subang Jaya",
   postcode: "47500",
-  state: "Selangor",
+  state: "SELANGOR",
   ic_photo: "\\xffd8ffe000104a464946",
   photo_pattern: "ABC123",
 };
