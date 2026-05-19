@@ -103,7 +103,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [currentAccountName, setCurrentAccountName] = useState<string>("John Doe");
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(true);
-
   const [mounted, setMounted] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
   const [openSubmenu, setOpenSubmenu] = useState(calculatedOpenSubmenu);
@@ -126,6 +125,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const isMenuOpenRef = useRef(isApplicationMenuOpen);
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const isProfilePage = pathname === "/profile";
   
@@ -296,6 +296,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   const toggleUserDropdown = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.stopPropagation();
+    setIsNotificationOpen(false);
     setIsUserDropdownOpen((prev) => !prev);
   };
 
@@ -419,36 +420,52 @@ export default function AdminLayoutContent({ children }: { children: React.React
   };
 
   const handleOtpInputChange = (value: string, index: number) => {
-    const cleanValue = value.replace(/[^0-9]/g, "");
+    const cleanValue = value.replace(/\D/g, "");
+
     const newDigits = [...otpDigits];
-    if (cleanValue.length === 1) {
+
+    if (cleanValue.length <= 1) {
       newDigits[index] = cleanValue;
       setOtpDigits(newDigits);
       setOtpCode(newDigits.join(""));
-      if (index < 5) otpInputsRef.current[index + 1]?.focus();
-    } else if (cleanValue.length === 0 && index > 0) {
-      newDigits[index] = "";
-      setOtpDigits(newDigits);
-      setOtpCode(newDigits.join(""));
-      otpInputsRef.current[index - 1]?.focus();
-    } else if (cleanValue.length > 1) {
-      const pastedChars = cleanValue.slice(0, 6 - index).split("");
-      pastedChars.forEach((char, i) => { newDigits[index + i] = char; });
-      setOtpDigits(newDigits);
-      setOtpCode(newDigits.join(""));
-      const lastFilledIndex = index + pastedChars.length - 1;
-      if (lastFilledIndex < 5) otpInputsRef.current[lastFilledIndex + 1]?.focus();
+
+      if (cleanValue && index < 5) {
+        otpInputsRef.current[index + 1]?.focus();
+      }
     }
   };
 
-  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
+  const handleOtpKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+
+      const newDigits = [...otpDigits];
+
+      if (newDigits[index]) {
+        // clear current box first
+        newDigits[index] = "";
+        setOtpDigits(newDigits);
+        setOtpCode(newDigits.join(""));
+      } else if (index > 0) {
+        // move back and clear previous
+        newDigits[index - 1] = "";
+        setOtpDigits(newDigits);
+        setOtpCode(newDigits.join(""));
+        otpInputsRef.current[index - 1]?.focus();
+      }
     }
   };
 
-  const handleResendOtp = () => {
-    if (otpTimer === 0 && verificationMethod) setOtpTimer(60);
+  const handleResendOtp = async () => {
+    if (otpTimer !== 0 || !verificationMethod) return;
+
+    setOtpDigits(new Array(6).fill(""));
+    setOtpCode("");
+
+    await handleSendCode(verificationMethod);
   };
 
   const headerDisplayName = activeAccount
@@ -520,7 +537,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
         <aside className="fixed mt-16 lg:mt-0 top-0 left-0 w-[90px] h-screen border-r border-white/10" style={{ backgroundColor: '#3D405B' }} />
       ) : (
         <aside
-          className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 text-white h-screen transition-all duration-300 ease-in-out z-50 border-r border-white/10 
+          className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 text-white h-screen transition-all duration-300 ease-in-out z-[99999] border-r border-white/10 
             ${isExpanded || isMobileOpen || isHovered ? "w-[290px] max-w-[85vw]" : "w-[90px]"}
             ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
           style={{ backgroundColor: '#3D405B' }}
@@ -596,14 +613,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
       <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
         <header 
-          className="sticky top-0 flex w-full border-gray-200 z-99999 dark:border-gray-800 lg:border-b" 
+          className="sticky top-0 flex w-full border-gray-200 z-[99999] dark:border-gray-800 lg:border-b"
           style={{ backgroundColor: '#3D405B' }}
         >
           <div className="relative flex flex-col items-center grow lg:flex-row lg:px-6">
             <div className="flex items-center justify-between lg:justify-start w-full lg:w-auto gap-4 px-3 py-3 border-b dark:border-gray-800 lg:border-b-0 lg:px-0 lg:py-4">
               <button 
                 id="header-toggle-btn" 
-                className="items-center justify-center w-10 h-10 text-white rounded-lg z-99999 lg:flex lg:h-11 lg:w-11 lg:border border-white/20" 
+                className="items-center justify-center w-10 h-10 text-white rounded-lg z-[99999] lg:flex lg:h-11 lg:w-11 lg:border border-white/20"
                 onClick={handleHeaderToggle}
               >
                 <NavigationIcon
@@ -672,11 +689,15 @@ export default function AdminLayoutContent({ children }: { children: React.React
             </div>
 
             <div
-              className={`${isApplicationMenuOpen ? "flex" : "hidden"} lg:flex flex-col lg:flex-row absolute lg:static top-full right-0 left-0 lg:left-auto w-full lg:w-auto bg-[#3D405B] lg:bg-transparent px-5 py-4 lg:px-0 lg:py-0 gap-4 shadow-xl lg:shadow-none z-50 lg:ml-auto`}>
+              className={`${isApplicationMenuOpen ? "flex" : "hidden"} lg:flex flex-col lg:flex-row absolute lg:static top-full right-0 left-0 lg:left-auto w-full lg:w-auto bg-[#3D405B] lg:bg-transparent px-5 py-4 lg:px-0 lg:py-0 gap-4 shadow-xl lg:shadow-none z-[99999] lg:ml-auto`}>
               <div className="flex items-center justify-between w-full lg:w-auto gap-3">
-                <div className="flex items-center gap-2 2xsm:gap-3">
+                <div className="relative z-[99999] flex items-center gap-2 2xsm:gap-3 overflow-visible">
                   <ThemeToggleButton />
-                  <NotificationDropdown />
+                  <NotificationDropdown
+                    isOpen={isNotificationOpen}
+                    setIsOpen={setIsNotificationOpen}
+                    closeUserDropdown={closeUserDropdown}
+                  />
                 </div>
 
                 <div className="block lg:hidden w-full">
@@ -720,7 +741,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     </div>
                     
                     <span className="hidden xl:block mr-1 font-medium text-theme-sm whitespace-nowrap">
-                      {activeAccount?.name || "User"}
+                      {headerDisplayName}
                     </span>
                     
                     <svg 
@@ -1089,6 +1110,25 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     className="w-12 h-14 text-center text-xl font-bold transition-all border-2 rounded-xl outline-none border-gray-200 bg-white focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                   />
                 ))}
+              </div>
+
+              <div className="flex justify-center mb-6">
+                {otpTimer > 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Resend code in{" "}
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {otpTimer}s
+                    </span>
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
+                  >
+                    Resend Code
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-row gap-3">
