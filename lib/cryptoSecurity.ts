@@ -2,11 +2,14 @@ import crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 
-function getKey(source: "jpn" | "jim" | "ssm") {
-  const keyMap = {
+type CryptoSource = "jpn" | "jim" | "ssm" | "banka";
+
+function getKey(source: CryptoSource) {
+  const keyMap: Record<CryptoSource, string | undefined> = {
     jpn: process.env.JPN_ENCRYPTION_KEY,
     jim: process.env.JIM_ENCRYPTION_KEY,
     ssm: process.env.SSM_ENCRYPTION_KEY,
+    banka: process.env.BANKA_ENCRYPTION_KEY,
   };
 
   const keyHex = keyMap[source];
@@ -18,7 +21,7 @@ function getKey(source: "jpn" | "jim" | "ssm") {
   return Buffer.from(keyHex, "hex");
 }
 
-function encrypt(value: string, source: "jpn" | "jim" | "ssm") {
+function encrypt(value: string, source: CryptoSource) {
   const iv = crypto.randomBytes(12);
 
   const cipher = crypto.createCipheriv(
@@ -37,7 +40,7 @@ function encrypt(value: string, source: "jpn" | "jim" | "ssm") {
   return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted.toString("hex")}`;
 }
 
-function decrypt(payload: string, source: "jpn" | "jim" | "ssm") {
+function decrypt(payload: string, source: CryptoSource) {
   const [ivHex, authTagHex, encryptedHex] = payload.split(":");
 
   const decipher = crypto.createDecipheriv(
@@ -61,6 +64,6 @@ function hashLookup(value: string) {
     .createHash("sha256")
     .update(value.replace(/-/g, "").trim())
     .digest("hex");
-}
+} 
 
 export { encrypt, decrypt, hashLookup };
