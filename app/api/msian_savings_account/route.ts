@@ -1,63 +1,15 @@
-import fs from "fs";
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { hashPassword } from "@/hashpw";
-import * as admin from "firebase-admin";
-
+import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 export const runtime = "nodejs";
-
-function loadFirebaseServiceAccount(project: 'jim' | 'jpn') {
-  const envVar = project === 'jpn' ? 'FIREBASE_JPN_SERVICE_ACCOUNT_PATH' : 'FIREBASE_JIM_SERVICE_ACCOUNT_PATH';
-  const jsonPath = process.env[envVar];
-
-  if (!jsonPath) {
-    throw new Error(`Missing ${envVar} environment variable`);
-  }
-
-  return JSON.parse(fs.readFileSync(jsonPath, "utf8"));
-}
-
-let db: admin.firestore.Firestore | null = null;
-
-function getDb() {
-  if (!db) {
-    admin.initializeApp({
-      credential: admin.credential.cert(loadFirebaseServiceAccount('jpn')),
-    });
-    db = admin.firestore();
-  }
-  return db;
-}
 
 function generateAccountNumber() {
   let accountNo = "";
-
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
-
   return accountNo;
-}
-
-const JPN_CITIZENS_COLLECTION = "jpn_citizens";
-
-async function verifyIdentityInFirebase(icNum: string) {
-  if (!icNum) return false;
-
-  const db = getDb();
-  const docRef = db.collection(JPN_CITIZENS_COLLECTION).doc(icNum);
-  const docSnapshot = await docRef.get();
-  if (docSnapshot.exists) {
-    return true;
-  }
-
-  const icQuery = await db
-    .collection(JPN_CITIZENS_COLLECTION)
-    .where("ic_number", "==", icNum)
-    .limit(1)
-    .get();
-
-  return !icQuery.empty;
 }
 
 export async function POST(req: Request) {
@@ -67,6 +19,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const {
+      journeyId,
       customer,
       homeAddress,
       mailingAddress,
@@ -74,6 +27,7 @@ export async function POST(req: Request) {
       savingsAccount,
     } = body;
 
+    // 1. Core structural verification
     if (!customer || !homeAddress || !user || !savingsAccount) {
       return NextResponse.json(
         { error: "Missing required submission sections." },
@@ -81,158 +35,202 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!customer.ic_num || !customer.full_name || !customer.dob) {
+    const customerIdNum = customer.id_num || customer.ic_num;
+
+    if (!customerIdNum || !customer.full_name || !customer.dob) {
       return NextResponse.json(
         { error: "Customer IC number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
 
-    const isVerified = await verifyIdentityInFirebase(customer.ic_num);
-    if (!isVerified) {
+    if (!journeyId) {
       return NextResponse.json(
-        {
-          error:
-            "eKYC verification failed: the provided IC number was not found in the government identity records.",
-        },
+        { error: "Missing eKYC journey ID." },
+        { status: 400 }
+      );
+    }
+
+    const normalizedIdNum = customerIdNum.replace(/-/g, "").trim();
+
+    // 2. Validate session verification status with external eKYC workflow
+    const statusRes = await fetch(
+      `${req.headers.get("origin") || "http://localhost:3000"}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
+    );
+
+    const statusData = await statusRes.json();
+    const statusIdType = statusData.id_type?.toLowerCase();
+    const statusIdNum = statusData.id_num?.replace(/-/g, "").trim();
+
+    if (
+      statusData.status !== "face_verified" ||
+      !["ic", "mykad", "nric"].includes(statusIdType) ||
+      statusIdNum !== normalizedIdNum
+    ) {
+      return NextResponse.json(
+        { error: "eKYC session was not verified. Please restart MyKad verification." },
         { status: 403 }
       );
     }
 
+    // 3. Fallback Sanitization mapping to intercept 'undefined' values before crypto operations
+    const cleanHomeAddress = {
+      add_1: homeAddress.add_1 || "",
+      add_2: homeAddress.add_2 || "", // Prevents encryption errors if empty
+      postcode: homeAddress.postcode || "",
+      state: homeAddress.state || "",
+      country: homeAddress.country || "Malaysia",
+    };
+
+    const cleanCustomer = {
+      id_num: normalizedIdNum,
+      full_name: customer.full_name || "",
+      id_type: customer.id_type || "IC",
+      dob: customer.dob,
+      ph_no: customer.ph_no || "",
+      email: customer.email || "",
+    };
+
+    const cleanUser = {
+      username: user.username || "",
+      password: user.password,
+      status: user.status || "PENDING",
+      sec_phrase: user.sec_phrase || "",
+      branch: user.branch || "Main Branch",
+    };
+
+    const cleanSavings = {
+      occupation: savingsAccount.occupation || "",
+      monthly_income: savingsAccount.monthly_income || "",
+      income_source: savingsAccount.income_source || "",
+      employment_type: savingsAccount.employment_type || "",
+      is18: savingsAccount.is18 !== undefined ? savingsAccount.is18 : true,
+    };
+
+    // Begin DB Transaction Execution Sequence
     await client.query("BEGIN");
 
+    // Insert Home Address
     const homeAddressResult = await client.query(
       `
-      INSERT INTO banka."Address"
-      (
-        add_1,
-        add_2,
-        postcode,
-        state,
-        country
-      )
+      INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING add_id
       `,
       [
-        homeAddress.add_1,
-        homeAddress.add_2,
-        homeAddress.postcode,
-        homeAddress.state,
-        homeAddress.country,
+        cleanHomeAddress.add_1,
+        cleanHomeAddress.add_2,
+        cleanHomeAddress.postcode,
+        cleanHomeAddress.state,
+        cleanHomeAddress.country,
       ]
     );
 
     const homeAddId = homeAddressResult.rows[0].add_id;
-
     let mailingAddId = null;
 
+    // Insert Mailing Address conditionally if configured
     if (mailingAddress) {
+      const cleanMailingAddress = {
+        add_1: mailingAddress.add_1 || "",
+        add_2: mailingAddress.add_2 || "",
+        postcode: mailingAddress.postcode || "",
+        state: mailingAddress.state || "",
+        country: mailingAddress.country || "Malaysia",
+      };
+
       const mailingAddressResult = await client.query(
         `
-        INSERT INTO banka."Address"
-        (
-          add_1,
-          add_2,
-          postcode,
-          state,
-          country
-        )
+        INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING add_id
         `,
         [
-          mailingAddress.add_1,
-          mailingAddress.add_2,
-          mailingAddress.postcode,
-          mailingAddress.state,
-          mailingAddress.country,
+          cleanMailingAddress.add_1,
+          cleanMailingAddress.add_2,
+          cleanMailingAddress.postcode,
+          cleanMailingAddress.state,
+          cleanMailingAddress.country,
         ]
       );
 
       mailingAddId = mailingAddressResult.rows[0].add_id;
     }
 
+    // Insert Customer Account Entities utilizing encryption functions securely
     const customerResult = await client.query(
       `
-      INSERT INTO banka."Customer"
-      (
+      INSERT INTO banka."Customer" (
+        id_num_hash,
         id_num,
         full_name,
         id_type,
         dob,
-        ph_no_1,
+        ph_no,
         email,
         home_add
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING cust_id
       `,
       [
-        customer.id_num || customer.ic_num,
-        customer.full_name,
-        customer.id_type || "IC",
-        customer.dob,
-        customer.ph_no_1,
-        customer.email,
+        hashLookup(cleanCustomer.id_num),
+        encrypt(cleanCustomer.id_num, "banka"),
+        encrypt(cleanCustomer.full_name, "banka"),
+        cleanCustomer.id_type,
+        cleanCustomer.dob,
+        encrypt(cleanCustomer.ph_no, "banka"),
+        encrypt(cleanCustomer.email, "banka"),
         homeAddId,
       ]
     );
 
     const custId = customerResult.rows[0].cust_id;
 
-    if (!user.password) {
+    if (!cleanUser.password) {
       throw new Error("Password is missing");
     }
 
-    const rawPassword = user.password;
-    const hashedPassword = await hashPassword(rawPassword);
+    const hashedPassword = await hashPassword(cleanUser.password);
 
-    let profileBuffer: Buffer | string | null = null;
+    // Sanitize image attachment buffer transformations safely
+    let profileBuffer: Buffer | null = null;
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
-        : Buffer.from(user.img); 
+        : Buffer.from(user.img);
+    } else {
+      // Satisfies NOT NULL constraints on the img bytea column
+      profileBuffer = Buffer.alloc(0);
     }
 
+    // Insert User Configuration Row
     const userResult = await client.query(
       `
-      INSERT INTO banka."User"
-      (
-        cust_id,
-        username,
-        password,
-        status,
-        img,
-        sec_phrase,
-        branch
-      )
+      INSERT INTO banka."User" (cust_id, username, password, status, img, sec_phrase, branch)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING user_id
       `,
       [
         custId,
-        user.username,
-        hashedPassword, 
-        user.status || "Pending",
-        profileBuffer || null,
-        user.sec_phrase,
-        user.branch,
+        cleanUser.username,
+        hashedPassword,
+        cleanUser.status,
+        profileBuffer,
+        cleanUser.sec_phrase,
+        cleanUser.branch,
       ]
     );
 
     const userId = userResult.rows[0].user_id;
 
+    // Loop until unique Savings account number generation is resolved 
     let accountNo = generateAccountNumber();
     let accountExists = true;
 
     while (accountExists) {
       const checkAccount = await client.query(
-        `
-        SELECT account_no
-        FROM banka."Savings_account"
-        WHERE account_no = $1
-        `,
+        `SELECT account_no FROM banka."Savings_account" WHERE account_no = $1`,
         [accountNo]
       );
 
@@ -243,29 +241,21 @@ export async function POST(req: Request) {
       }
     }
 
+    // Insert Savings Account Row Details
     const savingsResult = await client.query(
       `
-      INSERT INTO banka."Savings_account"
-      (
-        account_no,
-        user_id,
-        occupation,
-        monthly_income,
-        income_source,
-        employment_type,
-        is18
-      )
+      INSERT INTO banka."Savings_account" (account_no, user_id, occupation, monthly_income, income_source, employment_type, is18)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING account_no
       `,
       [
         accountNo,
         userId,
-        savingsAccount.occupation,
-        savingsAccount.monthly_income,
-        savingsAccount.income_source,
-        savingsAccount.employment_type,
-        savingsAccount.is18,
+        cleanSavings.occupation,
+        cleanSavings.monthly_income,
+        cleanSavings.income_source,
+        cleanSavings.employment_type,
+        cleanSavings.is18,
       ]
     );
 
@@ -284,15 +274,10 @@ export async function POST(req: Request) {
     );
   } catch (error: any) {
     await client.query("ROLLBACK");
-
     console.error("Malaysian savings account error:", error);
 
     return NextResponse.json(
-      {
-        error:
-          error.message ||
-          "Failed to create Malaysian savings account application",
-      },
+      { error: error.message || "Failed to create Malaysian savings account application" },
       { status: 500 }
     );
   } finally {

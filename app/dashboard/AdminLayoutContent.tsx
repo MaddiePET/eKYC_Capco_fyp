@@ -23,6 +23,7 @@ import MoreDotIcon from "@/icons/more-dot.svg";
 
 type Account = {
   id: number | string;
+  username: string;
   name: string;
   email: string;
   phone: string;
@@ -136,6 +137,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
     if (loggedInUser && currentAccountName === loggedInUser.name) {
       return {
         id: 0,
+        username: currentUsername,
         name: loggedInUser.name,
         email: loggedInUser.email,
         avatar: loggedInUser.avatar, 
@@ -469,7 +471,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   };
 
   const headerDisplayName = activeAccount
-    ? `${activeAccount.name.split(" ")[0]} (${activeAccount.type})`
+    ? `${activeAccount.username || activeAccount.name} (${activeAccount.type})`
     : "Account";
 
   const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
@@ -809,7 +811,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
                                   <div className="text-left">
                                     <p className="text-xs font-medium">
-                                      {account.name}
+                                      {account.username} ({account.type})
                                     </p>
 
                                     <p className="text-[11px] opacity-75">

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { decrypt } from "@/lib/cryptoSecurity";
 
 export async function GET(
   req: Request,
@@ -45,10 +46,13 @@ export async function GET(
       }
     }
 
+    const fullName = user.full_name ? decrypt(user.full_name, "banka") : "";
+    const email = user.email ? decrypt(user.email, "banka") : "";
+
     return NextResponse.json({
       username: user.username,
-      name: `${user.full_name}`,
-      email: user.email,
+      name: fullName,
+      email,
       avatar: avatarString,
       securityPhrase: user.sec_phrase,
     });

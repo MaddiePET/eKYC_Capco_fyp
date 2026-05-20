@@ -42,7 +42,7 @@ export default function PersonalMalaysianPhone() {
 
       if (response.ok && data.success && data.identity) {
         const identityData = data.formData || data.identity;
-        const rawPhone = identityData.ph_no_1 || identityData.phone_number || identityData.phoneNumber || "";
+        const rawPhone = identityData.ph_no || identityData.phone_number || identityData.phoneNumber || "";
 
         if (rawPhone) {
           let digitsOnly = rawPhone.replace(/\D/g, "");

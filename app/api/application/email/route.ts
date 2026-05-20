@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { encrypt } from "@/lib/cryptoSecurity";
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   try {
@@ -21,7 +22,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
       RETURNING *;
     `;
 
-    const values = [email, cust_id];
+    const values = [encrypt(email, "banka"), cust_id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
