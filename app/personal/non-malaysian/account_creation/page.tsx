@@ -24,7 +24,8 @@ export default function PersonalNonMalaysianAccountCreation() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +49,6 @@ export default function PersonalNonMalaysianAccountCreation() {
   const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(password);
   const score = (password.length >= 8 ? 1 : 0) + (/[0-9]/.test(password) ? 1 : 0) + (/[A-Z]/.test(password) ? 1 : 0) + (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
-  
   const getPasswordStrength = (): string => {
     if (password.length === 0) return "";
     
@@ -409,7 +409,10 @@ export default function PersonalNonMalaysianAccountCreation() {
                     className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      const sanitized = e.target.value.replace(/\s/g, "");
+                      setPassword(sanitized);
+                    }}
                   />
 
                   <button 
@@ -460,41 +463,36 @@ export default function PersonalNonMalaysianAccountCreation() {
                 </p>
               </div>
 
-              <div className="relative">
+              <div>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Confirm Password<span className="text-error-500">*</span>
+                </Label>
+
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type="password"
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="Confirm your password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/\s/g, "");
+                    setConfirmPassword(sanitized);
+                  }}
                 />
-
-                {confirmPassword.length > 0 && password !== confirmPassword && (
-                  <p className="mt-2 text-[10px] text-red-500">
-                    Passwords do not match
-                  </p>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                >
-                  {showConfirmPassword ? (
-                    <EyeIcon className="w-5 h-5" />
-                  ) : (
-                    <EyeCloseIcon className="w-5 h-5" />
-                  )}
-                </button>
               </div>
+
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                  {submitError}
+                </div>
+              )}
 
               <button 
                 type="button"
-                onClick={handleNext} 
+                onClick={handleFinalSubmit}
                 disabled={!password || !securityPhrase || password !== confirmPassword || !isPasswordValid}  
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
               >
-                Create Account
+                {isSubmitting ? "Creating..." : "Create Account"}
               </button>
             </div>
           </div>

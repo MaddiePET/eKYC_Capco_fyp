@@ -25,10 +25,7 @@ export default function PersonalNonMalaysianEmail() {
 
   const searchParams = useSearchParams();
 
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   useEffect(() => {
     setMounted(true);
@@ -146,7 +143,7 @@ export default function PersonalNonMalaysianEmail() {
         "";
 
       if (!passportNo) {
-        console.error("Missing passport number from journey status:", statusData);
+        console.error("Missing Passport number from journey status:", statusData);
         setMessage("Passport number missing. Please restart Passport verification.");
         setMessageType("error");
         setIsLoading(false);
@@ -168,6 +165,7 @@ export default function PersonalNonMalaysianEmail() {
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
     const newOtp = [...otp];
+    
     if (cleanValue.length > 1) {
       const pastedChars = cleanValue.slice(0, 6).split("");
       pastedChars.forEach((char, i) => {
@@ -200,6 +198,7 @@ export default function PersonalNonMalaysianEmail() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
+          
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -398,9 +397,11 @@ export default function PersonalNonMalaysianEmail() {
           >
             <path 
               fillRule="evenodd" 
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+              clipRule="evenodd"
             />
           </svg>
+
           <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
             Standard email rates may apply. Your email address is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
           </p>

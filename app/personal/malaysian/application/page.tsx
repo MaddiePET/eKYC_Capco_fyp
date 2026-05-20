@@ -115,6 +115,7 @@ export default function PersonalMalaysianApplication() {
       setIsLocating(false);
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -142,7 +143,6 @@ export default function PersonalMalaysianApplication() {
     return distA - distB;
   });
 
-  
   const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault();
 

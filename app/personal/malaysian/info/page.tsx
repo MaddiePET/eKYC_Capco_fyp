@@ -20,7 +20,6 @@ export default function PersonalMalaysianInfo() {
     nric: "",
     dobDay: "",
     dobMonth: "",
-    dobMonth: "",
     dobYear: "",
     phoneCode: "+60",
     phoneNumber: "",
@@ -36,12 +35,11 @@ export default function PersonalMalaysianInfo() {
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
       const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
       ];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "January",
+        month: monthNames[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -54,19 +52,19 @@ export default function PersonalMalaysianInfo() {
       return {
         day: day.toString().padStart(2, "0"),
         month: [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ][month - 1] || "January",
+          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
+        ][month - 1] || "",
         year,
       };
     }
 
-    return { day: "", month: "January", year: "" };
+    return { day: "", month: "", year: "" };
   };
 
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
+    
     return {
       fullName: identity.full_name || identity.name || identity.fullName || "",
       nric: identity.ic_number || identity.nric || identity.id_num || idNum,

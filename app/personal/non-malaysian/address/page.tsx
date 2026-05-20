@@ -60,7 +60,7 @@ const AddressSection = ({
       <div className="space-y-5">
         <div>
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-            Address Line 1 <span className="text-red-500">*</span>
+            Address 1 <span className="text-red-500">*</span>
           </label>
 
           <input
@@ -77,7 +77,7 @@ const AddressSection = ({
 
         <div>
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-            Address Line 2 <span className="text-red-500">*</span>
+            Address 2 <span className="text-red-500">*</span>
           </label>
 
           <input

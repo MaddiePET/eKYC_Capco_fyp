@@ -137,11 +137,7 @@ export default function PersonalMalaysianEmail() {
       const statusData = await statusRes.json();
       console.log("Status API response:", statusData);
 
-      const icNo =
-        statusData?.id_num ||
-        statusData?.data?.id_num ||
-        statusData?.identity?.id_num ||
-        "";
+      const icNo = statusData?.id_num || statusData?.data?.id_num || statusData?.identity?.id_num || "";
 
       if (!icNo) {
         console.error("Missing MyKad number from journey status:", statusData);
@@ -291,7 +287,7 @@ export default function PersonalMalaysianEmail() {
                   placeholder="Enter your email" 
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                   value={email}
-                  onChange={(e) => setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))} 
+                  onChange={(e) => setEmail(e.target.value.replace(/[^a-zA-Z0-9@.\-_+]/g, ""))} 
                 />
               </div>
 
@@ -299,7 +295,7 @@ export default function PersonalMalaysianEmail() {
                 type="submit" 
                 disabled={isLoading || !email} 
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  isLoading || !email 
+                  isLoading || !email
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600' 
                     : 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
                 }`}

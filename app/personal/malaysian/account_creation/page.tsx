@@ -65,17 +65,17 @@ export default function PersonalMalaysianAccountCreation() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setProfileFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const dataUrl = reader.result as string;
-          setProfilePreview(dataUrl); 
-        };
-        reader.readAsDataURL(file);
-      }
-    };
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setProfilePreview(dataUrl); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleNext = () => {
     if (step === "profile") setStep("password");
@@ -452,7 +452,10 @@ export default function PersonalMalaysianAccountCreation() {
                     className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      const sanitized = e.target.value.replace(/\s/g, "");
+                      setPassword(sanitized);
+                    }}
                   />
 
                   <button
@@ -513,7 +516,10 @@ export default function PersonalMalaysianAccountCreation() {
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="Confirm your password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/\s/g, "");
+                    setConfirmPassword(sanitized);
+                  }}
                 />
               </div>
 
@@ -521,7 +527,7 @@ export default function PersonalMalaysianAccountCreation() {
                 <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
                   {submitError}
                 </div>
-               )}
+              )}
 
               <button
                 type="button"
