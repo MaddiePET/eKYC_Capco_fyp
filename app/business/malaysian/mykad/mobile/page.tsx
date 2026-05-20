@@ -139,22 +139,18 @@ function BusinessMalaysianMobileMyKadCapture() {
         throw new Error("IC number could not be extracted");
       }
 
-<<<<<<< HEAD
-      const compressedBase64 = await compressImage(fImg);
-      localStorage.setItem("ekyc_id_image", compressedBase64);
+      const identityRes = await fetch(
+        `/api/identity/lookup?id_type=ic&id_num=${encodeURIComponent(icNo)}`
+      );
 
-      await fetch("/api/ekyc/status", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ 
-          journeyId, 
-          status: "verified",
-          id_type: "ic",
-          id_num: icNo
-        })
-=======
+      const identityData = await identityRes.json();
+
+      if (!identityRes.ok || !identityData.success) {
+        throw new Error(
+          "Identity was not found in government records"
+        );
+      }
+
       await fetch("/api/ekyc/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +160,6 @@ function BusinessMalaysianMobileMyKadCapture() {
           id_type: "ic",
           id_num: icNo,
         }),
->>>>>>> origin/ashley
       });
 
       setSuccess(true);
@@ -273,7 +268,7 @@ function BusinessMalaysianMobileMyKadCapture() {
             className="block dark:invert-0 invert" 
           />
           
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
       </header>

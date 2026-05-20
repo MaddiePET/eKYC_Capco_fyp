@@ -112,7 +112,6 @@ function PersonalNonMalaysianMobilePassportCapture() {
         throw new Error("Passport number could not be extracted");
       }
 
-
       if (okayidResult.status !== "success") {
         throw new Error(okayidResult.message || "unrecognized");
       }
@@ -135,6 +134,16 @@ function PersonalNonMalaysianMobilePassportCapture() {
 
       if (okaydocResult.status !== "success") {
         throw new Error("not meeting quality standards");
+      }
+
+      const identityRes = await fetch(
+        `/api/identity/lookup?id_type=passport&id_num=${encodeURIComponent(passportNo)}`
+      );
+
+      const identityData = await identityRes.json();
+
+      if (!identityRes.ok || !identityData.success) {
+        throw new Error("Identity was not found in government records");
       }
 
       const compressedBase64 = await compressImage(base64String); 
@@ -236,7 +245,7 @@ function PersonalNonMalaysianMobilePassportCapture() {
             className="block dark:invert-0 invert"
           />
 
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
       </header>

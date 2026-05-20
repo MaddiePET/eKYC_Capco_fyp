@@ -150,7 +150,7 @@ export default function BusinessMalaysianPhone() {
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
           onClick={handleGlobalBack}
@@ -161,7 +161,7 @@ export default function BusinessMalaysianPhone() {
           Back
         </button>
 
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 shrink-0 max-w-[45%] overflow-hidden">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -170,7 +170,7 @@ export default function BusinessMalaysianPhone() {
             className="block dark:invert-0 invert" 
           />
 
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
         </Link>
