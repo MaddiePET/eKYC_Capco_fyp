@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { lookupJPNIdentity } from "../../../../jpn-db/jpn-api.mjs";
 import { lookupJIMIdentity } from "../../../../jim-db/jim-api.mjs";
+import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api.mjs";
 
 async function lookupIdentity(idType: string, idNum: string) {
   if (!idNum) return null;
@@ -8,8 +9,8 @@ async function lookupIdentity(idType: string, idNum: string) {
   const normalizedIdType = idType.toLowerCase();
 
   if (
-    normalizedIdType === "ic" || 
-    normalizedIdType === "mykad" || 
+    normalizedIdType === "ic" ||
+    normalizedIdType === "mykad" ||
     normalizedIdType === "nric"
   ) {
     return await lookupJPNIdentity(idNum);
@@ -25,12 +26,41 @@ async function lookupIdentity(idType: string, idNum: string) {
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
+
+    const lookup = url.searchParams.get("lookup");
     const idType = url.searchParams.get("id_type");
     const idNum = url.searchParams.get("id_num");
 
-    if (!idType || !idNum) {
+    if (!idNum) {
       return NextResponse.json(
-        { error: "Missing id_type or id_num query parameters" },
+        { error: "Missing id_num query parameter" },
+        { status: 400 }
+      );
+    }
+
+    if (lookup === "ssm_businesses") {
+      const businesses = await lookupSSMBusinesses(idNum);
+
+      if (businesses.length === 0) {
+        return NextResponse.json({
+          success: true,
+          source: "SSM",
+          message: "No registered business linked with your IC number.",
+          businesses: [],
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        source: "SSM",
+        message: "Linked businesses found",
+        businesses,
+      });
+    }
+
+    if (!idType) {
+      return NextResponse.json(
+        { error: "Missing id_type query parameter" },
         { status: 400 }
       );
     }
@@ -57,6 +87,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(
       {
+        success: false,
         error: error.message || "Failed to lookup identity",
       },
       { status: 500 }

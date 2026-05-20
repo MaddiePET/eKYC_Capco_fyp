@@ -26,15 +26,15 @@ export default function PersonalMalaysianAccountCreation() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
 
-    const savedEmailData = localStorage.getItem("nonMsianEmail");
-    if (savedEmailData) {
-      const parsed = JSON.parse(savedEmailData);
+    const savedContactData = localStorage.getItem("contactInfo");
+    if (savedContactData) {
+      const parsed = JSON.parse(savedContactData);
       setUserEmail(parsed.email || "");
     }
   }, []);
@@ -97,8 +97,8 @@ export default function PersonalMalaysianAccountCreation() {
 
       const phoneVerification = JSON.parse(localStorage.getItem("phoneVerification") || "{}");
       const personalInfo = JSON.parse(localStorage.getItem("personalInfo") || "{}");
+      const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}"); 
       const storedHomeAddress = JSON.parse(localStorage.getItem("homeAddress") || "{}");
-      const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
       const storedMailingAddress = JSON.parse(localStorage.getItem("mailingAddress") || "{}");
       const branchInfo = JSON.parse(localStorage.getItem("branchInfo") || "{}");
       const savingsApplication = JSON.parse(localStorage.getItem("savingsApplication") || "{}");
@@ -155,14 +155,22 @@ export default function PersonalMalaysianAccountCreation() {
         );
       }
 
+      const finalPhone = phoneVerification.ph_no || contactInfo.ph_no || contactInfo.phone || "";
+      const finalEmail = userEmail || contactInfo.email || "";
+
+      if (!finalPhone || !finalEmail) {
+        throw new Error("Contact information (phone or email) is missing. Please go back to the previous steps.");
+      }
+
       const payload = {
         customer: {
           id_num: personalInfo.id_num,
           full_name: personalInfo.full_name,
           id_type: personalInfo.id_type,
           dob: personalInfo.dob,
-          ph_no_1: phoneVerification.ph_no_1, 
+          ph_no: finalPhone,
           country: personalInfo.country,
+          email: finalEmail, 
         },
         homeAddress,
         mailingAddress,
@@ -466,6 +474,9 @@ export default function PersonalMalaysianAccountCreation() {
                     </p>
                     <p className={/[A-Z]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[A-Z]/.test(password) ? "✓" : "○"} At least one capital letter
+                    </p>
+                    <p className={/[a-z]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[a-z]/.test(password) ? "✓" : "○"} At least one lowercase letter
                     </p>
                     <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} At least one special character

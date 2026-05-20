@@ -220,8 +220,8 @@ export default function BusinessMalaysianInfo() {
     formData.nric.trim() !== "" &&
     formData.phoneNumber.trim() !== "" &&
     formData.add1.trim() !== "" &&
-    formData.postal.trim() !== "" &&
     formData.add2.trim() !== "" &&
+    formData.postal.trim() !== "" &&
     formData.state.trim() !== "";
 
   if (!mounted) return null;
@@ -330,20 +330,6 @@ export default function BusinessMalaysianInfo() {
                     className="text-sm font-bold text-gray-700 dark:text-gray-200"
                     value={formData.fullName}
                   />
-
-                  <svg 
-                    className="w-4 h-4 text-gray-400 ml-auto" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                    />
-                  </svg>
                 </div>
               </div>
 
@@ -359,20 +345,6 @@ export default function BusinessMalaysianInfo() {
                     className="text-sm font-bold text-gray-700 dark:text-gray-200"
                     value={formData.nric}
                   />
-
-                  <svg 
-                    className="w-4 h-4 text-gray-400 ml-auto" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                    />
-                  </svg>
                 </div>
               </div>
 
@@ -389,20 +361,6 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobDay}
                     />
-                    
-                    <svg
-                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
                   </div>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -412,20 +370,6 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobMonth}
                     />
-                    
-                    <svg
-                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
                   </div>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -435,20 +379,6 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobYear}
                     />
-
-                    <svg
-                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
@@ -476,20 +406,6 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.phoneNumber}
                     />
-
-                    <svg
-                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
                   </div>
                 </div>
               </div>
@@ -508,20 +424,6 @@ export default function BusinessMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.add1}
                   />
-
-                  <svg
-                    className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
                 </div>
               </div>
             
@@ -537,20 +439,6 @@ export default function BusinessMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.add2}
                   />
-
-                  <svg
-                    className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
                 </div>
               </div>
 
@@ -567,20 +455,6 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.postal}
                     />
-
-                    <svg
-                      className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
                   </div>
                 </div>
 
@@ -596,20 +470,6 @@ export default function BusinessMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.state}
                   />
-
-                  <svg
-                    className="w-4 h-4 shrink-0 text-gray-400 ml-auto"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
                 </div>
                 </div>
               </div>
@@ -621,20 +481,6 @@ export default function BusinessMalaysianInfo() {
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
-
-                  <svg 
-                    className="w-4 h-4 text-gray-400 ml-auto" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                    />
-                  </svg>
                 </div>
               </div>
             </div>

@@ -434,6 +434,9 @@ export default function PersonalNonMalaysianAccountCreation() {
                     <p className={/[A-Z]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[A-Z]/.test(password) ? "✓" : "○"} At least one capital letter
                     </p>
+                    <p className={/[a-z]/.test(password) ? "text-green-500" : "text-gray-400"}>
+                      {/[a-z]/.test(password) ? "✓" : "○"} At least one lowercase letter
+                    </p>
                     <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
                       {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} At least one special character
                     </p>

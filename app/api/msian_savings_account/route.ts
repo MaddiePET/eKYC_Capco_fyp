@@ -21,10 +21,16 @@ let db: admin.firestore.Firestore | null = null;
 
 function getDb() {
   if (!db) {
-    admin.initializeApp({
-      credential: admin.credential.cert(loadFirebaseServiceAccount('jpn')),
-    });
-    db = admin.firestore();
+    const appName = "jpn-app";
+
+    const jpnApp = admin.apps.find((app) => app?.name === appName)
+      || admin.initializeApp({
+          credential: admin.credential.cert(loadFirebaseServiceAccount('jpn')),
+        },
+        appName
+      );
+
+    db = jpnApp.firestore();
   }
   return db;
 }
@@ -81,19 +87,18 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!customer.ic_num || !customer.full_name || !customer.dob) {
+    if (!(customer.ic_num || customer.id_num) || !customer.full_name || !customer.dob) {
       return NextResponse.json(
         { error: "Customer IC number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
 
-    const isVerified = await verifyIdentityInFirebase(customer.ic_num);
+    const isVerified = await verifyIdentityInFirebase(customer.ic_num || customer.id_num);
     if (!isVerified) {
       return NextResponse.json(
         {
-          error:
-            "eKYC verification failed: the provided IC number was not found in the government identity records.",
+          error: "eKYC verification failed: the provided IC number was not found in the government identity records.",
         },
         { status: 403 }
       );
@@ -161,7 +166,7 @@ export async function POST(req: Request) {
         full_name,
         id_type,
         dob,
-        ph_no_1,
+        ph_no,
         email,
         home_add
       )
@@ -173,7 +178,7 @@ export async function POST(req: Request) {
         customer.full_name,
         customer.id_type || "IC",
         customer.dob,
-        customer.ph_no_1,
+        customer.ph_no,
         customer.email,
         homeAddId,
       ]

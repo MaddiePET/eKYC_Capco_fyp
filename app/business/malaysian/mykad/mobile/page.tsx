@@ -45,11 +45,38 @@ function BusinessMalaysianMobileMyKadCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
+  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image(); 
+      img.src = `data:image/jpeg;base64,${base64}`;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(800 / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
+      };
+    });
+  };
+
   useEffect(() => {
     if (!journeyId) {
       alert("Invalid link. Please scan the QR code again from your desktop.");
     }
   }, [journeyId]);
+
+  function extractMyKadNumber(okayIdResult: any) {
+    const fields =
+      okayIdResult?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+
+    const idField = fields.find(
+      (field: any) => field.FieldType === 2 || field.wFieldType === 2
+    );
+
+    return idField?.Field_Visual || "";
+  }
 
   const handleVerification = useCallback(async (fImg: string, bImg: string) => {
     if (!journeyId || isLoading) return;
@@ -104,13 +131,27 @@ function BusinessMalaysianMobileMyKadCapture() {
         throw new Error(backDocData.message || "not meeting quality standards");
       }
 
+      const icNo = extractMyKadNumber(frontIdData);
+
+      console.log("Extracted IC number:", icNo);
+
+      if (!icNo) {
+        throw new Error("IC number could not be extracted");
+      }
+
+      const compressedBase64 = await compressImage(fImg);
+      localStorage.setItem("ekyc_id_image", compressedBase64);
+
       await fetch("/api/ekyc/status", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json" 
         },
         body: JSON.stringify({ 
-          journeyId, status: "verified" 
+          journeyId, 
+          status: "verified",
+          id_type: "ic",
+          id_num: icNo
         })
       });
 

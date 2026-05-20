@@ -15,7 +15,11 @@ export default function PersonalMalaysianPhone() {
 
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  
+  const [originalPhoneNumber, setOriginalPhoneNumber] = useState("");
+  const [newPhoneNumber, setNewPhoneNumber] = useState("");
+  const [isChangedNumberFlow, setIsChangedNumberFlow] = useState(false);
+  
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -24,11 +28,11 @@ export default function PersonalMalaysianPhone() {
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const journeyId = searchParams.get("journeyId") || "";
-  
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
-
   const idNum = searchParams.get("id_num") || (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") || "";
+
+  const activePhoneNumber = isChangedNumberFlow ? newPhoneNumber : originalPhoneNumber;
 
   const fetchIdentity = async (type: string, num: string) => {
     if (!num) return;
@@ -51,7 +55,7 @@ export default function PersonalMalaysianPhone() {
             digitsOnly = digitsOnly.substring(1);
           }
           
-          setPhoneNumber(digitsOnly);
+          setOriginalPhoneNumber(digitsOnly);
         }
       }
     } catch (error: any) {
@@ -75,9 +79,15 @@ export default function PersonalMalaysianPhone() {
   }, [timer]);
 
   const handleGlobalBack = () => {
-    if (step === "otp") setStep("confirm");
-    else if (step === "change") setStep("confirm");
-    else router.push("/personal/malaysian/face_verification");
+    if (step === "otp") {
+      setStep(isChangedNumberFlow ? "change" : "confirm");
+    } else if (step === "change") {
+      setStep("confirm");
+      setIsChangedNumberFlow(false);
+      setOtp(["", "", "", "", "", ""]);
+    } else {
+      router.push("/personal/malaysian/face_verification");
+    }
   };
 
   const handleSendOtp = () => {
@@ -86,7 +96,15 @@ export default function PersonalMalaysianPhone() {
       setIsLoading(false);
       setStep("otp");
       setTimer(60);
+      setOtp(["", "", "", "", "", ""]);
     }, 800);
+  };
+
+  const handleChangeNumberFlow = () => {
+    setIsChangedNumberFlow(true);
+    setNewPhoneNumber("");
+    setOtp(["", "", "", "", "", ""]);
+    setStep("change");
   };
 
   const handleOtpChange = (value: string, index: number) => {
@@ -127,7 +145,8 @@ export default function PersonalMalaysianPhone() {
       localStorage.setItem(
         "phoneVerification",
         JSON.stringify({
-          ph_no_1: `+60${phoneNumber}`,
+          ph_no: `+60${activePhoneNumber}`,
+          phone_was_changed: isChangedNumberFlow
         })
       );
 
@@ -199,7 +218,7 @@ export default function PersonalMalaysianPhone() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-          
+
           <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
@@ -213,7 +232,7 @@ export default function PersonalMalaysianPhone() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Phone Number Verification
               </h1>
-
+              
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Is this still your current mobile number?
               </p>
@@ -221,7 +240,7 @@ export default function PersonalMalaysianPhone() {
 
             <div className="relative p-4 mb-6 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
               <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                +60 ****** {phoneNumber.slice(-4)}
+                +60 ****** {originalPhoneNumber.slice(-4)}
               </p>
               
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -232,10 +251,13 @@ export default function PersonalMalaysianPhone() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={handleSendOtp}
-                disabled={isLoading || !phoneNumber}
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg ${
-                  phoneNumber && !isLoading
+                onClick={() => {
+                  setIsChangedNumberFlow(false);
+                  handleSendOtp();
+                }}
+                disabled={isLoading || !originalPhoneNumber}
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  originalPhoneNumber && !isLoading
                     ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                 }`}
@@ -245,7 +267,7 @@ export default function PersonalMalaysianPhone() {
 
               <button
                 type="button"
-                onClick={() => setStep("change")}
+                onClick={handleChangeNumberFlow}
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
               >
                 No, change number
@@ -273,6 +295,7 @@ export default function PersonalMalaysianPhone() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Update Your Phone Number
               </h1>
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your new mobile number to proceed with the registration.
               </p>
@@ -297,7 +320,6 @@ export default function PersonalMalaysianPhone() {
                         alt="MY"
                         className="w-5 h-auto rounded-sm shadow-sm"
                       />
-                      
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
                     </div>
 
@@ -307,8 +329,8 @@ export default function PersonalMalaysianPhone() {
                       className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                       placeholder="Enter your mobile number"
                       type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                      value={newPhoneNumber}
+                      onChange={(e) => setNewPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
                       required
                     />
                   </div>
@@ -316,9 +338,9 @@ export default function PersonalMalaysianPhone() {
 
                 <button 
                   type="submit" 
-                  disabled={isLoading || phoneNumber.length < 9} 
+                  disabled={isLoading || newPhoneNumber.length < 9} 
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                    phoneNumber.length >= 9 && !isLoading
+                    newPhoneNumber.length >= 9 && !isLoading
                       ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
@@ -351,7 +373,7 @@ export default function PersonalMalaysianPhone() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">+60 {phoneNumber}</span>. Please provide the code to proceed with the registration.
+                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">+60 {activePhoneNumber}</span>. Please provide the code to proceed with the registration.
               </p>
             </div>
 
