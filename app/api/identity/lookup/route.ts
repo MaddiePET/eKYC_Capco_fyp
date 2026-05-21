@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { lookupJPNIdentity } from "../../../../jpn-db/jpn-api";
 import { lookupJIMIdentity } from "../../../../jim-db/jim-api";
-import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api.mjs";
+import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api.js";
 
 async function lookupIdentity(idType: string, idNum: string) {
   if (!idNum) return null;

@@ -1,6 +1,7 @@
-const admin = require("firebase-admin");
-const fs = require("fs");
-const path = require("path");
+import admin from 'firebase-admin';
+import fs from 'fs';
+import crypto from 'crypto';
+import path from 'path';
 
 const keyPath = path.join(
   process.cwd(),

@@ -1,7 +1,7 @@
-const admin = require('firebase-admin');
-const fs = require('fs');
-const crypto = require('crypto');
-const path = require('path');
+import admin from 'firebase-admin';
+import fs from 'fs';
+import crypto from 'crypto';
+import path from 'path';
 
 const keyPath = path.join(
   process.cwd(),
@@ -30,7 +30,7 @@ async function uploadSSM() {
   try {
     const rawData = JSON.parse(
       fs.readFileSync(
-        path.join(process.cwd(), 'ssm-db', 'SSM_json.json'),
+        path.join(process.cwd(), 'ssm-db', 'SSM_json_encrypted.json'),
         'utf8'
       )
     );

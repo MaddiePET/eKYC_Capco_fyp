@@ -79,7 +79,7 @@ export async function lookupSSMBusinesses(icNumber) {
       brn: company.registration_number || person.registration_number || "",
       name: company.business_name || company.company_name || "",
       type: company.business_type || "",
-      start_date: company.business_start_date || "",
+      start_date: company.start_date || company.business_start_date || "",
       msicCode: company.msic_code || "",
       msicName: company.msic_name || "",
 

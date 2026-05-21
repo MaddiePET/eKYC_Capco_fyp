@@ -115,14 +115,28 @@ export default function BusinessMalaysianBusinessAddress() {
   useEffect(() => {
     const savedBusinessAddress = formData?.businessAddress?.businessAddress;
 
-    if (savedBusinessAddress) {
-      setBusinessAddress({
-        addressLine1: savedBusinessAddress.addressLine1 || "",
-        addressLine2: savedBusinessAddress.addressLine2 || "",
-        postcode: savedBusinessAddress.postcode || "",
-        state: savedBusinessAddress.state || "",
+    if (savedBusinessAddress && savedBusinessAddress.addressLine1) {
+    setBusinessAddress({
+      addressLine1: savedBusinessAddress.addressLine1,
+      addressLine2: savedBusinessAddress.addressLine2 || "",
+      postcode: savedBusinessAddress.postcode || "",
+      state: savedBusinessAddress.state || "",
+      country: savedBusinessAddress.country || "Malaysia",
+    });
+  } 
+  // Fallback: Check localStorage if context is empty
+  else if (typeof window !== 'undefined') {
+    const backup = JSON.parse(localStorage.getItem("businessParticulars") || "{}");
+    if (backup.reg_no) { // If normalized data exists
+       // Map normalized storage back to fields
+       setBusinessAddress(prev => ({
+         ...prev,
+         addressLine1: backup.bus_add1 || "",
+        addressLine2: backup.bus_add2 || "",
+        postcode: backup.bus_postcode || "",
+        state: backup.bus_state || "",
         country: "Malaysia",
-      });
+      }));
     }
 
     const savedMailingAddress = formData?.businessAddress?.mailingAddress;

@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const admin = require('firebase-admin');
-const crypto = require('crypto');
+import admin from 'firebase-admin';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
-// Initialize Firebase Admin
-const serviceAccount = require('./serviceAccountKey-SSM.json');
+const keyPath = path.join(process.cwd(), 'ssm-db', 'serviceAccountKey-SSM.json');
+const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -26,18 +27,23 @@ function cleanIC(icNumber) {
 
 // EDIT THIS PART ONLY
 const companyData = {
-  registration_number: '201501000101 (1000101-A)',
-  business_name: 'Ash Trading',
-  company_name: 'Ash Trading',
+  registration_number: '329042348032 (4000101-A)',
+  business_name: 'Ash Boo Boo',
+  company_name: 'Ash Boo Boo',
   business_type: 'Sole Proprietorship',
-  start_date: '2015-01-01',
+  start_date: '2015-02-02',
   msic_code: '47110',
   msic_name: 'Retail sale in non-specialised stores',
-  status: 'Active'
+  status: 'Active',
+  bus_add1: 'No 65, Jalan Alpha',
+  bus_addr2: 'Bandar Nusantara',
+  bus_postcode: '80120',
+  bus_state: 'Johor',
+  country: 'Malaysia',
 };
 
 const businessPersonData = {
-  ic_number: '030909102074',
+  ic_number: 'A62595296',
   full_name: 'Ashley Tang Way Yan',
   role: 'Owner',
   date_of_birth: '2003-09-09',

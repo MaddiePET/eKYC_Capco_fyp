@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const admin = require('firebase-admin');
-const crypto = require('crypto');
+import admin from 'firebase-admin';
+import fs from 'fs';
+import crypto from 'crypto';
+import path from 'path';
 
-// Initialize Firebase Admin
-const serviceAccount = require('./serviceAccountKey-SSM.json');
+const keyPath = path.join(process.cwd(), 'ssm-db', 'serviceAccountKey-SSM.json');
+const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
 if (!admin.apps.length) {
   admin.initializeApp({

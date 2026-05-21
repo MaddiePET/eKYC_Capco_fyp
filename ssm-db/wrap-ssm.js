@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const inputPath = path.join(process.cwd(), 'ssm-db', 'SSM_direct.json');
 const outputPath = path.join(process.cwd(), 'ssm-db', 'SSM_json.json');

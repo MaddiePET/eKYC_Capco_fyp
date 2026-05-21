@@ -1,23 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
-import { useFormData } from "@/context/FormContext";
+import { saveToStorage } from "@/lib/storage";
 
 export default function BusinessMalaysianInfo() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
-
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
+    title: "",
     fullName: "",
     nric: "",
     dobDay: "",
@@ -26,24 +26,22 @@ export default function BusinessMalaysianInfo() {
     phoneCode: "+60",
     phoneNumber: "",
     add1: "",
-    postal: "",
     add2: "",
+    postal: "",
     state: "",
     country: "Malaysia",
   });
-
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
       const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
       ];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "January",
+        month: monthNames[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -56,20 +54,21 @@ export default function BusinessMalaysianInfo() {
       return {
         day: day.toString().padStart(2, "0"),
         month: [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ][month - 1] || "January",
+          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
+        ][month - 1] || "",
         year,
       };
     }
 
-    return { day: "", month: "January", year: "" };
+    return { day: "", month: "", year: "" };
   };
 
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
+    
     return {
+      title: identity.title || "",
       fullName: identity.full_name || identity.name || identity.fullName || "",
       nric: identity.ic_number || identity.nric || identity.id_num || idNum,
       dobDay: day || "",
@@ -78,8 +77,8 @@ export default function BusinessMalaysianInfo() {
       phoneCode: "+60",
       phoneNumber: identity.ph_no || identity.phone_number || identity.phoneNumber || "",
       add1: identity.add1 || identity.address_line_1 || identity.address || identity.home_address || "",
-      postal: identity.postcode || identity.postal_code || identity.postal || "",
       add2: identity.add2 || identity.address_line_2 || "",
+      postal: identity.postcode || identity.postal_code || identity.postal || "",
       state: identity.state || "",
       country: identity.country || "Malaysia",
     };
@@ -118,10 +117,8 @@ export default function BusinessMalaysianInfo() {
     if (typeof window === "undefined") return;
 
     const currentJourneyId = searchParams.get("journeyId") || "";
-    
     const savedJourneyId = localStorage.getItem("journeyId");
 
-    // NEW JOURNEY DETECTED
     if (savedJourneyId && savedJourneyId !== currentJourneyId) {
       localStorage.removeItem("personalInfo");
       localStorage.removeItem("homeAddress");
@@ -130,7 +127,6 @@ export default function BusinessMalaysianInfo() {
       localStorage.removeItem("id_type");
     }
 
-    // SAVE CURRENT JOURNEY
     localStorage.setItem("journeyId", currentJourneyId);
 
     const queryParams = new URLSearchParams(window.location.search);
@@ -145,39 +141,6 @@ export default function BusinessMalaysianInfo() {
       localStorage.getItem("id_num") ||
       "";
 
-    // LOAD SAVED PERSONAL INFO FIRST
-    const savedInfo = JSON.parse(
-      localStorage.getItem("personalInfo") || "{}"
-    );
-
-    const savedHome = JSON.parse(
-      localStorage.getItem("homeAddress") || "{}"
-    );
-
-    if (savedInfo.full_name || savedHome.add_1) {
-      const dob = savedInfo.dob
-        ? formatDateForFields(savedInfo.dob)
-        : { day: "", month: "January", year: "" };
-
-      setFormData({
-        fullName: savedInfo.full_name || "",
-        nric: savedInfo.id_num || idNum,
-        dobDay: dob.day,
-        dobMonth: dob.month,
-        dobYear: dob.year,
-        phoneCode: "+60",
-        phoneNumber: savedInfo.ph_no?.replace("+60", "") || "",
-        add1: savedHome.add_1 || "",
-        add2: savedHome.add_2 || "",
-        postal: savedHome.postcode || "",
-        state: savedHome.state || "",
-        country: savedHome.country || "Malaysia",
-      });
-
-      return;
-    }
-
-    // OTHERWISE FETCH FROM API
     if (idNum) {
       setFormData((prev) => ({
         ...prev,
@@ -186,108 +149,74 @@ export default function BusinessMalaysianInfo() {
 
       fetchIdentity(idType, idNum);
     }
-  }, []);
+  }, []); 
 
   const handleNavigation = async () => {
    if (isSubmitting) return;
 
-   try {
-     setIsSubmitting(true);
-     setSubmitError(null);
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
 
-     const monthMap: Record<string, string> = {
-       January: "01",
-       February: "02",
-       March: "03",
-       April: "04",
-       May: "05",
-       June: "06",
-       July: "07",
-       August: "08",
-       September: "09",
-       October: "10",
-       November: "11",
-       December: "12",
-    };
-
-    const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
-    const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
-
-    const personalInfo = {
-        id_num: formData.nric,
-        fullName: formData.fullName,
-        full_name: formData.fullName,
-        id_type: "IC",
-        dob,
-        ph_no_1: fullPhone,
-        ph_no_2: null,
-        country: formData.country,
-        add1: formData.add1,
-        add2: formData.add2,
-        postcode: formData.postal,
-        state: formData.state,
+      const monthMap: Record<string, string> = {
+        January: "01",
+        February: "02",
+        March: "03",
+        April: "04",
+        May: "05",
+        June: "06",
+        July: "07",
+        August: "08",
+        September: "09",
+        October: "10",
+        November: "11",
+        December: "12",
       };
 
-      setGlobalFormData({
-      ...globalFormData,
-      journeyId: searchParams.get("journeyId") || "",
-      idType: "ic",
-      idNum: formData.nric,
-      personalInfo,
-    });
+      const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
+      const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
+      const personalInfo = {
+      title: formData.title,
+      id_num: formData.nric,
+      full_name: formData.fullName,
+      id_type: "NRIC",
+      dob,
+      ph_no: fullPhone,
+      country: formData.country,
+    };
 
+    const homeAddress = {
+      add_type: "Home",
+      add_1: formData.add1,
+      add_2: formData.add2,
+      postcode: formData.postal,
+      state: formData.state,
+      country: formData.country,
+    };
 
-    localStorage.setItem(
-      "personalInfo",
-      JSON.stringify({
-        id_num: formData.nric,
-        full_name: formData.fullName,
-        id_type: "NRIC",
-        dob,
-        ph_no: fullPhone,
-        ph_no_2: null,
-        country: formData.country,
-      })
-    );
+    // FIX: Use the helper
+    saveToStorage("personalInfo", personalInfo);
+    saveToStorage("homeAddress", homeAddress);
+    saveToStorage("id_num", formData.nric);
+    saveToStorage("id_type", "ic");
 
-    localStorage.setItem(
-      "homeAddress",
-      JSON.stringify({
-        add_type: "Home",
-        add_1: formData.add1,
-        add_2: formData.add2,
-        postcode: formData.postal,
-        state: formData.state,
-        country: formData.country,
-      })
-    );
-
-    localStorage.setItem("id_type", "ic");
-    localStorage.setItem("id_num", formData.nric);
-    localStorage.setItem("journeyId", searchParams.get("journeyId") || "");
-
-
-    router.push(
-      `/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(
-        formData.nric
-      )}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
-    );
-  } catch (error: any) {
-    console.error("Submission error:", error);
-    setSubmitError(error.message || "Failed to save application data.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    router.push(`/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(journeyId)}`);
+  } catch (error) { 
+      console.error("Submission error:", error);
+      setSubmitError(error.message || "Failed to save application data.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const isFormValid = 
     formData.fullName.trim() !== "" &&
     formData.nric.trim() !== "" &&
     formData.phoneNumber.trim() !== "" &&
     formData.add1.trim() !== "" &&
-    formData.add2.trim() !== "" &&
     formData.postal.trim() !== "" &&
+    formData.add2.trim() !== "" &&
     formData.state.trim() !== "";
 
   if (!mounted) return null;
@@ -338,7 +267,10 @@ export default function BusinessMalaysianInfo() {
           Back
         </button>
 
-        <Link href="/" className="flex items-center gap-2 shrink-0 max-w-[45%] overflow-hidden">
+        <Link   
+          href="/" 
+          className="flex items-center gap-2"
+        >
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -367,29 +299,53 @@ export default function BusinessMalaysianInfo() {
         <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             <div className="space-y-6">
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Full Name<span className="text-red-500">*</span>
-                </label>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-1">
+                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                    Title<span className="text-red-500">*</span>
+                  </label>
 
-<<<<<<< HEAD
-                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
-                    value={formData.fullName}
-                  />
+                  <div className="relative">
+                    <select 
+                      value={formData.title} 
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+                      className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                    >
+                      {["Mr.", "Ms.", "Mrs.", "Dr.", "Prof."].map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+
+                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                      <svg 
+                        className="w-4 h-4 text-gray-400" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M19 9l-7 7-7-7" 
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
-=======
-                <input 
-                  type="text" 
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.fullName} 
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} 
-                />
->>>>>>> origin/ashley
+
+                <div className="col-span-3">
+                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                    Full Name<span className="text-red-500">*</span>
+                  </label>
+
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="text-sm font-bold text-gray-700 dark:text-gray-200"
+                      value={formData.fullName}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -397,7 +353,6 @@ export default function BusinessMalaysianInfo() {
                   NRIC<span className="text-red-500">*</span>
                 </label>
 
-<<<<<<< HEAD
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                   <input
                     type="text"
@@ -405,16 +360,8 @@ export default function BusinessMalaysianInfo() {
                     className="text-sm font-bold text-gray-700 dark:text-gray-200"
                     value={formData.nric}
                   />
+
                 </div>
-=======
-                <input 
-                  type="text" 
-                  readOnly 
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.nric} 
-                  onChange={(e) => setFormData({ ...formData, nric: e.target.value })} 
-                />
->>>>>>> origin/ashley
               </div>
 
               <div>
@@ -422,7 +369,6 @@ export default function BusinessMalaysianInfo() {
                   Date of Birth<span className="text-red-500">*</span>
                 </label>
 
-<<<<<<< HEAD
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                     <input
@@ -449,88 +395,7 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobYear}
                     />
-=======
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="relative">
-                    <select 
-                      value={formData.dobDay} 
-                      disabled
-                      onChange={(e) => setFormData({ ...formData, dobDay: e.target.value })} 
-                      className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
-                    >
-                      {Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0")).map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
-                    </select>
 
-                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg 
-                        className="w-4 h-4 text-gray-400" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M19 9l-7 7-7-7" 
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <select 
-                      value={formData.dobMonth} 
-                      disabled
-                      onChange={(e) => setFormData({ ...formData, dobMonth: e.target.value })} 
-                      className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
-                    >
-                      {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
-                    </select>
-
-                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg 
-                        className="w-4 h-4 text-gray-400" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M19 9l-7 7-7-7" 
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <select 
-                      value={formData.dobYear} 
-                      disabled
-                      onChange={(e) => setFormData({ ...formData, dobYear: e.target.value })} 
-                      className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed"
-                    >
-                      {Array.from({ length: 100 }, (_, i) => (2025 - i).toString()).map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
-                    </select>
-
-                    <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg 
-                        className="w-4 h-4 text-gray-400" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M19 9l-7 7-7-7" 
-                        />
-                      </svg>
-                    </div>
->>>>>>> origin/ashley
                   </div>
                 </div>
               </div>
@@ -551,7 +416,6 @@ export default function BusinessMalaysianInfo() {
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
-<<<<<<< HEAD
                   <div className="flex-1 flex items-center gap-2 px-4 py-2.5 border-2 rounded-r-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                     <input
                       type="text"
@@ -560,15 +424,6 @@ export default function BusinessMalaysianInfo() {
                       value={formData.phoneNumber}
                     />
                   </div>
-=======
-                  <input 
-                    type="text" 
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 cursor-not-allowed" 
-                    value={formData.phoneNumber} 
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} 
-                  />
->>>>>>> origin/ashley
                 </div>
               </div>
             </div>
@@ -579,7 +434,6 @@ export default function BusinessMalaysianInfo() {
                   Address 1<span className="text-red-500">*</span>
                 </label>
 
-<<<<<<< HEAD
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                   <input
                     type="text"
@@ -588,23 +442,13 @@ export default function BusinessMalaysianInfo() {
                     value={formData.add1}
                   />
                 </div>
-=======
-                <input 
-                  type="text" 
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.add1} 
-                  onChange={(e) => setFormData({ ...formData, add1: e.target.value })} 
-                />
->>>>>>> origin/ashley
               </div>
             
-            <div>
+              <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 2<span className="text-red-500">*</span>
                 </label>
 
-<<<<<<< HEAD
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                   <input
                     type="text"
@@ -612,18 +456,9 @@ export default function BusinessMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.add2}
                   />
+
                 </div>
               </div>
-=======
-                <input 
-                  type="text" 
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.add2} 
-                  onChange={(e) => setFormData({ ...formData, add2: e.target.value })} 
-                />
-            </div>
->>>>>>> origin/ashley
 
               <div className="grid grid-cols-2 gap-5">
                 <div>
@@ -631,7 +466,6 @@ export default function BusinessMalaysianInfo() {
                     Postal Code<span className="text-red-500">*</span>
                   </label>
 
-<<<<<<< HEAD
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                     <input
                       type="text"
@@ -639,24 +473,15 @@ export default function BusinessMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.postal}
                     />
+
                   </div>
-=======
-                  <input 
-                    type="text" 
-                    readOnly
-                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                    value={formData.postal} 
-                    onChange={(e) => setFormData({ ...formData, postal: e.target.value })} 
-                  />
->>>>>>> origin/ashley
                 </div>
 
                 <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  State<span className="text-red-500">*</span>
-                </label>
+                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                    State<span className="text-red-500">*</span>
+                  </label>
 
-<<<<<<< HEAD
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                   <input
                     type="text"
@@ -664,18 +489,9 @@ export default function BusinessMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.state}
                   />
+
                 </div>
                 </div>
-=======
-                <input 
-                  type="text" 
-                  readOnly
-                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none cursor-not-allowed" 
-                  value={formData.state} 
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })} 
-                />
-              </div>
->>>>>>> origin/ashley
               </div>
 
               <div>
@@ -683,25 +499,8 @@ export default function BusinessMalaysianInfo() {
                   Country<span className="text-red-500">*</span>
                 </label>
 
-                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
-<<<<<<< HEAD
-=======
-
-                  <svg 
-                    className="w-4 h-4 text-gray-400" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                    />
-                  </svg>
->>>>>>> origin/ashley
                 </div>
               </div>
             </div>

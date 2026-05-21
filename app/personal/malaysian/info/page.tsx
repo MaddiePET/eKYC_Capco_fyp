@@ -207,7 +207,7 @@ export default function PersonalMalaysianInfo() {
       router.push(
         `/personal/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
       );
-    } catch (error: any) {
+    } catch (error: any) { router.push(`/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(journeyId)}`);
       console.error("Submission error:", error);
       setSubmitError(error.message || "Failed to save application data.");
     } finally {
@@ -262,7 +262,6 @@ export default function PersonalMalaysianInfo() {
       </div>
 
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
           onClick={() => router.push("/personal/malaysian/email")}
@@ -285,7 +284,6 @@ export default function PersonalMalaysianInfo() {
             className="block dark:invert-0 invert" 
           />
 
-          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>

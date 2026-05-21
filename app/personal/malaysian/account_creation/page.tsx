@@ -26,7 +26,7 @@ export default function PersonalMalaysianAccountCreation() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -70,17 +70,6 @@ export default function PersonalMalaysianAccountCreation() {
       reader.readAsDataURL(file);
     }
   };
-    const file = e.target.files?.[0];
-    if (file) {
-      setProfileFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setProfilePreview(dataUrl); 
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleNext = () => {
     if (step === "profile") setStep("password");
@@ -102,8 +91,8 @@ export default function PersonalMalaysianAccountCreation() {
       const journeyId = localStorage.getItem("journeyId") || "";
       const phoneVerification = JSON.parse(localStorage.getItem("phoneVerification") || "{}");
       const personalInfo = JSON.parse(localStorage.getItem("personalInfo") || "{}");
-      const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}"); 
       const storedHomeAddress = JSON.parse(localStorage.getItem("homeAddress") || "{}");
+      const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
       const storedMailingAddress = JSON.parse(localStorage.getItem("mailingAddress") || "{}");
       const branchInfo = JSON.parse(localStorage.getItem("branchInfo") || "{}");
       const savingsApplication = JSON.parse(localStorage.getItem("savingsApplication") || "{}");
@@ -348,10 +337,7 @@ export default function PersonalMalaysianAccountCreation() {
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200"
                   placeholder="Confirm your password"
                   value={confirmPassword}
-                  onChange={(e) => {
-                    const sanitized = e.target.value.replace(/\s/g, "");
-                    setConfirmPassword(sanitized);
-                  }}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
 
@@ -359,7 +345,6 @@ export default function PersonalMalaysianAccountCreation() {
                 <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
                   {submitError}
                 </div>
-              )}
               )}
 
               <button

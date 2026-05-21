@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
+import { saveToStorage } from "@/lib/storage";
 
 interface Business {
   id: string;
@@ -50,6 +51,31 @@ export default function BusinessMalaysianBusinessParticulars() {
 
   const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
 
+  useEffect(() => {
+    setMounted(true);
+    
+    const verifySession = async () => {
+      const jId = localStorage.getItem("journeyId") || journeyId;
+      if (!jId) {
+        router.push("/business/user_verification");
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/ekyc/status?journeyId=${encodeURIComponent(jId)}`);
+        const data = await res.json();
+        
+        if (data.status !== "face_verified") {
+          router.push("/business/malaysian/face_verification");
+        }
+      } catch (e) {
+        console.error("Session verification failed", e);
+      }
+    };
+
+    if (mounted) verifySession();
+  }, [mounted, journeyId, router]);
+  
   const [linkedBusinesses, setLinkedBusinesses] = useState<Business[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState<boolean>(true);
   const [businessError, setBusinessError] = useState<string>("");
@@ -121,35 +147,36 @@ export default function BusinessMalaysianBusinessParticulars() {
     if (selectedBusinessId) {
       const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
       if (biz) {
+        console.log("Business raw start date:", biz.start_date);
         const [y, m, d] = biz.start_date.split("-");
-        setFormData({
-          businessName: biz.name,
-          brn: biz.brn,
-          msicCode: biz.msicCode,
-          msicName: biz.msicName,
-          day: d,
-          month: m,
-          year: y,
-          businessType: biz.type,
-          role: "",
+        const extractedAddress = biz.address || {
+        addressLine1: (biz as any).bus_add1 || "",
+        addressLine2: (biz as any).bus_addr2 || "",
+        postcode: (biz as any).bus_postcode || "",
+        state: (biz as any).bus_state || "",
+        country: (biz as any).country || "Malaysia",
+      };
 
-          businessAddress: biz.address || {
-            addressLine1: "",
-            addressLine2: "",
-            postcode: "",
-            state: "",
-            country: "Malaysia",
-          },
-
-        });
-      }
+      setFormData({
+        businessName: biz.name || "",
+        brn: biz.brn || "",
+        msicCode: biz.msicCode || "",
+        msicName: biz.msicName || "",
+        day: d || "",
+        month: m || "",
+        year: y || "",
+        businessType: biz.type || "",
+        role: "",
+        businessAddress: extractedAddress, // Update local state
+      });
     }
-  }, [selectedBusinessId]);
+  }
+}, [selectedBusinessId, linkedBusinesses]);
 
   const handleBack = () => {
     if (step === 1) {
       router.push(
-      `/business/malaysian/business_address?id_type=${encodeURIComponent(
+      `/business/malaysian/info?id_type=${encodeURIComponent(
         idType
       )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
         journeyId
@@ -165,44 +192,61 @@ export default function BusinessMalaysianBusinessParticulars() {
   };
 
   const handleFinalSubmit = () => {
+    // Find the raw business object
+    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
     
+    if (biz) {
+      // Normalize the data immediately
+      const normalizedBusiness = {
+        reg_no: biz.brn || "",
+        bus_name: biz.name || "",
+        start_date: biz.start_date || "",
+        bus_type: biz.type || "",
+        msic_code: biz.msicCode || "",
+        msic_name: biz.msicName || "",
+        role: formData.role || "Owner",
+        bus_add1: formData.businessAddress.addressLine1,
+        bus_addr2: formData.businessAddress.addressLine2,
+        bus_postcode: formData.businessAddress.postcode,
+        bus_state: formData.businessAddress.state,
+      };
+
+      // FIX: Save all versions to storage
+      saveToStorage("selectedBusiness", biz);
+      saveToStorage("businessParticulars", normalizedBusiness);
+      saveToStorage("ssmCompanyData", biz);
+
       setGlobalFormData({
         ...globalFormData,
         journeyId,
         idType,
         idNum,
         businessParticulars: {
-          businessName: formData.businessName,
-          brn: formData.brn,
-          startDate: `${formData.year}-${formData.month.padStart(2, "0")}-${formData.day.padStart(2, "0")}`,
-          businessType: formData.businessType,
+          bus_name: formData.businessName,
+          reg_no: formData.brn,
+          start_date: `${formData.year}-${formData.month.padStart(2, "0")}-${formData.day.padStart(2, "0")}`, 
+          bus_type: formData.businessType, 
           role: formData.role,
-          msicCode: formData.msicCode,
-          msicName: formData.msicName,
+          msic_code: formData.msicCode,
+          msic_name: formData.msicName,
         },
-
         businessAddress: {
-            businessAddress: formData.businessAddress,
-            mailingAddress: {
-              addressLine1: "",
-              addressLine2: "",
-              postcode: "",
-              state: "",
-              country: "Malaysia",
-            },
-            isMailingSameAsBusiness: null,
-            preferredBranch: "",
-        },   
-      
-    });
+          // Pass the mapped business address here
+          businessAddress: formData.businessAddress, 
+          mailingAddress: {
+            addressLine1: "",
+            addressLine2: "",
+            postcode: "",
+            state: "",
+            country: "Malaysia",
+          },
+          isMailingSameAsBusiness: null,
+          preferredBranch: "",
+        },
+      });
+    }
 
-    router.push(
-      `/business/malaysian/business_address?id_type=${encodeURIComponent(
-        idType
-      )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-        journeyId
-      )}`
-    );
+    router.push(`/business/malaysian/business_address?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`);
   };
 
   const inputClasses =
