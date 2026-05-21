@@ -52,3 +52,10 @@ ssm-db/add-record-bus-and-person.ts
 ssm-db/add-partner.ts
 ssm-db/serviceAccountKey-SSM.json
 banka-db/serviceAccountKey-BANKA.json
+
+# Ignore raw and encrypted data snapshots
+ssm-db/SSM_json.json
+ssm-db/SSM_json_encrypted.json
+
+# Safe across all db folders (jpn, jim, ssm)
+*-db/*_json*.json
