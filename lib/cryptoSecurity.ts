@@ -21,7 +21,6 @@ function getKey(source: CryptoSource) {
   return Buffer.from(keyHex, "hex");
 }
 
-// Added fallback parameter checks to prevent runtime crashes on empty data fields
 function encrypt(value: string | null | undefined, source: CryptoSource) {
   if (!value) return ""; 
 
@@ -45,18 +44,6 @@ function encrypt(value: string | null | undefined, source: CryptoSource) {
 
 function decrypt(payload: string | null | undefined, source: CryptoSource) {
   if (!payload) return "";
-
-  console.log(`[CRYPTO DEBUG] Decrypting payload for source tenant: "${source}"`);
-  console.log(`[CRYPTO DEBUG] Environment Key Available?:`, !!process.env.SSM_ENCRYPTION_KEY);
-  console.log("[CRYPTO DEBUG] Payload:", payload);
-
-  console.log(
-    "RUNTIME SSM KEY HASH:",
-    crypto
-      .createHash("sha256")
-      .update(process.env.SSM_ENCRYPTION_KEY || "")
-      .digest("hex")
-  );
 
   const parts = payload.split(":");
 

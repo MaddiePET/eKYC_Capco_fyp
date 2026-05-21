@@ -69,7 +69,7 @@ async function uploadSSM() {
     });
 
     await batch.commit();
-    console.log('Success! SSM data uploaded to Firestore with synchronized surrogate keys. 🚀');
+    console.log('Success! SSM data uploaded to Firestore with synchronized surrogate keys.');
   } catch (error) {
     console.error('SSM migration failed:', error);
   }
