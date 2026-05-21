@@ -2,39 +2,9 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 
 dotenv.config({ path: ".env.local" });
-
-const ALGORITHM = "aes-256-gcm";
-
-// 🔐 Helper function mirroring your cryptoSecurity.ts architecture
-function getKey(source) {
-  const keyHex = source === "banka" ? process.env.BANKA_ENCRYPTION_KEY : process.env.SSM_ENCRYPTION_KEY;
-  if (!keyHex) {
-    throw new Error(`Missing local environment encryption key configuration for: ${source}`);
-  }
-  return Buffer.from(keyHex, "hex");
-}
-
-function encrypt(value, source = "banka") {
-  if (!value) return "";
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv(ALGORITHM, getKey(source), iv);
-  
-  const encrypted = Buffer.concat([
-    cipher.update(String(value), "utf8"),
-    cipher.final(),
-  ]);
-  
-  const authTag = cipher.getAuthTag();
-  return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted.toString("hex")}`;
-}
-
-function hashLookup(value) {
-  if (!value) return "";
-  const normalized = String(value).replace(/-/g, "").trim().toUpperCase();
-  return crypto.createHash("sha256").update(normalized).digest("hex");
-}
 
 function cleanIC(icNumber) {
   return String(icNumber || "").replace(/-/g, "").trim();
@@ -42,6 +12,13 @@ function cleanIC(icNumber) {
 
 async function encryptSsmJsonFile() {
   try {
+    console.log(
+      "SSM KEY HASH:",
+      crypto
+        .createHash("sha256")
+        .update(process.env.SSM_ENCRYPTION_KEY || "")
+        .digest("hex")
+    );
     const inputPath = path.join(process.cwd(), "ssm-db", "SSM_json.json");
     const outputPath = path.join(process.cwd(), "ssm-db", "SSM_json_encrypted.json");
 
@@ -61,14 +38,14 @@ async function encryptSsmJsonFile() {
       const regNo = company.registration_number || "";
       return {
         ...company,
-        surrogate_key: hashLookup(regNo), // Deterministic PK
-        registration_number: encrypt(regNo, "banka"),
-        business_name: encrypt(company.business_name || company.company_name, "banka"),
-        company_name: encrypt(company.company_name || company.business_name, "banka"),
-        bus_add1: encrypt(company.bus_add1, "banka"),
-        bus_addr2: encrypt(company.bus_addr2, "banka"),
-        bus_postcode: encrypt(company.bus_postcode, "banka"),
-        bus_state: encrypt(company.bus_state, "banka"),
+        surrogate_key: hashLookup(regNo),                         // Unique Document Identifier (Primary Key)
+        registration_number: encrypt(regNo, "ssm"),             // The Real Locked Corporate Data
+        business_name: encrypt(company.business_name || company.company_name, "ssm"),
+        company_name: encrypt(company.company_name || company.business_name, "ssm"),
+        bus_add1: encrypt(company.bus_add1, "ssm"),
+        bus_addr2: encrypt(company.bus_addr2, "ssm"),
+        bus_postcode: encrypt(company.bus_postcode, "ssm"),
+        bus_state: encrypt(company.bus_state, "ssm"),
         msic_code: company.msic_code || "", // Keeping operational code fields search indexed
         msic_name: company.msic_name || "",
         business_type: company.business_type || "",
@@ -83,12 +60,12 @@ async function encryptSsmJsonFile() {
       
       return {
         ...person,
-        surrogate_key: hashLookup(`${regNo}-${cleanedIC}`), // Unique Composite Person Document ID
-        company_surrogate_key: hashLookup(regNo),          // Links back to corporate index hash
+        surrogate_key: hashLookup(`${regNo}-${cleanedIC}`), // Unique Composite Person Document ID PK
+        company_surrogate_key: hashLookup(regNo),          // Links back to corporate index hash (relational)
         ic_number_hash: hashLookup(cleanedIC),             // Search indexed hash matching government lookup
-        ic_number: encrypt(cleanedIC, "banka"),
-        registration_number: encrypt(regNo, "banka"),
-        full_name: encrypt(person.full_name, "banka"),
+        ic_number: encrypt(cleanedIC, "ssm"),           // The Real Locked Data
+        registration_number: encrypt(regNo, "ssm"),     // The Real Locked Corporate Data
+        full_name: encrypt(person.full_name, "ssm"),
         date_of_birth: person.date_of_birth || "",
         role: person.role || "Partner",
         gender: person.gender || "",

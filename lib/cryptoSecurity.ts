@@ -21,7 +21,10 @@ function getKey(source: CryptoSource) {
   return Buffer.from(keyHex, "hex");
 }
 
-function encrypt(value: string, source: CryptoSource) {
+// Added fallback parameter checks to prevent runtime crashes on empty data fields
+function encrypt(value: string | null | undefined, source: CryptoSource) {
+  if (!value) return ""; 
+
   const iv = crypto.randomBytes(12);
 
   const cipher = crypto.createCipheriv(
@@ -31,7 +34,7 @@ function encrypt(value: string, source: CryptoSource) {
   );
 
   const encrypted = Buffer.concat([
-    cipher.update(value, "utf8"),
+    cipher.update(String(value), "utf8"),
     cipher.final(),
   ]);
 
@@ -40,26 +43,61 @@ function encrypt(value: string, source: CryptoSource) {
   return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted.toString("hex")}`;
 }
 
-function decrypt(payload: string, source: CryptoSource) {
-  const [ivHex, authTagHex, encryptedHex] = payload.split(":");
+function decrypt(payload: string | null | undefined, source: CryptoSource) {
+  if (!payload) return "";
 
-  const decipher = crypto.createDecipheriv(
-    ALGORITHM,
-    getKey(source),
-    Buffer.from(ivHex, "hex")
+  console.log(`[CRYPTO DEBUG] Decrypting payload for source tenant: "${source}"`);
+  console.log(`[CRYPTO DEBUG] Environment Key Available?:`, !!process.env.SSM_ENCRYPTION_KEY);
+  console.log("[CRYPTO DEBUG] Payload:", payload);
+
+  console.log(
+    "RUNTIME SSM KEY HASH:",
+    crypto
+      .createHash("sha256")
+      .update(process.env.SSM_ENCRYPTION_KEY || "")
+      .digest("hex")
   );
 
-  decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+  const parts = payload.split(":");
 
-  const decrypted = Buffer.concat([
-    decipher.update(Buffer.from(encryptedHex, "hex")),
-    decipher.final(),
-  ]);
+  if (parts.length !== 3) {
+    console.error("[CRYPTO ERROR] Invalid payload format:", payload);
+    return "";
+  }
 
-  return decrypted.toString("utf8");
+  const [ivHex, authTagHex, encryptedHex] = parts;
+
+  try {
+    const decipher = crypto.createDecipheriv(
+      ALGORITHM,
+      getKey(source),
+      Buffer.from(ivHex, "hex")
+    );
+
+    decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(encryptedHex, "hex")),
+      decipher.final(),
+    ]);
+
+    return decrypted.toString("utf8");
+
+  } catch (error) {
+
+    console.error("[CRYPTO ERROR] Failed decrypt:", {
+      payload,
+      source,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return "[DECRYPT_FAILED]";
+  }
 }
 
-function hashLookup(value: string) {
+function hashLookup(value: string | null | undefined) {
+  if (!value) return "";
+
   return crypto
     .createHash("sha256")
     .update(value.replace(/-/g, "").trim())

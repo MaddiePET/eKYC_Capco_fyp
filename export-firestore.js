@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import fs from "fs";
 
 const serviceAccount = JSON.parse(
-  fs.readFileSync("./jim-db/serviceAccountKey-JIM.json", "utf8")
+  fs.readFileSync("./ssm-db/serviceAccountKey-SSM.json", "utf8")
 );
 
 admin.initializeApp({
@@ -28,4 +28,4 @@ async function exportCollection(collectionName) {
   console.log(`Exported ${collectionName}.json`);
 }
 
-exportCollection("jim_nonresidents");
+exportCollection("ssm_business_person");

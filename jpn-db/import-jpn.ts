@@ -85,8 +85,6 @@ async function uploadJPN() {
         state: encrypt(citizen.state || "", "jpn"),
         ic_photo: encrypt(citizen.ic_photo || "", "jpn"),
         photo_pattern: encrypt(citizen.photo_pattern || "", "jpn"),
-
-        created_at: new Date().toISOString(),
       },
         { merge: true }
       );
@@ -106,7 +104,6 @@ async function uploadJPN() {
         lookup_hash: lookupHash,
         ic_number: encrypt(normalizedIc, "jpn"),
         photo_pattern: encrypt(template.photo_pattern || "", "jpn"),
-        created_at: new Date().toISOString(),
       },
         { merge: true }
       );

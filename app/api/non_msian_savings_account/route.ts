@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { hashPassword } from "@/hashpw";
+import { hashPassword } from "@/scripts/hashpw";
 import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 export const runtime = "nodejs";
 
@@ -17,6 +17,8 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+
+    console.log("=== RECEIVED PAYLOAD IN TERMINAL ===", JSON.stringify(body, null, 2));
 
     const {
       journeyId,

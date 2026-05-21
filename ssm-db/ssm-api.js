@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
+import { hashLookup, decrypt } from "@/lib/cryptoSecurity";
 
 function cleanIC(icNumber) {
   return String(icNumber || "").replace(/-/g, "");
@@ -41,9 +42,13 @@ export async function lookupSSMBusinesses(icNumber) {
   const cleanedIC = cleanIC(icNumber);
   const db = getSSMFirestore();
 
+  // Convert the raw user IC input into the exact deterministic SHA-256 search fingerprint
+  const hashedICIndex = hashLookup(cleanedIC);
+
+  // Query the database using the blind index column instead of the plaintext field
   const personSnapshot = await db
     .collection("ssm_business_person")
-    .where("ic_number", "==", cleanedIC)
+    .where("ic_number_hash", "==", hashedICIndex)
     .get();
 
   if (personSnapshot.empty) {
@@ -74,23 +79,23 @@ export async function lookupSSMBusinesses(icNumber) {
 
     console.log("SSM company data:", company);
 
+    // Decrypt the corporate strings using the "ssm" key identifier before sending to the client UI
     businesses.push({
       id: companySurrogateKey,
-      brn: company.registration_number || person.registration_number || "",
-      name: company.business_name || company.company_name || "",
-      type: company.business_type || "",
-      start_date: company.start_date || company.business_start_date || "",
+      brn: decrypt(company.registration_number, "ssm"),
+      name: decrypt(company.business_name || company.company_name, "ssm"),
+      type: decrypt(company.business_type, "ssm"), 
+      start_date: decrypt(company.start_date || company.business_start_date, "ssm"),
       msicCode: company.msic_code || "",
       msicName: company.msic_name || "",
 
       address: {
-        addressLine1: company.bus_add1 || "",
-        addressLine2: company.bus_addr2 || "",
-        postcode: company.bus_postcode || "",
-        state: company.bus_state || "",
+        addressLine1: decrypt(company.bus_add1, "ssm"),
+        addressLine2: decrypt(company.bus_addr2, "ssm"),
+        postcode: decrypt(company.bus_postcode, "ssm"),
+        state: decrypt(company.bus_state, "ssm"),
         country: "Malaysia",
       },
-
     });
   }
   console.log("SSM businesses returned:", businesses);

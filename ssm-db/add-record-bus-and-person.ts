@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import admin from 'firebase-admin';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { encrypt, hashLookup } from '@/lib/cryptoSecurity';
 
 const keyPath = path.join(process.cwd(), 'ssm-db', 'serviceAccountKey-SSM.json');
 const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
@@ -50,7 +53,6 @@ const businessPersonData = {
   gender: "Female",
   race: "Chinese"
 };
-// EDIT UNTIL HERE
 
 async function addSSMRecord() {
   try {
@@ -66,18 +68,42 @@ async function addSSMRecord() {
     const personSurrogateKey = generateHashID(`${registrationNumber}-${icNumber}`);
 
     const finalCompanyData = {
-      ...companyData,
+      registration_number: encrypt(registrationNumber, "ssm"),
+      registration_number_hash: hashLookup(registrationNumber),
+
+      business_name: encrypt(companyData.business_name, "ssm"),
+      company_name: encrypt(companyData.company_name, "ssm"),
+
+      business_type: encrypt(companyData.business_type, "ssm"),
+
+      start_date: encrypt(companyData.start_date, "ssm"),
+
+      bus_add1: encrypt(companyData.bus_add1, "ssm"),
+      bus_addr2: encrypt(companyData.bus_addr2, "ssm"),
+      bus_postcode: encrypt(companyData.bus_postcode, "ssm"),
+      bus_state: encrypt(companyData.bus_state, "ssm"),
+
+      msic_code: companyData.msic_code,
+      msic_name: companyData.msic_name,
+      status: companyData.status,
+
       surrogate_key: companySurrogateKey,
-      created_at: new Date().toISOString()
     };
 
     const finalBusinessPersonData = {
-      ...businessPersonData,
-      ic_number: icNumber,
-      registration_number: registrationNumber,
+      ic_number: encrypt(icNumber, "ssm"),
+      ic_number_hash: hashLookup(icNumber),
+
+      full_name: encrypt(businessPersonData.full_name, "ssm"),
+      role: encrypt(businessPersonData.role, "ssm"),
+      date_of_birth: encrypt(businessPersonData.date_of_birth, "ssm"),
+      gender: encrypt(businessPersonData.gender, "ssm"),
+      race: encrypt(businessPersonData.race, "ssm"),
+
+      registration_number: encrypt(registrationNumber, "ssm"),
+
       surrogate_key: personSurrogateKey,
       company_surrogate_key: companySurrogateKey,
-      created_at: new Date().toISOString()
     };
 
     console.log(`Generating company ID for ${registrationNumber}...`);

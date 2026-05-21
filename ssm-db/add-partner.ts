@@ -60,7 +60,6 @@ async function addSSMRecord() {
       registration_number: registrationNumber,
       surrogate_key: personSurrogateKey,
       company_surrogate_key: companySurrogateKey,
-      created_at: new Date().toISOString()
     };
 
     console.log(`Generating business person ID for ${icNumber}...`);

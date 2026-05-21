@@ -122,7 +122,6 @@ export default function PersonalNonMalaysianAccountCreation() {
         journeyId,
         customer: {
           id_num: personalInfo.id_num || "",
-          passport_num: personalInfo.id_num || "",
           full_name: personalInfo.full_name || "",
           id_type: "PASSPORT",
           dob: personalInfo.dob || "",

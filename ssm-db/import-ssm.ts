@@ -46,63 +46,30 @@ async function uploadSSM() {
 
     const batch = db.batch();
 
-    // Upload SSM companies
+    // Upload SSM companies using the pre-computed surrogate_key
     companies.forEach((company) => {
-      const regNo = company.registration_number;
-
-      if (!regNo) {
-        console.log('Skipped company because registration_number is missing.');
+      if (!company.surrogate_key) {
+        console.log('Skipped company because surrogate_key is missing.');
         return;
       }
 
-      const companyHashID = generateHashID(regNo);
-
-      const companyDoc = {
-        ...company,
-        surrogate_key: companyHashID
-      };
-
-      const docRef = db
-        .collection('ssm_company')
-        .doc(companyHashID);
-
-      batch.set(docRef, companyDoc);
+      const docRef = db.collection('ssm_company').doc(company.surrogate_key);
+      batch.set(docRef, company);
     });
 
-    // Upload SSM business people
+    // Upload SSM business people using their pre-computed surrogate_key
     businessPeople.forEach((person) => {
-      const regNo = person.registration_number;
-      const icNumber = person.ic_number;
-
-      if (!regNo || !icNumber) {
-        console.log(
-          'Skipped business person because registration_number or ic_number is missing.'
-        );
+      if (!person.surrogate_key) {
+        console.log('Skipped business person because surrogate_key is missing.');
         return;
       }
 
-      const companyHashID = generateHashID(regNo);
-
-      // PK / document ID for business person
-      // Uses registration number + IC number
-      const personHashID = generateHashID(`${regNo}-${icNumber}`);
-
-      const personDoc = {
-        ...person,
-        surrogate_key: personHashID,
-        company_surrogate_key: companyHashID
-      };
-
-      const docRef = db
-        .collection('ssm_business_person')
-        .doc(personHashID);
-
-      batch.set(docRef, personDoc);
+      const docRef = db.collection('ssm_business_person').doc(person.surrogate_key);
+      batch.set(docRef, person);
     });
 
     await batch.commit();
-
-    console.log('Success! SSM data uploaded to Firestore with hashed surrogate keys.');
+    console.log('Success! SSM data uploaded to Firestore with synchronized surrogate keys. 🚀');
   } catch (error) {
     console.error('SSM migration failed:', error);
   }

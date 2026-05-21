@@ -86,8 +86,6 @@ async function uploadJIM() {
         passport_photo: encrypt(person.passport_photo || "", "jim"),
         visa_type: encrypt(person.visa_type || "", "jim"),
         photo_pattern: encrypt(person.photo_pattern || "", "jim"),
-
-        created_at: new Date().toISOString(),
       },
         { merge: true }
       );
@@ -107,7 +105,6 @@ async function uploadJIM() {
         lookup_hash: lookupHash,
         passport_no: encrypt(normalizedPassport, "jim"),
         photo_pattern: encrypt(template.photo_pattern || "", "jim"),
-        created_at: new Date().toISOString(),
       }, 
         { merge: true }
       );
