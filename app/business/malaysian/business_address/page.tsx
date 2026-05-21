@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
 
@@ -16,9 +16,9 @@ interface Branch {
 }
 
 interface Address {
-  addressLine1: string;
-  addressLine2: string;
-  postcode: string;
+  streetAddress: string;
+  postal: string;
+  city: string;
   state: string;
   country: string;
 }
@@ -29,71 +29,42 @@ interface UserLocation {
 }
 
 const BRANCHES: Branch[] = [
-  {
-    id: "subang-jaya",
-    name: "Subang Jaya Branch",
-    lat: 3.0738,
-    lng: 101.5883,
-    address: "Jalan SS 15, Subang Jaya",
-  },
-  {
-    id: "kuala-lumpur",
-    name: "KL Main Branch",
-    lat: 3.139,
-    lng: 101.6869,
-    address: "Bukit Bintang, Kuala Lumpur",
-  },
-  {
-    id: "petaling-jaya",
-    name: "Petaling Jaya Branch",
-    lat: 3.1073,
-    lng: 101.6067,
-    address: "Section 00, Petaling Jaya",
-  },
+  { id: "subang-jaya", name: "Subang Jaya Branch", lat: 3.0738, lng: 101.5883, address: "Jalan SS 15, Subang Jaya" },
+  { id: "kuala-lumpur", name: "KL Main Branch", lat: 3.139, lng: 101.6869, address: "Bukit Bintang, Kuala Lumpur" },
+  { id: "petaling-jaya", name: "Petaling Jaya Branch", lat: 3.1073, lng: 101.6067, address: "Section 00, Petaling Jaya" },
 ];
 
 export default function BusinessMalaysianBusinessAddress() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { formData, setFormData } = useFormData();
-
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
-
-  const idType =
-    searchParams.get("id_type") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
-    "ic";
-
-  const idNum =
-    searchParams.get("id_num") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
-    "";
-
+  
   const [step, setStep] = useState<number>(1);
   const [mounted, setMounted] = useState<boolean>(false);
 
-  const [businessAddress, setBusinessAddress] = useState<Address>({
-    addressLine1: formData?.businessAddress?.businessAddress?.addressLine1 || "",
-    addressLine2: formData?.businessAddress?.businessAddress?.addressLine2 || "",
-    postcode: formData?.businessAddress?.businessAddress?.postcode || "",
-    state: formData?.businessAddress?.businessAddress?.state || "",
-    country: "Malaysia",
-  });
+  const { formData, setFormData } = useFormData();
 
-  const [mailingAddress, setMailingAddress] = useState<Address>({
-    addressLine1: formData?.businessAddress?.mailingAddress?.addressLine1 || "",
-    addressLine2: formData?.businessAddress?.mailingAddress?.addressLine2 || "",
-    postcode: formData?.businessAddress?.mailingAddress?.postcode || "",
-    state: formData?.businessAddress?.mailingAddress?.state || "",
-    country: "Malaysia",
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [businessAddress, setBusinessAddress] = useState<Address>({
+    streetAddress: formData?.businessAddress?.businessAddress?.streetAddress || "Jalan SS15/1H",
+    postal: formData?.businessAddress?.businessAddress?.postal || "40000",
+    city: formData?.businessAddress?.businessAddress?.city || "Subang Jaya",
+    state: formData?.businessAddress?.businessAddress?.state || "Selangor",
+    country: formData?.businessAddress?.businessAddress?.country || "Malaysia",
   });
 
   const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<boolean | null>(
     formData?.businessAddress?.isMailingSameAsBusiness ?? null
   );
+
+  const [mailingAddress, setMailingAddress] = useState<Address>({
+    streetAddress: formData?.businessAddress?.mailingAddress?.streetAddress || "",
+    postal: formData?.businessAddress?.mailingAddress?.postal || "",
+    city: formData?.businessAddress?.mailingAddress?.city || "",
+    state: formData?.businessAddress?.mailingAddress?.state || "",
+    country: formData?.businessAddress?.mailingAddress?.country || "",
+  });
 
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [userAddressLabel, setUserAddressLabel] = useState<string>("");
@@ -102,70 +73,7 @@ export default function BusinessMalaysianBusinessAddress() {
     formData?.businessAddress?.preferredBranch || ""
   );
 
-  useEffect(() => {
-    setMounted(true);
-
-    if (typeof window === "undefined") return;
-
-    if (journeyId) localStorage.setItem("journeyId", journeyId);
-    if (idType) localStorage.setItem("id_type", idType);
-    if (idNum) localStorage.setItem("id_num", idNum);
-  }, [journeyId, idType, idNum]);
-
-  useEffect(() => {
-    const savedBusinessAddress = formData?.businessAddress?.businessAddress;
-
-    if (savedBusinessAddress && savedBusinessAddress.addressLine1) {
-    setBusinessAddress({
-      addressLine1: savedBusinessAddress.addressLine1,
-      addressLine2: savedBusinessAddress.addressLine2 || "",
-      postcode: savedBusinessAddress.postcode || "",
-      state: savedBusinessAddress.state || "",
-      country: savedBusinessAddress.country || "Malaysia",
-    });
-  } 
-  // Fallback: Check localStorage if context is empty
-  else if (typeof window !== 'undefined') {
-    const backup = JSON.parse(localStorage.getItem("businessParticulars") || "{}");
-    if (backup.reg_no) { // If normalized data exists
-       // Map normalized storage back to fields
-       setBusinessAddress(prev => ({
-         ...prev,
-         addressLine1: backup.bus_add1 || "",
-        addressLine2: backup.bus_add2 || "",
-        postcode: backup.bus_postcode || "",
-        state: backup.bus_state || "",
-        country: "Malaysia",
-      }));
-    }
-
-    const savedMailingAddress = formData?.businessAddress?.mailingAddress;
-
-    if (savedMailingAddress) {
-      setMailingAddress({
-        addressLine1: savedMailingAddress.addressLine1 || "",
-        addressLine2: savedMailingAddress.addressLine2 || "",
-        postcode: savedMailingAddress.postcode || "",
-        state: savedMailingAddress.state || "",
-        country: "Malaysia",
-      });
-    }
-
-    if (formData?.businessAddress?.preferredBranch) {
-      setPreferredBranch(formData.businessAddress.preferredBranch);
-    }
-
-    if (formData?.businessAddress?.isMailingSameAsBusiness !== undefined) {
-      setUseBusinessAsMailing(formData.businessAddress.isMailingSameAsBusiness);
-    }
-  }, [formData]);
-
-  const getDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number => {
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2)) * 111;
   };
 
@@ -189,7 +97,7 @@ export default function BusinessMalaysianBusinessAddress() {
           );
           const data = await res.json();
           setUserAddressLabel(data.display_name.split(",").slice(0, 3).join(","));
-        } catch {
+        } catch (e) {
           setUserAddressLabel(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         }
 
@@ -204,22 +112,14 @@ export default function BusinessMalaysianBusinessAddress() {
 
   const sortedBranches = [...BRANCHES].sort((a, b) => {
     if (!userLocation) return 0;
-
     const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
     const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-
     return distA - distB;
   });
 
   const handleBack = (): void => {
     if (step === 1) {
-      router.push(
-        `/business/malaysian/business_particulars?id_type=${encodeURIComponent(
-          idType
-        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-          journeyId
-        )}`
-      );
+      router.push("/business/malaysian/business_particulars");
     } else if (step === 2) {
       setStep(1);
     } else if (step === 3) {
@@ -231,22 +131,20 @@ export default function BusinessMalaysianBusinessAddress() {
     }
   };
 
-    const isAddressValid = (address: Address) => {
-    return (
-      address.addressLine1.trim() !== "" &&
-      address.addressLine2.trim() !== "" &&
-      address.postcode.trim() !== "" &&
-      address.state.trim() !== ""
-    );
-  };
-
   const handleStep1Submit = (): void => {
-    if (useBusinessAsMailing === null) return;
-
     if (useBusinessAsMailing === true) {
       setMailingAddress({ ...businessAddress });
       setStep(3);
     } else {
+      if (!mailingAddress.streetAddress) {
+        setMailingAddress({
+          streetAddress: "",
+          postal: "",
+          city: "",
+          state: "",
+          country: "Malaysia",
+        });
+      }
       setStep(2);
     }
   };
@@ -258,9 +156,6 @@ export default function BusinessMalaysianBusinessAddress() {
   const handleFinalSubmit = (): void => {
     setFormData({
       ...formData,
-      journeyId,
-      idType,
-      idNum,
       businessAddress: {
         businessAddress,
         mailingAddress: useBusinessAsMailing ? businessAddress : mailingAddress,
@@ -269,13 +164,7 @@ export default function BusinessMalaysianBusinessAddress() {
       },
     });
 
-    router.push(
-      `/business/malaysian/contact?id_type=${encodeURIComponent(
-        idType
-      )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-        journeyId
-      )}`
-    );
+    router.push("/business/malaysian/contact");
   };
 
   const inputClasses =
@@ -286,39 +175,39 @@ export default function BusinessMalaysianBusinessAddress() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <svg 
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
+          preserveAspectRatio="none" 
+          xmlns="http://www.w3.org/2000/svg" 
           viewBox="0 0 1440 320"
         >
-          <path
-            className="fill-[#3D405B]/80"
+          <path 
+            className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
 
-          <path
-            className="fill-[#3D405B]"
+          <path 
+            className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-
+      
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <svg 
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
+          preserveAspectRatio="none" 
+          xmlns="http://www.w3.org/2000/svg" 
           viewBox="0 0 1440 320"
         >
-          <path
-            className="fill-[#F0CA8E]"
+          <path 
+            className="fill-[#F0CA8E]" 
             d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
           />
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
           onClick={handleBack}
@@ -328,12 +217,7 @@ export default function BusinessMalaysianBusinessAddress() {
           Back
         </button>
 
-
-        
-          <Link 
-            href="/" 
-            className="flex items-center gap-2"
-          >
+        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -341,18 +225,13 @@ export default function BusinessMalaysianBusinessAddress() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
-          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
+          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
             DTCOB
           </h1>
         </Link>
       </div>
 
-      <div
-        className={`relative w-full z-10 animate-in fade-in duration-500 ${
-          step === 3 ? "max-w-2xl" : "max-w-md"
-        }`}
-      >
+      <div className={`relative w-full z-10 animate-in fade-in duration-500 ${step === 3 ? "max-w-2xl" : "max-w-md"}`}>
         {step === 1 && (
           <div>
             <div className="mb-8 text-center">
@@ -361,120 +240,99 @@ export default function BusinessMalaysianBusinessAddress() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-                If your business address is different from the registered business address below, please update it.
+                If your business address is different from the registered business address on your MyKad below, please update it.
               </p>
 
               <div className="relative p-4 mb-8 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
-                  {`${businessAddress.addressLine1}, ${
-                    businessAddress.addressLine2 ? businessAddress.addressLine2 + ", " : ""
-                  }${businessAddress.postcode}, ${businessAddress.state}, Malaysia`}
+                  Jalan SS15/1H, 40000 Subang Jaya, Selangor, Malaysia
                 </p>
 
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Registered SSM Business Address
+                  Registered MyKad Address
                 </p>
               </div>
             </div>
 
             <div className="space-y-6">
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Address Line 1<span className="text-red-500">*</span>
-                </label>
-
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value={businessAddress.addressLine1}
-                  onChange={(e) =>
-                    setBusinessAddress({
-                      ...businessAddress,
-                      addressLine1: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Address Line 2
-                </label>
-
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value={businessAddress.addressLine2}
-                  onChange={(e) =>
-                    setBusinessAddress({
-                      ...businessAddress,
-                      addressLine2: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Postcode<span className="text-red-500">*</span>
+                    Street Address<span className="text-red-500">*</span>
                   </label>
 
                   <input
                     type="text"
                     className={inputClasses}
-                    value={businessAddress.postcode}
-                    onChange={(e) =>
-                      setBusinessAddress({
-                        ...businessAddress,
-                        postcode: e.target.value,
-                      })
-                    }
+                    value={businessAddress.streetAddress}
+                    onChange={(e) => setBusinessAddress({ ...businessAddress, streetAddress: e.target.value })}
                   />
                 </div>
 
-                <div>
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    State<span className="text-red-500">*</span>
-                  </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Postal Code<span className="text-red-500">*</span>
+                    </label>
 
-                  <input
-                    type="text"
-                    className={inputClasses}
-                    value={businessAddress.state}
-                    onChange={(e) =>
-                      setBusinessAddress({
-                        ...businessAddress,
-                        state: e.target.value,
-                      })
-                    }
-                  />
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={businessAddress.postal}
+                      onChange={(e) => setBusinessAddress({ ...businessAddress, postal: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      City<span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={businessAddress.city}
+                      onChange={(e) => setBusinessAddress({ ...businessAddress, city: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Country<span className="text-red-500">*</span>
-                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      State<span className="text-red-500">*</span>
+                    </label>
+                    
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={businessAddress.state}
+                      onChange={(e) => setBusinessAddress({ ...businessAddress, state: e.target.value })}
+                    />
+                  </div>
 
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value="Malaysia"
-                  readOnly
-                />
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Country<span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={businessAddress.country}
+                      onChange={(e) => setBusinessAddress({ ...businessAddress, country: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 text-center">
-                <div>
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Keep business address as mailing address? 
-                  <span className="text-red-500">
-                    *
-                  </span>
+                  <span className="text-red-500">*</span>
                 </label>
 
-                  <div className="flex justify-center gap-8 mt-2">
+                <div className="flex justify-center gap-8 mt-2">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
                     <input
                       type="radio"
@@ -483,7 +341,6 @@ export default function BusinessMalaysianBusinessAddress() {
                       checked={useBusinessAsMailing === true}
                       onChange={() => setUseBusinessAsMailing(true)}
                     />
-
                     Yes
                   </label>
 
@@ -495,20 +352,17 @@ export default function BusinessMalaysianBusinessAddress() {
                       checked={useBusinessAsMailing === false}
                       onChange={() => setUseBusinessAsMailing(false)}
                     />
-
                     No
                   </label>
-                
                 </div>
-                    
-                </div>
+              </div>
 
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the information provided is accurate.
+              <div className="pt-2 flex flex-col items-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-6">
+                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
                 </p>
 
                 <button
-                  type="button"
                   onClick={handleStep1Submit}
                   disabled={useBusinessAsMailing === null}
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
@@ -532,14 +386,12 @@ export default function BusinessMalaysianBusinessAddress() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-                Please enter your mailing address.
+                If your mailing address is different from the registered business address below, please update it.
               </p>
 
               <div className="relative p-4 mb-8 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
-                  {`${businessAddress.addressLine1}, ${
-                    businessAddress.addressLine2 ? businessAddress.addressLine2 + ", " : ""
-                  }${businessAddress.postcode}, ${businessAddress.state}, Malaysia`}
+                  {`${businessAddress.streetAddress}, ${businessAddress.postal} ${businessAddress.city}, ${businessAddress.state}, ${businessAddress.country}`}
                 </p>
 
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -549,100 +401,83 @@ export default function BusinessMalaysianBusinessAddress() {
             </div>
 
             <div className="space-y-6">
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Address Line 1<span className="text-red-500">*</span>
-                </label>
-
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value={mailingAddress.addressLine1}
-                  onChange={(e) =>
-                    setMailingAddress({
-                      ...mailingAddress,
-                      addressLine1: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Address Line 2
-                </label>
-
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value={mailingAddress.addressLine2}
-                  onChange={(e) =>
-                    setMailingAddress({
-                      ...mailingAddress,
-                      addressLine2: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Postcode<span className="text-red-500">*</span>
+                    Street Address<span className="text-red-500">*</span>
                   </label>
-
+                  
                   <input
                     type="text"
                     className={inputClasses}
-                    value={mailingAddress.postcode}
-                    onChange={(e) =>
-                      setMailingAddress({
-                        ...mailingAddress,
-                        postcode: e.target.value,
-                      })
-                    }
+                    value={mailingAddress.streetAddress}
+                    onChange={(e) => setMailingAddress({ ...mailingAddress, streetAddress: e.target.value })}
                   />
                 </div>
 
-                <div>
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    State<span className="text-red-500">*</span>
-                  </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Postal Code<span className="text-red-500">*</span>
+                    </label>
 
-                  <input
-                    type="text"
-                    className={inputClasses}
-                    value={mailingAddress.state}
-                    onChange={(e) =>
-                      setMailingAddress({
-                        ...mailingAddress,
-                        state: e.target.value,
-                      })
-                    }
-                  />
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={mailingAddress.postal}
+                      onChange={(e) => setMailingAddress({ ...mailingAddress, postal: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      City<span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={mailingAddress.city}
+                      onChange={(e) => setMailingAddress({ ...mailingAddress, city: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      State<span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={mailingAddress.state}
+                      onChange={(e) => setMailingAddress({ ...mailingAddress, state: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Country<span className="text-red-500">*</span>
+                    </label>
+
+                    <input
+                      type="text"
+                      className={inputClasses}
+                      value={mailingAddress.country}
+                      onChange={(e) => setMailingAddress({ ...mailingAddress, country: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Country<span className="text-red-500">*</span>
-                </label>
-
-                <input
-                  type="text"
-                  className={inputClasses}
-                  value="Malaysia"
-                  readOnly
-                />
-              </div>
-
-              <div className="pt-4 space-y-6">
+              <div className="space-y-6">
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the mailing address provided is accurate.
+                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
                 </p>
 
                 <button
-                  type="button"
                   onClick={handleStep2Submit}
                   className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] active:scale-[0.98]"
                 >
@@ -669,24 +504,23 @@ export default function BusinessMalaysianBusinessAddress() {
               {!userLocation ? (
                 <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl text-center dark:bg-blue-900/30 dark:border-blue-500/50">
                   <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-blue-800 dark:text-blue-300">
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
+                    <svg 
+                      className="w-6 h-6" 
+                      fill="none" 
+                      stroke="currentColor" 
                       viewBox="0 0 24 24"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
                       />
-
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
                       />
                     </svg>
                   </div>
@@ -699,10 +533,9 @@ export default function BusinessMalaysianBusinessAddress() {
                     To suggest the nearest branches to you.
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={handleRequestLocation}
-                    disabled={isLocating}
+                  <button 
+                    onClick={handleRequestLocation} 
+                    disabled={isLocating} 
                     className="text-sm font-bold text-blue-700 hover:text-blue-800 dark:text-blue-400"
                   >
                     {isLocating ? "Locating..." : "Use My Current Location"}
@@ -711,17 +544,17 @@ export default function BusinessMalaysianBusinessAddress() {
               ) : (
                 <div className="flex items-center gap-3 p-4 bg-[#3D405B]/5 border-2 border-[#3D405B]/20 rounded-xl">
                   <div className="flex-shrink-0 w-8 h-8 bg-[#3D405B] text-white rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
+                    <svg 
+                      className="w-4 h-4" 
+                      fill="none" 
+                      stroke="currentColor" 
                       viewBox="0 0 24 24"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
                       />
                     </svg>
                   </div>
@@ -736,9 +569,8 @@ export default function BusinessMalaysianBusinessAddress() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setUserLocation(null)}
+                  <button 
+                    onClick={() => setUserLocation(null)} 
                     className="text-xs font-bold text-[#3D405B] dark:text-blue-400"
                   >
                     Change
@@ -753,15 +585,7 @@ export default function BusinessMalaysianBusinessAddress() {
               </label>
 
               {sortedBranches.map((branch) => {
-                const distance = userLocation
-                  ? getDistance(
-                      userLocation.lat,
-                      userLocation.lng,
-                      branch.lat,
-                      branch.lng
-                    ).toFixed(1)
-                  : null;
-
+                const distance = userLocation ? getDistance(userLocation.lat, userLocation.lng, branch.lat, branch.lng).toFixed(1) : null;
                 const isSelected = preferredBranch === branch.id;
 
                 return (
@@ -774,24 +598,18 @@ export default function BusinessMalaysianBusinessAddress() {
                         : "border-gray-200 bg-white hover:border-[#F0CA8E] dark:bg-gray-900/90 dark:border-[#5c6185] dark:hover:border-[#F0CA8E]"
                     }`}
                   >
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                        isSelected
-                          ? "bg-[#F0CA8E] text-[#3D405B] dark:text-white"
-                          : "bg-gray-100 dark:bg-gray-800 text-gray-400"
-                      }`}
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? "bg-[#F0CA8E] text-[#3D405B] dark:text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-400"}`}>
+                      <svg 
+                        className="w-5 h-5" 
+                        fill="none" 
+                        stroke="currentColor" 
                         viewBox="0 0 24 24"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" 
                         />
                       </svg>
                     </div>
@@ -807,9 +625,7 @@ export default function BusinessMalaysianBusinessAddress() {
                     </div>
 
                     {distance && (
-                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">
-                        {distance} km
-                      </span>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>
                     )}
                   </div>
                 );
@@ -822,7 +638,6 @@ export default function BusinessMalaysianBusinessAddress() {
               </p>
 
               <button
-                type="button"
                 onClick={handleFinalSubmit}
                 disabled={!preferredBranch}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
@@ -839,12 +654,9 @@ export default function BusinessMalaysianBusinessAddress() {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble?{" "}
-            </span>
-
-            <Link
-              href="/support"
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+            <Link 
+              href="/support" 
               className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
             >
               Contact Support

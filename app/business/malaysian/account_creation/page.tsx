@@ -20,7 +20,7 @@ export default function BusinessMalaysianAccountCreation() {
   const [mounted, setMounted] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [profilePreview, setProfilePreview] = useState<string>(""); // 💡 Type changed from string | null to eliminate schema typing mismatch
+  const [profilePreview, setProfilePreview] = useState<string>(""); 
   const [securityPhrase, setSecurityPhrase] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -77,126 +77,139 @@ export default function BusinessMalaysianAccountCreation() {
   };
 
   const handleSubmit = async () => {
-  try {
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
 
-    // 1. Load everything using the helper
-    const storedPersonalInfo = loadFromStorage("personalInfo", {} as any);
-    const storedBusinessParticulars = loadFromStorage("businessParticulars", {} as any);
-    const storedHomeAddress = loadFromStorage("homeAddress", {} as any);
-    const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
-    const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
+      // 1. Load context data layers safely from local storage fallbacks
+      const storedPersonalInfo = loadFromStorage("personalInfo", {} as any);
+      const storedBusinessParticulars = loadFromStorage("businessParticulars", {} as any);
+      const storedHomeAddress = loadFromStorage("homeAddress", {} as any);
+      const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
+      const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
 
-    // 2. THE NORMALIZATION BLOCK (Replaces your long companyRegNo/companyBusName chains)
-    const normalizedBusiness = {
-      reg_no:
-        formData.businessParticulars?.reg_no ||
-        storedBusinessParticulars.reg_no ||
-        selectedBusiness.brn ||
-        ssmData.registration_number || "",
+      // 2. Normalize Business Particulars matching exact backend string lookups
+      const normalizedBusiness = {
+        registration_number:
+          formData.businessParticulars?.reg_no ||
+          storedBusinessParticulars.reg_no ||
+          selectedBusiness.brn ||
+          ssmData.registration_number || "",
+        business_name:
+          formData.businessParticulars?.bus_name ||
+          storedBusinessParticulars.bus_name ||
+          selectedBusiness.name ||
+          ssmData.business_name || "",
+        start_date:
+          formData.businessParticulars?.start_date ||
+          storedBusinessParticulars.start_date ||
+          selectedBusiness.start_date ||
+          ssmData.start_date || null,
+        business_type:
+          formData.businessParticulars?.bus_type ||
+          storedBusinessParticulars.bus_type ||
+          selectedBusiness.type ||
+          ssmData.business_type || "",
+        role: formData.businessParticulars?.role || storedBusinessParticulars.role || "Owner",
+        msic_code:
+          formData.businessParticulars?.msic_code ||
+          storedBusinessParticulars.msic_code ||
+          selectedBusiness.msicCode ||
+          ssmData.msic_code || "",
+        msic_name:
+          formData.businessParticulars?.msic_name ||
+          storedBusinessParticulars.msic_name ||
+          selectedBusiness.msicName ||
+          ssmData.msic_name || "",
+      };
 
-      bus_name:
-        formData.businessParticulars?.bus_name ||
-        storedBusinessParticulars.bus_name ||
-        selectedBusiness.name ||
-        ssmData.business_name || "",
+      // 3. Robustly resolve matching context interface properties without using un-typed keys
+      const rawBusAddr = formData.businessAddress?.businessAddress || {};
+      const rawMailAddr = formData.businessAddress?.mailingAddress || {};
+      const storedBiz = selectedBusiness?.address || ssmData?.address || {};
 
-      start_date:
-        formData.businessParticulars?.start_date ||
-        storedBusinessParticulars.start_date ||
-        selectedBusiness.start_date ||
-        ssmData.start_date || null,
+      const addressLine1 = rawBusAddr.addressLine1 || storedBiz.addressLine1 || storedBusinessParticulars.bus_add1 || ssmData.bus_add1 || "";
+      const addressLine2 = rawBusAddr.addressLine2 || storedBiz.addressLine2 || storedBusinessParticulars.bus_addr2 || ssmData.bus_addr2 || "";
+      const postcode = rawBusAddr.postcode || storedBiz.postcode || storedBusinessParticulars.bus_postcode || ssmData.bus_postcode || "";
+      const state = rawBusAddr.state || storedBiz.state || storedBusinessParticulars.bus_state || ssmData.bus_state || "";
+      const country = rawBusAddr.country || storedBiz.country || ssmData.country || "Malaysia";
 
-      bus_type:
-        formData.businessParticulars?.bus_type ||
-        storedBusinessParticulars.bus_type ||
-        selectedBusiness.type ||
-        ssmData.business_type || "",
+      // 4. Synthesize Master Payload Structure matching backend route destructuring exactly
+      const finalPayload = {
+        journeyId: formData.journeyId || localStorage.getItem("journeyId") || "",
+        personalInfo: {
+          id_num: formData.idNum || storedPersonalInfo.id_num || storedPersonalInfo.idNumber || "",
+          full_name: storedPersonalInfo.full_name || storedPersonalInfo.fullName || "",
+          dob: storedPersonalInfo.dob || storedPersonalInfo.dateOfBirth || "",
+          id_type: "IC",
+          streetAddress: storedHomeAddress.add_1 || storedHomeAddress.streetAddress || "",
+          city: storedHomeAddress.add_2 || storedHomeAddress.city || "",
+          postal: storedHomeAddress.postcode || storedHomeAddress.postal || "",
+          state: storedHomeAddress.state || "",
+          country: "Malaysia",
+        },
+        businessParticulars: normalizedBusiness,
+        businessContact: {
+          bus_ph_no: formData.businessContact?.bus_ph_no || storedPersonalInfo.ph_no || "",
+          phoneNumber: formData.businessContact?.bus_ph_no || storedPersonalInfo.ph_no || "",
+          bus_email: formData.businessContact?.bus_email || storedPersonalInfo.email || "",
+          email: formData.businessContact?.bus_email || storedPersonalInfo.email || "",
+        },
+        businessAddress: {
+          preferredBranch: formData.businessAddress?.preferredBranch || "Main Corporate Branch",
+          isMailingSameAsBusiness: formData.businessAddress?.isMailingSameAsBusiness ?? true,
+          businessAddress: {
+            addressLine1: addressLine1,
+            addressLine2: addressLine2, 
+            postcode: postcode,
+            state: state,
+            country: country,
+          },
+          mailingAddress: {
+            addressLine1: rawMailAddr.addressLine1 || addressLine1,
+            addressLine2: rawMailAddr.addressLine2 || addressLine2,
+            postcode: rawMailAddr.postcode || postcode,
+            state: rawMailAddr.state || state,
+            country: rawMailAddr.country || country,
+          },
+        },
+        account: {
+          username: username.trim(),
+          password: password,
+          securityPhrase: securityPhrase,
+          profilePreview: profilePreview || "",
+        },
+      };
 
-      role:
-        formData.businessParticulars?.role ||
-        storedBusinessParticulars.role ||
-        "Owner",
+      console.log("🚀 Sending Corrected Structured Payload to Backend:", finalPayload);
 
-      msic_code:
-        formData.businessParticulars?.msic_code ||
-        storedBusinessParticulars.msic_code ||
-        selectedBusiness.msicCode ||
-        ssmData.msic_code || "",
-
-      msic_name:
-        formData.businessParticulars?.msic_name ||
-        storedBusinessParticulars.msic_name ||
-        selectedBusiness.msicName ||
-        ssmData.msic_name || "",
-    };
-
-    // 3. The Final Payload
-    const finalPayload: MasterFormData = {
-      journeyId: formData.journeyId || localStorage.getItem("journeyId") || "",
-      idType: formData.idType || "ic",
-      idNum: formData.idNum || storedPersonalInfo.id_num || "",
-      personalInfo: {
-        id_num: formData.idNum || storedPersonalInfo.id_num || "",
-        fullName: storedPersonalInfo.full_name || "",
-        dob: storedPersonalInfo.dob || "",
-        id_type: "IC",
-        ph_no_1: storedPersonalInfo.ph_no || "",
-        email: storedPersonalInfo.email || "",
-        add1: storedHomeAddress.add_1 || "",
-        add2: storedHomeAddress.add_2 || "",
-        postcode: storedHomeAddress.postcode || "",
-        state: storedHomeAddress.state || "",
-        country: "Malaysia"
-      },
-      businessParticulars: normalizedBusiness, // USE THE NORMALIZED OBJECT HERE
-      businessContact: {
-        bus_email: formData.businessContact?.bus_email || storedPersonalInfo.email || "",
-        bus_ph_no: formData.businessContact?.bus_ph_no || storedPersonalInfo.ph_no || ""
-      },
-      businessAddress: formData.businessAddress, 
-      account: {
-        username: username.trim(),
-        password: password,
-        securityPhrase: securityPhrase,
-      }
-    };
-
-    // Debugging (Step 6 of your instructions)
-    console.log("✅ Final Payload:", finalPayload);
-
-    // Send to backend...
-    const res = await fetch("http://localhost:8080/api/msian_current_account", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(finalPayload),
-    });
+      // 5. Fire Request to updated relative location path
+      const res = await fetch("/api/msian_current_account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalPayload),
+      });
 
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.error || "Failed to finalize corporate account data processing.");
       }
 
-      // Update state tracking context parameters safely
       setFormData((prev) => ({
         ...prev,
-        journeyId: finalPayload.journeyId,
-        idNum: finalPayload.personalInfo?.id_num || "",
-        businessParticulars: finalPayload.businessParticulars,
-        businessAddress: finalPayload.businessAddress,
         account: {
           username: username.trim(),
           securityPhrase: securityPhrase,
-          profilePreview: profilePreview || "" 
-        }
-}));
+          profilePreview: profilePreview || "",
+        },
+      }));
 
       setStep("pending");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setSubmitError(err.message);
       } else {
-        setSubmitError("An unexpected transaction runtime exception occurred.");
+        setSubmitError("An unhandled database tracking runtime exception occurred.");
       }
     } finally {
       setIsSubmitting(false);
@@ -210,7 +223,7 @@ export default function BusinessMalaysianAccountCreation() {
       {/* Background Graphic Patterns */}
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
+          <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192+C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
           <path className="fill-[#3D405B]" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
         </svg>
       </div>
@@ -349,7 +362,7 @@ export default function BusinessMalaysianAccountCreation() {
             </div>
 
             <h1 className="mb-4 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">Verification Pending</h1>
-            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">We&apos;ve sent a confirmation email to</p> {/* 💡 Escaped single quote character here */}
+            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">We&apos;ve sent a confirmation email to</p> 
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">{userEmail}</p>
             
             <div className="mb-10 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
