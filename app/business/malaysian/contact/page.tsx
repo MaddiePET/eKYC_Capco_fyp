@@ -269,6 +269,18 @@ export default function BusinessMalaysianContact() {
               </p>
             </div>
 
+            {message && (
+              <div
+               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success"
+                   ? "bg-green-50 border-green-200 text-green-600"
+                   : "bg-red-50 border-red-200 text-red-600"
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -332,18 +344,6 @@ export default function BusinessMalaysianContact() {
                 </button>
               </div>
             </form>
-
-            {message && (
-             <div
-               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                messageType === "success"
-                   ? "bg-green-50 border-green-200 text-green-600"
-                   : "bg-red-50 border-red-200 text-red-600"
-                }`}
-              >
-                {message}
-              </div>
-            )}
           </div>
         )}
 
@@ -360,16 +360,16 @@ export default function BusinessMalaysianContact() {
             </div>
             
             {message && (
-            <div
-               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                 messageType === "success"
-                   ? "bg-green-50 border-green-200 text-green-600"
-                   : "bg-red-50 border-red-200 text-red-600"
-              }`}
-            >
-             {message}
-            </div>
-          )}
+              <div
+                className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success"
+                    ? "bg-green-50 border-green-200 text-green-600"
+                    : "bg-red-50 border-red-200 text-red-600"
+                }`}
+              >
+              {message}
+              </div>
+            )}
 
             <div className="space-y-6">
               <div className="flex justify-center gap-2">

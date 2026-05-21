@@ -27,27 +27,27 @@ function cleanIC(icNumber) {
 
 const companyData = {
   registration_number: '329042348032 (4000101-A)',
-  business_name: 'Ash Trevino Sdn Bhd',
-  company_name: 'Ash Trevino Sdn Bhd',
+  business_name: 'Ash Boo Boo',
+  company_name: 'Ash Boo Boo',
   business_type: 'Sole Proprietorship',
-  start_date: '2020-10-10',
+  start_date: '2015-02-02',
   msic_code: '47110',
-  msic_name: 'Software Development and Programming Activities',
+  msic_name: 'Retail sale in non-specialised stores',
   status: 'Active',
   bus_add1: 'No 65, Jalan Alpha',
-  bus_addr2: 'Bandar Alpha',
+  bus_addr2: 'Bandar Nusantara',
   bus_postcode: '80120',
   bus_state: 'Johor',
   country: 'Malaysia',
 };
 
 const businessPersonData = {
-  ic_number: 'X3852717',
-  full_name: 'Gabriella Tio Pardede',
+  ic_number: 'A62595296',
+  full_name: 'Ashley Tang Way Yan',
   role: 'Owner',
-  date_of_birth: '2004-10-12',
+  date_of_birth: '2003-09-09',
   gender: "Female",
-  race: "Non-Malaysian"
+  race: "Chinese"
 };
 
 async function addSSMRecord() {
