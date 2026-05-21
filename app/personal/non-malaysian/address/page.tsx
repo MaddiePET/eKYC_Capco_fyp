@@ -43,10 +43,9 @@ const AddressSection = ({
   addressData,
   updateField,
   disabled = false,
-  lockedCountry = false,
+  countryDisabled = false,
   headerRight,
-}: AddressSectionProps & { lockedCountry?: boolean }) => {
-  const inputBaseClasses = `w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 disabled:opacity-60 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800/80 dark:disabled:border-gray-700 appearance-none`;
+}: AddressSectionProps & { countryDisabled?: boolean }) => {
   
   return (
     <div className="flex-1">
@@ -54,6 +53,7 @@ const AddressSection = ({
         <h2 className="block text-md font-bold text-[#3D405B] dark:text-white">
           {title}
         </h2>
+
         {headerRight && <div>{headerRight}</div>}
       </div>
 
@@ -65,7 +65,7 @@ const AddressSection = ({
 
           <input
             type="text"
-            className={`${inputBaseClasses} appearance-none`}
+            className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
             placeholder="Enter your house number, building name"
             value={addressData[type].streetAddress1}
             disabled={disabled}
@@ -82,7 +82,7 @@ const AddressSection = ({
 
           <input
             type="text"
-            className={`${inputBaseClasses} appearance-none`}
+            className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
             placeholder="Enter your street name, area"
             value={addressData[type].streetAddress2}
             disabled={disabled}
@@ -101,7 +101,7 @@ const AddressSection = ({
             <input
               type="text"
               maxLength={5}
-              className={`${inputBaseClasses} appearance-none`}
+              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
               placeholder="Enter your postal code"
               value={addressData[type].postal}
               disabled={disabled}
@@ -118,7 +118,7 @@ const AddressSection = ({
 
             <input
               type="text"
-              className={`${inputBaseClasses} appearance-none`}
+              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
               placeholder="Enter your city"
               value={addressData[type].city}
               disabled={disabled}
@@ -137,7 +137,7 @@ const AddressSection = ({
 
             <input
               type="text"
-              className={`${inputBaseClasses} appearance-none`}
+              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
               placeholder="Enter your state"
               value={addressData[type].state}
               disabled={disabled}
@@ -152,26 +152,30 @@ const AddressSection = ({
               Country <span className="text-red-500">*</span>
             </label>
 
-            {lockedCountry ? (
+            {countryDisabled ? (
               <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
-                  {addressData[type].country || "Malaysia"}
-                </span>
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{addressData[type].country || "Malaysia"}</span>
               </div>
             ) : (
               <div className="relative">
                 <select
-                  className={`${inputBaseClasses} ${
-                    !addressData[type].country ? "!text-gray-400 dark:!text-gray-400" : ""
-                  }`}
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                   value={addressData[type].country}
                   disabled={disabled}
                   onChange={(e) => updateField(type, "country", e.target.value)}
                 >
-                  <option value="" disabled>
+                  <option 
+                    value="" 
+                    disabled
+                  >
                     Select Country
                   </option>
-                  {COUNTRIES.map((c) => <option key={c} value={c} className="text-gray-800 dark:text-white">{c}</option>)}
+
+                  {COUNTRIES.map((c) => 
+                    <option key={c} value={c} className="text-gray-800 dark:text-white">
+                      {c}
+                    </option>
+                  )}
                 </select>
 
                 <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -200,11 +204,8 @@ const AddressSection = ({
 
 export default function PersonalNonMalaysianAddress() {
   const router = useRouter();
+
   const [mounted, setMounted] = useState<boolean>(false);
-
-  const searchParams = useSearchParams();
-  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
-
   const [addressData, setAddressData] = useState<AddressState>({
     permanentAddress: {
       streetAddress1: "",
@@ -223,6 +224,10 @@ export default function PersonalNonMalaysianAddress() {
       country: "",
     },
   });
+
+  const searchParams = useSearchParams();
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   useEffect(() => {
     setMounted(true);
@@ -245,9 +250,7 @@ export default function PersonalNonMalaysianAddress() {
     );
   };
 
-  const isFormValid =
-    checkAddressValid(addressData.permanentAddress) &&
-    checkAddressValid(addressData.mailingAddress);
+  const isFormValid = checkAddressValid(addressData.permanentAddress) && checkAddressValid(addressData.mailingAddress);
 
   const updateField = (
     type: keyof AddressState,
@@ -296,7 +299,7 @@ export default function PersonalNonMalaysianAddress() {
     );
   };
 
-  const handleNavigation = () => {
+  const handleNext = () => {
     saveAddressToLocalStorage();
     router.push("/personal/non-malaysian/application");
   };
@@ -396,7 +399,7 @@ export default function PersonalNonMalaysianAddress() {
             type="mailingAddress"
             addressData={addressData}
             updateField={updateField}
-            lockedCountry={true}
+            countryDisabled={true}
           />
         </div>
 
@@ -406,7 +409,7 @@ export default function PersonalNonMalaysianAddress() {
           </p>
 
           <button
-            onClick={handleNavigation}
+            onClick={handleNext}
             disabled={!isFormValid}
             className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
               isFormValid

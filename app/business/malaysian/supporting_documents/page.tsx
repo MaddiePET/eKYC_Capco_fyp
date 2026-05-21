@@ -18,6 +18,7 @@ interface DocEntry {
 
 export default function BusinessMalaysianSupportingDocuments() {
   const router = useRouter();
+
   const { formData, setFormData } = useFormData();
 
   const [draggingId, setDraggingId] = useState<number | null>(null);
@@ -36,18 +37,20 @@ export default function BusinessMalaysianSupportingDocuments() {
         ]
   );
 
-  const updateDoc = (id: number, fields: Partial<DocEntry>): void => {
-    setDocuments((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, ...fields } : d))
-    );
+  const updateDoc = (id: number, fields: Partial<DocEntry>) => {
+    setDocuments(documents.map(d => d.id === id ? { ...d, ...fields } : d));
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
+
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+
       reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   };
 
@@ -61,7 +64,7 @@ export default function BusinessMalaysianSupportingDocuments() {
     if (!file) return;
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Only PDF, DOC and DOCX files are allowed.");
+      alert("Please upload a PDF, DOC, or DOCX file.");
       return;
     }
 
@@ -75,7 +78,7 @@ export default function BusinessMalaysianSupportingDocuments() {
     });
   };
 
-  const handleContinue = () => {
+  const handleNext = () => {
     setFormData((prev: any) => ({
       ...prev,
       supportingDocuments: documents,
@@ -97,24 +100,10 @@ export default function BusinessMalaysianSupportingDocuments() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
+          
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-          />
-        </svg>
-      </div>
-      
-      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
-          viewBox="0 0 1440 320"
-        >
-          <path 
-            className="fill-[#F0CA8E]" 
-            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
           />
         </svg>
       </div>
@@ -236,7 +225,8 @@ export default function BusinessMalaysianSupportingDocuments() {
                     <div className="flex items-center gap-3">
                       <svg 
                         className="w-5 h-5 text-[#3D405B] dark:text-[#F0CA8E]" 
-                        fill="none" stroke="currentColor" 
+                        fill="none" 
+                        stroke="currentColor" 
                         viewBox="0 0 24 24"
                       >
                         <path 
@@ -267,7 +257,8 @@ export default function BusinessMalaysianSupportingDocuments() {
                     >
                       <path 
                         strokeLinecap="round" 
-                        strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
+                        strokeLinejoin="round" 
+                        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
                       />
                     </svg>
 
@@ -312,7 +303,7 @@ export default function BusinessMalaysianSupportingDocuments() {
 
             <button
               type="button"
-              onClick={handleContinue}
+              onClick={handleNext}
               disabled={documents.some((d) => !d.name || !d.fileBase64)}
               className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
             >

@@ -103,7 +103,7 @@ export default function LogIn() {
     setStep("password");
   };
 
-  const handleBack = () => {
+  const handleGlobalBack = () => {
     setUsernameError("");
     setPasswordError("");
     
@@ -145,16 +145,16 @@ export default function LogIn() {
       }
 
       setAttempts(3);
-
       const data = await res.json();
 
+      // Guard items safely before execution to avoid crashing client browser runtimes
       try {
-        localStorage.setItem("currentUsername", data.username);
-        localStorage.setItem("currentAccount", data.name);
-        localStorage.setItem("currentUserAvatar", data.avatar); 
-        localStorage.setItem("currentUserEmail", data.email);
+        localStorage.setItem("currentUsername", data.username || "");
+        localStorage.setItem("currentAccount", data.name || "");
+        localStorage.setItem("currentUserAvatar", data.avatar || ""); 
+        localStorage.setItem("currentUserEmail", data.email || "");
       } catch (storageError) {
-        console.warn("Avatar too large for localStorage.");
+        console.warn("Session allocation limits hit, pruning avatar storage.");
         localStorage.setItem("currentUserAvatar", "");
       }
 
@@ -205,10 +205,10 @@ export default function LogIn() {
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button 
           type="button" 
-          onClick={handleBack} 
+          onClick={handleGlobalBack} 
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -228,7 +228,7 @@ export default function LogIn() {
             className="block dark:invert-0 invert" 
           />          
           
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
         </Link>
@@ -352,7 +352,7 @@ export default function LogIn() {
 
               <button 
                 type="button" 
-                onClick={handleBack} 
+                onClick={handleGlobalBack} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
               >
                 No, use different account

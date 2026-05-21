@@ -12,12 +12,12 @@ export default function PersonalMalaysianFaceQRCode() {
   const router = useRouter();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
-  const searchParams = useSearchParams();
   const [journeyId, setJourneyId] = useState<string>("");
-
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const jId = searchParams.get("journeyId") || localStorage.getItem("journeyId");
@@ -34,7 +34,7 @@ export default function PersonalMalaysianFaceQRCode() {
     }
 
     const origin = window.location.origin;
-    const targetUrl = `${origin}/personal/non-malaysian/face_verification/mobile?journeyId=${jId}`;
+    const targetUrl = `${origin}/personal/malaysian/face_verification/mobile?journeyId=${jId}`;
 
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
       setHostWarning(
@@ -233,7 +233,7 @@ export default function PersonalMalaysianFaceQRCode() {
                         </svg>
                       </div>
 
-                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Face Verified Successfully!</span>
+                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}
                 </div>

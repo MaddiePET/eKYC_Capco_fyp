@@ -9,8 +9,7 @@ import { saveToStorage } from "@/lib/storage";
 
 export default function BusinessMalaysianInfo() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -31,6 +30,10 @@ export default function BusinessMalaysianInfo() {
     state: "",
     country: "Malaysia",
   });
+
+  const searchParams = useSearchParams();
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
@@ -195,7 +198,6 @@ export default function BusinessMalaysianInfo() {
       country: formData.country,
     };
 
-    // FIX: Use the helper
     saveToStorage("personalInfo", personalInfo);
     saveToStorage("homeAddress", homeAddress);
     saveToStorage("id_num", formData.nric);
@@ -204,7 +206,7 @@ export default function BusinessMalaysianInfo() {
     router.push(`/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(journeyId)}`);
   } catch (error) { 
       console.error("Submission error:", error);
-      setSubmitError(error.message || "Failed to save application data.");
+      setSubmitError("Failed to save application data.");
     } finally {
       setIsSubmitting(false);
     }

@@ -25,7 +25,6 @@ function cleanIC(icNumber) {
   return String(icNumber || '').replace(/-/g, '');
 }
 
-// EDIT THIS PART ONLY
 const companyData = {
   registration_number: '202001000606 (1000606-A)'
 
@@ -39,7 +38,6 @@ const businessPersonData = {
   gender: "Female",
   race: "Chinese"
 };
-// EDIT UNTIL HERE
 
 async function addSSMRecord() {
   try {

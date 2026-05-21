@@ -14,19 +14,19 @@ interface Branch {
   address: string;
 }
 
-interface DocEntry {
-  id: number;
-  name: string;
-  preview: string | null;
-  fileBase64?:string
-}
-
 interface CustomSelectProps {
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: { value: string; label: string }[];
   required?: boolean;
+}
+
+interface DocEntry {
+  id: number;
+  name: string;
+  preview: string | null;
+  fileBase64?:string
 }
 
 const BRANCHES: Branch[] = [
@@ -50,12 +50,18 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
       <select 
         required={required} 
         className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none ${
-          !value ? "!text-gray-400" : ""
+          !value 
+            ? "!text-gray-400" 
+            : ""
         }`} 
         value={value} 
         onChange={onChange}
       >
-        <option value="" disabled className="text-gray-400">
+        <option 
+          value="" 
+          disabled 
+          className="text-gray-400"
+        >          
           Please Select
         </option>
 
@@ -115,48 +121,6 @@ export default function PersonalNonMalaysianApplication() {
     setMounted(true);
   }, []);
 
-  const addDocument = () => {
-    setDocuments([...documents, { id: Date.now(), name: "", preview: null }]);
-  };
-
-  const updateDoc = (id: number, fields: Partial<DocEntry>) => {
-    setDocuments(documents.map(d => d.id === id ? { ...d, ...fields } : d));
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-   return new Promise((resolve, reject) => {
-     const reader = new FileReader();
-
-     reader.onload = () => {
-       resolve(reader.result as string);
-     };
-     reader.onerror = reject;
-     reader.readAsDataURL(file);
-    });
-};
-
-  const handleFile = async (id: number, file: File | undefined) => {
-   const allowedTypes = [
-     "application/pdf",
-     "application/msword",
-     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-   ];
-
-   if (!file) return;
-
-   if (!allowedTypes.includes(file.type)) {
-     alert("Please upload a PDF, DOC, or DOCX file.");
-     return;
-   }
-
-   const fileBase64 = await fileToBase64(file);
-
-   updateDoc(id, {
-     preview: file.name,
-     fileBase64,
-     });
-  };
-
   const handleRequestLocation = () => {
     setIsLocating(true);
     if (!navigator.geolocation) {
@@ -164,6 +128,7 @@ export default function PersonalNonMalaysianApplication() {
       setIsLocating(false);
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -191,7 +156,50 @@ export default function PersonalNonMalaysianApplication() {
     return distA - distB;
   });
 
-  const handleApplicationContinue = () => {
+  const addDocument = () => {
+    setDocuments([...documents, { id: Date.now(), name: "", preview: null }]);
+  };
+
+  const updateDoc = (id: number, fields: Partial<DocEntry>) => {
+    setDocuments(documents.map(d => d.id === id ? { ...d, ...fields } : d));
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFile = async (id: number, file: File | undefined) => {
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!file) return;
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload a PDF, DOC, or DOCX file.");
+      return;
+    }
+
+    const fileBase64 = await fileToBase64(file);
+
+    updateDoc(id, {
+      preview: file.name,
+      fileBase64,
+    });
+  };
+
+  const handleNext = () => {
     const applicationData = {
       savings_account: {
         occupation: formData.occupation,
@@ -359,29 +367,29 @@ export default function PersonalNonMalaysianApplication() {
                 </label>
 
                 <div className="flex justify-center gap-8 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                      <input 
-                        type="radio" 
-                        name="age" 
-                        className="w-4 h-4 accent-[#3D405B]" 
-                        checked={formData.isOfAge === true} 
-                        onChange={() => setFormData({...formData, isOfAge: true})}
-                      /> 
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
+                    <input 
+                      type="radio" 
+                      name="age" 
+                      checked={formData.isOfAge === true} 
+                      className="w-4 h-4 accent-[#3D405B]" 
+                      onChange={() => setFormData({...formData, isOfAge: true})}
+                    /> 
                       
-                      Yes
-                    </label>
+                    Yes
+                  </label>
                     
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                      <input 
-                        type="radio" 
-                        name="age" 
-                        className="w-4 h-4 accent-[#3D405B]" 
-                        checked={formData.isOfAge === false} 
-                        onChange={() => setFormData({...formData, isOfAge: false})}
-                      /> 
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
+                    <input 
+                      type="radio" 
+                      name="age" 
+                      className="w-4 h-4 accent-[#3D405B]" 
+                      checked={formData.isOfAge === false} 
+                      onChange={() => setFormData({...formData, isOfAge: false})}
+                    /> 
                       
-                      No
-                    </label>
+                    No
+                  </label>
                 </div>
               </div>
 
@@ -393,7 +401,7 @@ export default function PersonalNonMalaysianApplication() {
                 <div className="flex flex-col sm:flex-row gap-3 w-full">
                   <button 
                     type="button" 
-                    onClick={() => router.back()} 
+                    onClick={() => router.push("/personal/non-malaysian/address")} 
                     className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   >
                     Cancel
@@ -500,7 +508,8 @@ export default function PersonalNonMalaysianApplication() {
                         <div className="flex items-center gap-3">
                           <svg 
                             className="w-5 h-5 text-[#3D405B] dark:text-[#F0CA8E]" 
-                            fill="none" stroke="currentColor" 
+                            fill="none" 
+                            stroke="currentColor" 
                             viewBox="0 0 24 24"
                           >
                             <path 
@@ -531,7 +540,8 @@ export default function PersonalNonMalaysianApplication() {
                         >
                           <path 
                             strokeLinecap="round" 
-                            strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
+                            strokeLinejoin="round" 
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
                           />
                         </svg>
 
@@ -720,7 +730,9 @@ export default function PersonalNonMalaysianApplication() {
                       </p>
                     </div>
 
-                    {distance && <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>}
+                    {distance && (
+                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>
+                    )}
                   </div>
                 );
               })}
@@ -732,7 +744,7 @@ export default function PersonalNonMalaysianApplication() {
               </p>
               
               <button 
-                onClick={handleApplicationContinue}
+                onClick={handleNext}
                 disabled={!preferredBranch} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
               >

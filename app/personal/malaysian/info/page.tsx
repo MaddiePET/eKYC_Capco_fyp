@@ -8,7 +8,6 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianInfo() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -30,6 +29,10 @@ export default function PersonalMalaysianInfo() {
     state: "",
     country: "Malaysia",
   });
+
+  const searchParams = useSearchParams();
+
+  const journeyId = searchParams.get("journeyId") || "";
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
@@ -126,7 +129,9 @@ export default function PersonalMalaysianInfo() {
       localStorage.removeItem("id_type");
     }
 
-    localStorage.setItem("journeyId", currentJourneyId);
+    if (currentJourneyId) {
+      localStorage.setItem("journeyId", currentJourneyId);
+    }
 
     const queryParams = new URLSearchParams(window.location.search);
 
@@ -150,7 +155,7 @@ export default function PersonalMalaysianInfo() {
     }
   }, []); 
 
-  const handleNavigation = async () => {
+  const handleNext = async () => {
    if (isSubmitting) return;
 
     try {
@@ -207,8 +212,8 @@ export default function PersonalMalaysianInfo() {
       router.push(
         `/personal/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
       );
-    } catch (error: any) { router.push(`/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(journeyId)}`);
-      console.error("Submission error:", error);
+    } catch (error: any) {
+      console.error("Malaysian information error:", error);
       setSubmitError(error.message || "Failed to save application data.");
     } finally {
       setIsSubmitting(false);
@@ -264,7 +269,11 @@ export default function PersonalMalaysianInfo() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={() => router.push("/personal/malaysian/email")}
+          onClick={() => 
+            router.push(
+              `/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`
+            )
+          }          
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -365,7 +374,6 @@ export default function PersonalMalaysianInfo() {
                     className="text-sm font-bold text-gray-700 dark:text-gray-200"
                     value={formData.nric}
                   />
-
                 </div>
               </div>
 
@@ -400,7 +408,6 @@ export default function PersonalMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobYear}
                     />
-
                   </div>
                 </div>
               </div>
@@ -461,7 +468,6 @@ export default function PersonalMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.add2}
                   />
-
                 </div>
               </div>
 
@@ -478,7 +484,6 @@ export default function PersonalMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.postal}
                     />
-
                   </div>
                 </div>
 
@@ -494,7 +499,6 @@ export default function PersonalMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.state}
                   />
-
                 </div>
                 </div>
               </div>
@@ -516,7 +520,7 @@ export default function PersonalMalaysianInfo() {
               </p>
               
               <button 
-                onClick={handleNavigation} 
+                onClick={handleNext} 
                 disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
                   isFormValid 

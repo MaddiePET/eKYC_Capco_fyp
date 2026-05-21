@@ -18,6 +18,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    console.log("=== RECEIVED PAYLOAD IN TERMINAL ===", JSON.stringify(body, null, 2));
+
     const {
       journeyId,
       customer,
@@ -27,7 +29,6 @@ export async function POST(req: Request) {
       savingsAccount,
     } = body;
 
-    // 1. Core structural verification
     if (!customer || !homeAddress || !user || !savingsAccount) {
       return NextResponse.json(
         { error: "Missing required submission sections." },
@@ -35,11 +36,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const customerIdNum = customer.id_num || customer.ic_num;
+    const customerPassportNum = customer.passport_num || customer.id_num || customer.ic_num;
 
-    if (!customerIdNum || !customer.full_name || !customer.dob) {
+    if (!customerPassportNum || !customer.full_name || !customer.dob) {
       return NextResponse.json(
-        { error: "Customer IC number, full name, and date of birth are required." },
+        { error: "Customer passport number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
@@ -51,41 +52,39 @@ export async function POST(req: Request) {
       );
     }
 
-    const normalizedIdNum = customerIdNum.replace(/-/g, "").trim();
+    const normalizedPassportNum = customerPassportNum.replace(/\s/g, "").toUpperCase().trim();
 
-    // 2. Validate session verification status with external eKYC workflow
     const statusRes = await fetch(
       `${req.headers.get("origin") || "http://localhost:3000"}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
     );
 
     const statusData = await statusRes.json();
     const statusIdType = statusData.id_type?.toLowerCase();
-    const statusIdNum = statusData.id_num?.replace(/-/g, "").trim();
+    const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
 
     if (
       statusData.status !== "face_verified" ||
-      !["ic", "mykad", "nric"].includes(statusIdType) ||
-      statusIdNum !== normalizedIdNum
+      !["passport", "international_passport"].includes(statusIdType) ||
+      statusIdNum !== normalizedPassportNum
     ) {
       return NextResponse.json(
-        { error: "eKYC session was not verified. Please restart MyKad verification." },
+        { error: "eKYC session was not verified. Please restart Passport verification." },
         { status: 403 }
       );
     }
 
-    // 3. Fallback Sanitization mapping to intercept 'undefined' values before crypto operations
     const cleanHomeAddress = {
       add_1: homeAddress.add_1 || "",
-      add_2: homeAddress.add_2 || "", // Prevents encryption errors if empty
+      add_2: homeAddress.add_2 || "",
       postcode: homeAddress.postcode || "",
       state: homeAddress.state || "",
-      country: homeAddress.country || "Malaysia",
+      country: homeAddress.country || "",
     };
 
     const cleanCustomer = {
-      id_num: normalizedIdNum,
+      id_num: normalizedPassportNum,
       full_name: customer.full_name || "",
-      id_type: customer.id_type || "IC",
+      id_type: "PASSPORT",
       dob: customer.dob,
       ph_no: customer.ph_no || "",
       email: customer.email || "",
@@ -96,7 +95,7 @@ export async function POST(req: Request) {
       password: user.password,
       status: user.status || "PENDING",
       sec_phrase: user.sec_phrase || "",
-      branch: user.branch || "Main Branch",
+      branch: user.branch || "International Branch",
     };
 
     const cleanSavings = {
@@ -107,10 +106,8 @@ export async function POST(req: Request) {
       is18: savingsAccount.is18 !== undefined ? savingsAccount.is18 : true,
     };
 
-    // Begin DB Transaction Execution Sequence
     await client.query("BEGIN");
 
-    // Insert Home Address
     const homeAddressResult = await client.query(
       `
       INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -129,14 +126,13 @@ export async function POST(req: Request) {
     const homeAddId = homeAddressResult.rows[0].add_id;
     let mailingAddId = null;
 
-    // Insert Mailing Address conditionally if configured
     if (mailingAddress) {
       const cleanMailingAddress = {
         add_1: mailingAddress.add_1 || "",
         add_2: mailingAddress.add_2 || "",
         postcode: mailingAddress.postcode || "",
         state: mailingAddress.state || "",
-        country: mailingAddress.country || "Malaysia",
+        country: mailingAddress.country || "",
       };
 
       const mailingAddressResult = await client.query(
@@ -157,7 +153,6 @@ export async function POST(req: Request) {
       mailingAddId = mailingAddressResult.rows[0].add_id;
     }
 
-    // Insert Customer Account Entities utilizing encryption functions securely
     const customerResult = await client.query(
       `
       INSERT INTO banka."Customer" (
@@ -193,18 +188,15 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hashPassword(cleanUser.password);
 
-    // Sanitize image attachment buffer transformations safely
     let profileBuffer: Buffer | null = null;
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
         : Buffer.from(user.img);
     } else {
-      // Satisfies NOT NULL constraints on the img bytea column
       profileBuffer = Buffer.alloc(0);
     }
 
-    // Insert User Configuration Row
     const userResult = await client.query(
       `
       INSERT INTO banka."User" (cust_id, username, password, status, img, sec_phrase, branch)
@@ -224,7 +216,6 @@ export async function POST(req: Request) {
 
     const userId = userResult.rows[0].user_id;
 
-    // Loop until unique Savings account number generation is resolved 
     let accountNo = generateAccountNumber();
     let accountExists = true;
 
@@ -241,7 +232,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Insert Savings Account Row Details
     const savingsResult = await client.query(
       `
       INSERT INTO banka."Savings_account" (account_no, user_id, occupation, monthly_income, income_source, employment_type, is18)
@@ -263,7 +253,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "Malaysian savings account application created successfully",
+        message: "Non-Malaysian savings account application created successfully",
         cust_id: custId,
         user_id: userId,
         home_add_id: homeAddId,
@@ -274,10 +264,10 @@ export async function POST(req: Request) {
     );
   } catch (error: any) {
     await client.query("ROLLBACK");
-    console.error("Malaysian savings account error:", error);
+    console.error("Non-Malaysian savings account error:", error);
 
     return NextResponse.json(
-      { error: error.message || "Failed to create Malaysian savings account application" },
+      { error: error.message || "Failed to create account application" },
       { status: 500 }
     );
   } finally {

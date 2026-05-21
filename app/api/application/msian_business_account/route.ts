@@ -5,7 +5,6 @@ import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 
 export const runtime = "nodejs";
 
-// Generates a random 16 digit current account number
 function generateAccountNumber() {
   let accountNo = "";
   for (let i = 0; i < 16; i++) {
@@ -28,7 +27,6 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
     
-    // Extract primary payload context structures
     const personalInfo = data.personalInfo || {};
     const contactInfo = data.contactInfo || {};
     const businessContact = data.businessContact || {};
@@ -41,21 +39,19 @@ export async function POST(req: Request) {
     const customerFullName = personalInfo.fullName || personalInfo.full_name;
 
     if (!customerIdNum || !customerFullName || !personalInfo.dob) {
-      console.error("🚨 Backend Validation Blocked - Payload Mismatch Dump:", {
+      console.error("Missing required submission sections.", {
         extractedId: customerIdNum,
         extractedName: customerFullName,
         extractedDob: personalInfo.dob
       });
       return NextResponse.json(
-        { error: "Customer identification numbers, full name, and date of birth are required fields." },
+        { error: "Customer IC number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
 
-    // Begin Database Transaction Sequence
     await client.query("BEGIN");
 
-    // 1. Map and isolate safe default strings for personal residential home addresses
     const personalAddress = {
       add_1: personalInfo.add_1 || personalInfo.streetAddress || personalInfo.add1 || "",
       add_2: personalInfo.add_2 || personalInfo.city || personalInfo.add2 || "",
@@ -85,7 +81,6 @@ export async function POST(req: Request) {
 
     const homeAddId = homeAddressRes.rows[0].add_id;
 
-    // 2. Perform Account Multi-Linking check using identity hash
     const cleanIdNum = String(customerIdNum).replace(/-/g, "").trim().toUpperCase();
     const identityLookupHash = hashLookup(cleanIdNum);
 
@@ -129,7 +124,6 @@ export async function POST(req: Request) {
       custId = customerRes.rows[0].cust_id;
     }
 
-    // 3. Username uniqueness validation check before insertion
     const targetUsername = account.username;
     if (!targetUsername) throw new Error("Account registration username parameter is empty.");
 
@@ -150,7 +144,6 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hashPassword(rawPassword);
 
-    // Sanitize uploaded system visual image attachment streams
     let profileBuffer: Buffer | null = null;
     const imgData = account.profilePreview || account.img;
     if (imgData) {
@@ -187,7 +180,6 @@ export async function POST(req: Request) {
     );
     const userId = userRes.rows[0].user_id;
 
-    // 4. Map corporate operational commercial business addresses
     const businessAddress = {
       add_1: businessAddressData.businessAddress?.addressLine1 || businessAddressData.addressLine1 || "",
       add_2: businessAddressData.businessAddress?.addressLine2 || businessAddressData.addressLine2 || "",
@@ -244,7 +236,6 @@ export async function POST(req: Request) {
       mailingAddId = mailingAddressRes.rows[0].add_id;
     }
 
-    // 5. Generate a unique non-conflicting 16 digit current account number
     let accountNo = generateAccountNumber();
     let accountExists = true;
 
@@ -261,7 +252,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 6. Write record parameters directly to the master Current Account layout table
     await client.query(
       `
       INSERT INTO banka."Current_account" (

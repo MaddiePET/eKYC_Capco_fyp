@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Business Account Malaysian MyKad QR Code Scan - DTCOB',
-  description: 'Business Account Malaysian MyKad QR Code Scan page for DTCOB banking services.',
+  title: 'Business Account Malaysian MyKad Verification - DTCOB',
+  description: 'Business Account Malaysian MyKad Verification page for DTCOB banking services.',
 };
 
 export default function BusinessMalaysianMyKadQRCodeLayout({

@@ -25,7 +25,6 @@ async function encryptSsmJsonFile() {
     console.log("Reading unencrypted SSM source records...");
     const rawWrapperData = JSON.parse(fs.readFileSync(inputPath, "utf8"));
     
-    // Unpack the inner JSON string embedded inside the ssm_schema_export string wrapper
     const ssmSchema = JSON.parse(rawWrapperData[0].ssm_schema_export);
     
     const plainCompanies = ssmSchema.ssm_company || [];
@@ -33,7 +32,6 @@ async function encryptSsmJsonFile() {
 
     console.log(`Encrypting ${plainCompanies.length} company and ${plainPeople.length} business profile records...`);
 
-    // 1. Process and scramble corporate company details
     const encryptedCompanies = plainCompanies.map((company) => {
       const regNo = company.registration_number || "";
       return {
@@ -53,7 +51,6 @@ async function encryptSsmJsonFile() {
       };
     });
 
-    // 2. Process and scramble private business partner personal records
     const encryptedPeople = plainPeople.map((person) => {
       const regNo = person.registration_number || "";
       const cleanedIC = cleanIC(person.ic_number);
@@ -73,7 +70,6 @@ async function encryptSsmJsonFile() {
       };
     });
 
-    // Reassemble everything back into your original structural JSON wrapper format
     const encryptedSchema = {
       ssm_company: encryptedCompanies,
       ssm_business_person: encryptedPeople

@@ -4,9 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { QRCodeSVG } from "qrcode.react";
-
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function PersonalNonMalaysianPassportQRCode() {
   const router = useRouter();
@@ -227,9 +226,7 @@ export default function PersonalNonMalaysianPassportQRCode() {
                         </svg>
                       </div>
 
-                      <span className="mt-3 font-bold text-gray-900 dark:text-white">
-                        Verified Successfully!
-                      </span>
+                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}
                 </div>

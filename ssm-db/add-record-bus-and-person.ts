@@ -28,7 +28,6 @@ function cleanIC(icNumber) {
   return String(icNumber || '').replace(/-/g, '');
 }
 
-// EDIT THIS PART ONLY
 const companyData = {
   registration_number: '329042348032 (4000101-A)',
   business_name: 'Ash Boo Boo',

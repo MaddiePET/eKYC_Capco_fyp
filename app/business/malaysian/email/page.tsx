@@ -12,11 +12,7 @@ type MessageType = "success" | "error" | "";
 
 export default function BusinessMalaysianEmail() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
+
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [email, setEmail] = useState("");
@@ -27,6 +23,10 @@ export default function BusinessMalaysianEmail() {
   const [messageType, setMessageType] = useState<MessageType>("");
 
   const { formData, setFormData } = useFormData();
+  
+  const searchParams = useSearchParams();
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
  
@@ -34,7 +34,7 @@ export default function BusinessMalaysianEmail() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (!mounted) return;
 
     const currentFormData = formData as any;
@@ -57,7 +57,7 @@ export default function BusinessMalaysianEmail() {
 
   if (!mounted) return null;
 
-  const handleGlobalBack = () => {
+  const handleBack = () => {
     if (step === "otp") setStep("input");
     else router.push(
       `/business/malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
@@ -130,7 +130,7 @@ export default function BusinessMalaysianEmail() {
         }),
       });
 
-    const data = await res.json();
+      const data = await res.json();
 
       if (!res.ok) {
         setMessage(data.error || "Invalid OTP. Please try again.");
@@ -139,15 +139,13 @@ export default function BusinessMalaysianEmail() {
         return;
       }
 
-    // Save the verified business email into the shared form context.
-    setFormData((prev: any) => ({
-      ...prev,
-      contactInfo: {
-        ...prev?.contactInfo,
-        email: email.trim(),
-        emailVerified: true,
-      },
-    }));
+      setFormData((prev: any) => ({
+        ...prev,
+        businessContact: {
+          ...prev.businessContact,
+          bus_email: email.trim(),
+        },
+      }));
 
       const statusRes = await fetch(
         `/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
@@ -242,7 +240,7 @@ export default function BusinessMalaysianEmail() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={handleGlobalBack}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />

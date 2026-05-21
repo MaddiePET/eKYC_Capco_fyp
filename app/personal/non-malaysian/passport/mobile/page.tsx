@@ -237,17 +237,17 @@ function PersonalNonMalaysianMobilePassportCapture() {
       </div>
 
       <header className="absolute top-6 left-0 w-full px-8 flex justify-end items-center max-w-7xl mx-auto z-20">
-          <Image
-            src="/images/logo/logo-light.svg"
-            alt="Logo"
-            width={40}
-            height={40}
-            className="block dark:invert-0 invert"
-          />
+        <Image
+          src="/images/logo/logo-light.svg"
+          alt="Logo"
+          width={40}
+          height={40}
+          className="block dark:invert-0 invert"
+        />
 
-          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
-            DTCOB
-          </h1>
+        <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
+          DTCOB
+        </h1>
       </header>
 
       <main className="relative w-full max-w-2xl z-10 flex flex-col items-center">
@@ -275,7 +275,7 @@ function PersonalNonMalaysianMobilePassportCapture() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Your passport has been securely verified.
+                Your Passport has been securely verified.
               </p>
             </div>
 
@@ -293,7 +293,7 @@ function PersonalNonMalaysianMobilePassportCapture() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Please take a clear photo of your passport bio-data page for verification.
+                Please take a clear photo of your Passport bio-data page for verification.
               </p>
             </div>
 
@@ -393,13 +393,9 @@ function PersonalNonMalaysianMobilePassportCapture() {
                 </p>
 
                 <ul className="list-disc ml-4 space-y-1">
-                  <li>
-                    Ensure the MRZ code (bottom two lines) is clearly visible.
-                  </li>
+                  <li>Ensure the MRZ code (bottom two lines) is clearly visible.</li>
 
-                  <li>
-                    Avoid fingers or shadows covering any information.
-                  </li>
+                  <li>Avoid fingers or shadows covering any information.</li>
                 </ul>
               </div>
             </div>

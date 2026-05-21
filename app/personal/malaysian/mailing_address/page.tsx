@@ -8,11 +8,12 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function PersonalMalaysianMailingAddress() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
@@ -80,7 +81,7 @@ export default function PersonalMalaysianMailingAddress() {
 
   if (!mounted) return null;
 
-  const handleNavigation = async () => {
+  const handleNext = async () => {
     try {
       setIsSubmitting(true);
       setSubmitError(null);
@@ -195,6 +196,7 @@ export default function PersonalMalaysianMailingAddress() {
             <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
               {mailingData.permanentAddress}
             </p>
+            
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Registered Address
             </p>
@@ -301,7 +303,7 @@ export default function PersonalMalaysianMailingAddress() {
             </p>
 
             <button
-              onClick={handleNavigation}
+              onClick={handleNext}
               disabled={!isFormValid || isSubmitting}
               className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 active:scale-[0.98] ${
                 isFormValid

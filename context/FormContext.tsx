@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-// Shared individual personal onboarding demographics structure
 interface PersonalInfo {
   id_num?: string;
   full_name?: string;
@@ -33,7 +32,6 @@ interface PhoneVerification {
   ph_no?: string;
 }
 
-// Corporate / Current account specific structures
 interface BusinessAddressConfig {
   businessAddress?: {
     addressLine1?: string;
@@ -68,25 +66,21 @@ interface BusinessContact {
   bus_ph_no?: string;
 }
 
-// The core structured schema matrix tracking all onboarding models flatly
 export interface MasterFormData {
   journeyId: string;
   idType: string;
   idNum: string;
   
-  // Savings Flow Data Blocks
   personalInfo?: PersonalInfo;
   homeAddress?: AddressFields;
   mailingAddress?: AddressFields;
   phoneVerification?: PhoneVerification;
   
-  // Corporate Flow Data Blocks
   businessParticulars?: BusinessParticulars;
   businessContact?: BusinessContact;
   businessAddress?: BusinessAddressConfig;
   supportingDocuments?: any[];
   
-  // Shared Security / Credentials Payload Block
   account?: {
     username?: string;
     password?: string;
@@ -120,7 +114,6 @@ const FormContext = createContext<FormContextType | undefined>(undefined);
 export function FormProvider({ children }: { children: ReactNode }) {
   const [formData, setFormData] = useState<MasterFormData>(initialFormState);
 
-  // Structural cache flushing loop to scrub session tracks safely on demand
   const wipeFlowCache = (flowType: "savings" | "current" | "all") => {
     setFormData((prev) => {
       if (flowType === "savings") {
@@ -141,7 +134,6 @@ export function FormProvider({ children }: { children: ReactNode }) {
       return initialFormState;
     });
 
-    // Mirror scrubbing state parameters directly out of browser memory pools
     if (typeof window !== "undefined") {
       if (flowType === "current") {
         localStorage.removeItem("nonMsianAddress");
@@ -163,7 +155,6 @@ export function FormProvider({ children }: { children: ReactNode }) {
 export function useFormData() {
   const context = useContext(FormContext);
   if (!context) {
-    // Backwards compatibility fallback layout matching schema matrices
     return {
       formData: initialFormState,
       setFormData: () => {},
