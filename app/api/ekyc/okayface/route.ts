@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const formData = new FormData();
     
     formData.append("journeyId", journeyId);
-    formData.append("livenessDetection", "true");
+    formData.append("livenessDetection", "false");
 
     const selfieBuffer = Buffer.from(selfieBase64, 'base64');
     const idCardBuffer = Buffer.from(idCardBase64, 'base64');
