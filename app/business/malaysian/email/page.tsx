@@ -34,13 +34,15 @@ export default function BusinessMalaysianEmail() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (!mounted) return;
 
+    const currentFormData = formData as any;
+
     setEmail(
-      formData?.contactInfo?.email ||
-      formData?.contact?.email ||
-      formData?.email ||
+      currentFormData?.contactInfo?.email ||
+      currentFormData?.contact?.email ||
+      currentFormData?.email ||
       ""
     );
   }, [mounted, formData]);
