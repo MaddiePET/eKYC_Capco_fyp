@@ -12,11 +12,7 @@ type MessageType = "success" | "error" | "";
 
 export default function BusinessMalaysianEmail() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
+
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [email, setEmail] = useState("");
@@ -27,6 +23,10 @@ export default function BusinessMalaysianEmail() {
   const [messageType, setMessageType] = useState<MessageType>("");
 
   const { formData, setFormData } = useFormData();
+  
+  const searchParams = useSearchParams();
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
  
@@ -37,11 +37,14 @@ export default function BusinessMalaysianEmail() {
   useEffect(() => {
     if (!mounted) return;
 
+    const currentFormData = formData as any;
+
     setEmail(
-    formData?.businessContact?.bus_email || 
-    formData?.personalInfo?.email || 
-    ""
-  );
+      currentFormData?.contactInfo?.email ||
+      currentFormData?.contact?.email ||
+      currentFormData?.email ||
+      ""
+    );
   }, [mounted, formData]);
 
   useEffect(() => {

@@ -20,6 +20,8 @@ export default function BusinessMalaysianContact() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
 
   const { formData, setFormData } = useFormData();
 
@@ -44,37 +46,114 @@ export default function BusinessMalaysianContact() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleSendOtp = (nextStep: Step) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(nextStep);
+  const handleSendOtp = async (nextStep: Step) => {
+  setIsLoading(true);
+  setMessage("");
+  setMessageType("");
+
+  if (nextStep === "email-otp") {
+    try {
+      const res = await fetch("/api/otp/email/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "Failed to send email OTP.");
+        setMessageType("error");
+        return;
+      }
+
+      setStep("email-otp");
       setOtp(["", "", "", "", "", ""]);
       setTimer(60);
-    }, 800);
-  };
-
-  const handleVerifyOTP = () => {
-    if (step === "email-otp") {
-      handleSendOtp("phone-otp");
-    } else if (step === "phone-otp") {
-      setIsLoading(true);
-
-      setTimeout(() => {
-        setFormData((prev: any) => ({
-          ...prev,
-          businessContact: {
-            ...prev?.businessContact,
-            bus_email: email.trim(),
-            bus_ph_no: phoneNumber.trim(),
-          },
-        }));
-
-        setIsLoading(false);
-        router.push("/business/malaysian/supporting_documents");
-      }, 800);
+      setMessage("OTP sent successfully. Please check your email.");
+      setMessageType("success");
+    } catch (error) {
+      console.error("Send business email OTP error:", error);
+      setMessage("Something went wrong while sending the email OTP.");
+      setMessageType("error");
+    } finally {
+      setIsLoading(false);
     }
-  };
+
+    return;
+  }
+
+  setTimeout(() => {
+    setIsLoading(false);
+    setStep(nextStep);
+    setOtp(["", "", "", "", "", ""]);
+    setTimer(60);
+  }, 800);
+};
+
+ const handleVerifyOtp = async () => {
+  const enteredOtp = otp.join("");
+
+  setIsLoading(true);
+  setMessage("");
+  setMessageType("");
+
+  if (step === "email-otp") {
+    try {
+      const res = await fetch("/api/otp/email/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          otp: enteredOtp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.error || "Invalid OTP. Please try again.");
+        setMessageType("error");
+        return;
+      }
+
+      setStep("phone-otp");
+      setOtp(["", "", "", "", "", ""]);
+      setTimer(60);
+      setMessage("Email verified successfully. Please verify your phone number.");
+      setMessageType("success");
+    } catch (error) {
+      console.error("Verify business email OTP error:", error);
+      setMessage("Something went wrong while verifying the email OTP.");
+      setMessageType("error");
+    } finally {
+      setIsLoading(false);
+    }
+
+    return;
+  }
+
+  if (step === "phone-otp") {
+    setTimeout(() => {
+      setFormData((prev: any) => ({
+        ...prev,
+        businessContact: {
+          ...prev?.businessContact,
+          bus_email: email.trim(),
+          bus_email_verified: true,
+          bus_ph_no: phoneNumber.trim(),
+        },
+      }));
+
+      setIsLoading(false);
+      router.push("/business/malaysian/supporting_documents");
+    }, 800);
+  }
+};
 
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
@@ -253,6 +332,18 @@ export default function BusinessMalaysianContact() {
                 </button>
               </div>
             </form>
+
+            {message && (
+             <div
+               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success"
+                   ? "bg-green-50 border-green-200 text-green-600"
+                   : "bg-red-50 border-red-200 text-red-600"
+                }`}
+              >
+                {message}
+              </div>
+            )}
           </div>
         )}
 
@@ -267,6 +358,18 @@ export default function BusinessMalaysianContact() {
                 We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed with the registration.
               </p>
             </div>
+            
+            {message && (
+            <div
+               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                 messageType === "success"
+                   ? "bg-green-50 border-green-200 text-green-600"
+                   : "bg-red-50 border-red-200 text-red-600"
+              }`}
+            >
+             {message}
+            </div>
+          )}
 
             <div className="space-y-6">
               <div className="flex justify-center gap-2">
@@ -287,7 +390,7 @@ export default function BusinessMalaysianContact() {
 
               <button
                 type="button"
-                onClick={handleVerifyOTP}
+                onClick={handleVerifyOtp}
                 disabled={otp.join("").length < 6 || isLoading}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
                   otp.join("").length === 6
@@ -332,7 +435,7 @@ export default function BusinessMalaysianContact() {
 
               <button
                 type="button"
-                onClick={handleVerifyOTP}
+                onClick={handleVerifyOtp}
                 disabled={otp.join("").length < 6 || isLoading}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
                   otp.join("").length === 6
