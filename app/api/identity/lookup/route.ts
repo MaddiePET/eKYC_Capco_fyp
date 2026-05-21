@@ -81,6 +81,7 @@ export async function GET(req: Request) {
       formData: result.formData,
       full_name: result.formData.full_name,
       id_num: result.formData.id_number,
+      phone_number: (result.formData as any)["phone_number"] || ""
     });
   } catch (error: any) {
     console.error("Identity lookup error:", error);
