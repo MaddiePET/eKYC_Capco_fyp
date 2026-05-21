@@ -9,7 +9,11 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 export default function PersonalNonMalaysianInfo() {
   const router = useRouter();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
+  const [lookupError, setLookupError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     fullName: "",
@@ -22,8 +26,6 @@ export default function PersonalNonMalaysianInfo() {
     issueDate: "",
     expiryDate: "",
   });
-  const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
-  const [lookupError, setLookupError] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   
@@ -34,12 +36,11 @@ export default function PersonalNonMalaysianInfo() {
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
       const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
       ];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "January",
+        month: monthNames[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -52,19 +53,19 @@ export default function PersonalNonMalaysianInfo() {
       return {
         day: day.toString().padStart(2, "0"),
         month: [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ][month - 1] || "January",
+          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
+        ][month - 1] || "",
         year,
       };
     }
 
-    return { day: "", month: "January", year: "" };
+    return { day: "", month: "", year: "" };
   };
 
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
+    
     return {
       title: identity.title || "",
       fullName: identity.full_name || identity.name || identity.fullName || "",
@@ -108,6 +109,7 @@ export default function PersonalNonMalaysianInfo() {
 
   useEffect(() => {
     setMounted(true);
+
     if (typeof window === "undefined") return;
 
     const currentJourneyId = searchParams.get("journeyId") || "";
@@ -123,20 +125,17 @@ export default function PersonalNonMalaysianInfo() {
     if (currentJourneyId) {
       localStorage.setItem("nonMsianJourneyId", currentJourneyId);
     }
-    const savedInfo = JSON.parse(localStorage.getItem("nonMsianInfo") || "{}") || {};
 
     const queryParams = new URLSearchParams(window.location.search);
 
     const idType =
       queryParams.get("id_type") ||
       localStorage.getItem("nonMsianIdType") ||
-      savedInfo.id_type ||
       "passport";
 
     const idNum =
       queryParams.get("id_num") ||
       localStorage.getItem("nonMsianIdNum") ||
-      savedInfo.id_num ||
       "";
 
     if (idNum) {
@@ -152,7 +151,7 @@ export default function PersonalNonMalaysianInfo() {
     }
   }, []);
 
-  const handleNavigation = () => {
+  const handleNext = () => {
     const months: Record<string, string> = {
       January: "01",
       February: "02",
@@ -188,9 +187,7 @@ export default function PersonalNonMalaysianInfo() {
     localStorage.setItem("nonMsianJourneyId", journeyId);
 
     router.push(
-      `/personal/non-malaysian/address?id_type=passport&id_num=${encodeURIComponent(
-        formData.passportNumber
-      )}&journeyId=${encodeURIComponent(journeyId)}`
+      `/personal/non-malaysian/address?id_type=passport&id_num=${encodeURIComponent(formData.passportNumber)}&journeyId=${encodeURIComponent(journeyId)}`
     );
   };
 
@@ -456,7 +453,7 @@ export default function PersonalNonMalaysianInfo() {
               </p>
               
               <button 
-                onClick={handleNavigation} 
+                onClick={handleNext} 
                 disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
                   isFormValid 

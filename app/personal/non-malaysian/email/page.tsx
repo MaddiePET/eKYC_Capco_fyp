@@ -41,11 +41,14 @@ export default function PersonalNonMalaysianEmail() {
 
   if (!mounted) return null;
 
-  const handleGlobalBack = () => {
-    if (step === "otp") setStep("input");
-    else router.push(
-      `/personal/non-malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
-    );
+  const handleBack = () => {
+    if (step === "otp") {
+      setStep("input");
+    } else {
+      router.push(
+        `/personal/non-malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
+      );
+    }
   };
 
   const handleSendOtp = async (e?: React.FormEvent) => {
@@ -223,7 +226,7 @@ export default function PersonalNonMalaysianEmail() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={handleGlobalBack}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -280,6 +283,7 @@ export default function PersonalNonMalaysianEmail() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Email Address<span className="text-red-500">*</span>
                 </label>
+
                 <input 
                   type="email" 
                   required 
@@ -311,6 +315,7 @@ export default function PersonalNonMalaysianEmail() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Email
               </h1>
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed with the registration.
               </p>
@@ -380,6 +385,7 @@ export default function PersonalNonMalaysianEmail() {
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
             <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+            
             <Link 
               href="/support" 
               className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

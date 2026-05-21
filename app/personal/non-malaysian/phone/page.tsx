@@ -18,7 +18,7 @@ export default function PersonalNonMalaysianPhone() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
-
+  
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const searchParams = useSearchParams();
@@ -41,7 +41,7 @@ export default function PersonalNonMalaysianPhone() {
 
   if (!mounted) return null;
 
-  const handleGlobalBack = () => {
+  const handleBack = () => {
     if (step === "otp") {
       setStep("input");
     } else {
@@ -60,26 +60,6 @@ export default function PersonalNonMalaysianPhone() {
       setIsLoading(false);
       setStep("otp");
       setTimer(60);
-    }, 800);
-  };
-
-  const handleVerifyOtp = () => {
-    setIsLoading(true);
-
-    setTimeout(() => {
-      console.log("Phone number being saved:", phoneNumber);
-
-      localStorage.setItem(
-        "nonMsianPhone",
-        JSON.stringify({
-          ph_no: phoneNumber,
-        })
-      );
-      console.log("Saved phone:", localStorage.getItem("nonMsianPhone"));
-
-      setIsLoading(false);
-
-      router.push(`/personal/non-malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
     }, 800);
   };
 
@@ -104,6 +84,26 @@ export default function PersonalNonMalaysianPhone() {
 
       if (cleanValue && index < 5) otpInputs.current[index + 1]?.focus();
     }
+  };
+
+  const handleVerifyOtp = () => {
+    setIsLoading(true);
+
+    setTimeout(() => {
+      console.log("Non-Malaysian phone number saved successfully:", phoneNumber);
+
+      localStorage.setItem(
+        "nonMsianPhone",
+        JSON.stringify({
+          ph_no: phoneNumber,
+        })
+      );
+      console.log("Non-Malaysian phone number:", localStorage.getItem("nonMsianPhone"));
+
+      setIsLoading(false);
+
+      router.push(`/personal/non-malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
+    }, 800);
   };
 
   const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -150,7 +150,7 @@ export default function PersonalNonMalaysianPhone() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={handleGlobalBack}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function PersonalNonMalaysianPhone() {
                 type="submit" 
                 disabled={isLoading || phoneNumber.length < 9} 
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  phoneNumber.length >= 9 
+                  phoneNumber.length >= 9 && !isLoading
                   ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                 }`}

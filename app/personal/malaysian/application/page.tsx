@@ -43,12 +43,18 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
       <select 
         required={required} 
         className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none ${
-          !value ? "!text-gray-400" : ""
+          !value 
+            ? "!text-gray-400" 
+            : ""
         }`} 
         value={value} 
         onChange={onChange}
       >
-        <option value="" disabled className="text-gray-400">
+        <option 
+          value="" 
+          disabled 
+          className="text-gray-400"
+        >
           Please Select
         </option>
 
@@ -94,8 +100,6 @@ export default function PersonalMalaysianApplication() {
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [preferredBranch, setPreferredBranch] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const isFormValid = 
   formData.occupation !== "" &&
@@ -143,13 +147,10 @@ export default function PersonalMalaysianApplication() {
     return distA - distB;
   });
 
-  const handleNextStep = async (e: React.FormEvent) => {
+  const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-
       localStorage.setItem(
         "savingsApplication",
         JSON.stringify({
@@ -163,10 +164,7 @@ export default function PersonalMalaysianApplication() {
 
       setStep(2);
     } catch (error: any) {
-      console.error("Savings application save error:", error);
-      setSubmitError(error.message || "Failed to save savings application.");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Malaysian application error:", error);
     }
   };
   
@@ -278,7 +276,10 @@ export default function PersonalMalaysianApplication() {
               </p>
             </div>
             
-            <form onSubmit={handleNextStep} className="space-y-6">
+            <form 
+              onSubmit={handleNext} 
+              className="space-y-6"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <CustomSelect 
                   label="Occupation" 
@@ -331,29 +332,29 @@ export default function PersonalMalaysianApplication() {
                 </label>
 
                 <div className="flex justify-center gap-8 mt-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                      <input 
-                        type="radio" 
-                        name="age" 
-                        checked={formData.isOfAge === true} 
-                        className="w-4 h-4 accent-[#3D405B]" 
-                        onChange={() => setFormData({...formData, isOfAge: true})}
-                      /> 
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
+                    <input 
+                      type="radio" 
+                      name="age" 
+                      checked={formData.isOfAge === true} 
+                      className="w-4 h-4 accent-[#3D405B]" 
+                      onChange={() => setFormData({...formData, isOfAge: true})}
+                    /> 
                       
-                      Yes
-                    </label>
+                    Yes
+                  </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                      <input 
-                        type="radio" 
-                        name="age" 
-                        className="w-4 h-4 accent-[#3D405B]" 
-                        checked={formData.isOfAge === false} 
-                        onChange={() => setFormData({...formData, isOfAge: false})}
-                      /> 
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
+                    <input 
+                      type="radio" 
+                      name="age" 
+                      className="w-4 h-4 accent-[#3D405B]" 
+                      checked={formData.isOfAge === false} 
+                      onChange={() => setFormData({...formData, isOfAge: false})}
+                    /> 
                       
-                      No
-                    </label>
+                    No
+                  </label>
                 </div>
               </div>
 
@@ -365,7 +366,7 @@ export default function PersonalMalaysianApplication() {
                 <div className="flex flex-col sm:flex-row gap-3 w-full">
                   <button 
                     type="button" 
-                    onClick={() => router.push("/personal_malaysian_face_verification")} 
+                    onClick={() => router.push("/personal/malaysian/mailing_address")} 
                     className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   >
                     Cancel
@@ -378,8 +379,8 @@ export default function PersonalMalaysianApplication() {
                   >
                     Continue
                   </button>
-
                 </div>
+
                 <div className="mt-5 text-center">
                   <p className="text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
@@ -504,8 +505,8 @@ export default function PersonalMalaysianApplication() {
                     onClick={() => setPreferredBranch(branch.id)}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
                       isSelected 
-                      ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
-                      : 'border-gray-200 bg-white hover:border-[#F0CA8E] dark:bg-gray-900/90 dark:border-[#5c6185] dark:hover:border-[#F0CA8E]'
+                        ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
+                        : 'border-gray-200 bg-white hover:border-[#F0CA8E] dark:bg-gray-900/90 dark:border-[#5c6185] dark:hover:border-[#F0CA8E]'
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-[#F0CA8E] text-[#3D405B] dark:text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
@@ -547,18 +548,13 @@ export default function PersonalMalaysianApplication() {
                 By clicking continue, you confirm that all selected information is correct.
               </p>
 
-              <form 
-                onSubmit={handleFinalSubmit} 
-                className="w-full"
+              <button 
+                onClick={handleFinalSubmit} 
+                disabled={!preferredBranch} 
+                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
               >
-                <button 
-                  type="submit" 
-                  disabled={!preferredBranch} 
-                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
-                >
-                  Continue
-                </button>
-              </form>
+                Continue
+              </button>
 
               <div className="mt-5 text-center">
                 <p className="text-sm">

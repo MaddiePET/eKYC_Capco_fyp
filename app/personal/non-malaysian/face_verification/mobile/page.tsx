@@ -98,11 +98,11 @@ function PersonalNonMalaysianMobileFaceCapture() {
 
       if (remaining > 0) {
         setErrorMessage(
-            `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
+          `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
       } else {
         setErrorMessage(
-            "Too many failed attempts. Please refer to your desktop screen."
+          "Too many failed attempts. Please refer to your desktop screen."
         );
 
         await fetch("/api/ekyc/status", {
@@ -111,8 +111,8 @@ function PersonalNonMalaysianMobileFaceCapture() {
             "Content-Type": "application/json" 
             },
             body: JSON.stringify({ 
-                journeyId, 
-                status: "face_failed" 
+              journeyId, 
+              status: "face_failed" 
             }),
         });
       }

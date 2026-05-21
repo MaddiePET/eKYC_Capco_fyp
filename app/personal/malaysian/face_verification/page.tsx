@@ -233,7 +233,7 @@ export default function PersonalMalaysianFaceQRCode() {
                         </svg>
                       </div>
 
-                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Face Verified Successfully!</span>
+                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { decrypt } from "@/lib/cryptoSecurity";
 
 export async function GET(
   req: Request,
@@ -7,7 +8,9 @@ export async function GET(
 ) {
   try {
     const { username } = await context.params;
+    console.log("PROFILE QUERY USERNAME:", username);
 
+    // SQL query aligned with the exact schema columns in BANKA_DB_18_05_V1.backup
     const query = `
       SELECT
         u.username,
@@ -39,8 +42,31 @@ export async function GET(
 
     const user = result.rows[0];
 
-    let avatarString = "";
+    // Decrypt the encrypted sensitive database records safely using catch blocks
+    let plainFullName = "";
+    let plainPhone = "";
+    let plainEmail = "";
 
+    try {
+      plainFullName = user.full_name ? decrypt(user.full_name, "banka") : "";
+    } catch {
+      plainFullName = user.full_name || ""; // Fallback if data was stored unencrypted
+    }
+
+    try {
+      plainPhone = user.ph_no ? decrypt(user.ph_no, "banka") : "";
+    } catch {
+      plainPhone = user.ph_no || "";
+    }
+
+    try {
+      plainEmail = user.email ? decrypt(user.email, "banka") : "";
+    } catch {
+      plainEmail = user.email || "";
+    }
+
+    // Convert avatar byte buffers to string or data URL securely
+    let avatarString = "";
     if (user.img) {
       if (Buffer.isBuffer(user.img)) {
         const content = user.img.toString();
@@ -52,13 +78,17 @@ export async function GET(
       }
     }
 
+    if (!avatarString) {
+      avatarString = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(plainFullName || "User")}`;
+    }
+
     return NextResponse.json({
       username: user.username,
-      name: user.full_name || "",
-      fullName: user.full_name || "",
-      email: user.email || "",
+      name: plainFullName,
+      fullName: plainFullName,
+      email: plainEmail,
       avatar: avatarString,
-      phone: user.ph_no_1 || "",
+      phone: plainPhone,
       occupation: user.occupation || "",
       country: user.country || "",
       cityState: user.state || "",

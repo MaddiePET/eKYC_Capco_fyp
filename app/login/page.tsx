@@ -145,16 +145,16 @@ export default function LogIn() {
       }
 
       setAttempts(3);
-
       const data = await res.json();
 
+      // Guard items safely before execution to avoid crashing client browser runtimes
       try {
-        localStorage.setItem("currentUsername", data.username);
-        localStorage.setItem("currentAccount", data.name);
-        localStorage.setItem("currentUserAvatar", data.avatar); 
-        localStorage.setItem("currentUserEmail", data.email);
+        localStorage.setItem("currentUsername", data.username || "");
+        localStorage.setItem("currentAccount", data.name || "");
+        localStorage.setItem("currentUserAvatar", data.avatar || ""); 
+        localStorage.setItem("currentUserEmail", data.email || "");
       } catch (storageError) {
-        console.warn("Avatar too large for localStorage.");
+        console.warn("Session allocation limits hit, pruning avatar storage.");
         localStorage.setItem("currentUserAvatar", "");
       }
 

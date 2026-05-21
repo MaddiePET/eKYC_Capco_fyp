@@ -41,12 +41,14 @@ export default function PersonalMalaysianEmail() {
 
   if (!mounted) return null;
 
-  const handleGlobalBack = () => {
-    if (step === "otp") setStep("input");
-    else 
+  const handleBack = () => {
+    if (step === "otp") {
+      setStep("input");
+    } else {
       router.push(
-      `/personal/malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
-    );
+        `/personal/malaysian/phone?journeyId=${encodeURIComponent(journeyId)}`
+      );
+    }
   };
 
   const handleSendOtp = async (e?: React.FormEvent) => {
@@ -137,7 +139,11 @@ export default function PersonalMalaysianEmail() {
       const statusData = await statusRes.json();
       console.log("Status API response:", statusData);
 
-      const icNo = statusData?.id_num || statusData?.data?.id_num || statusData?.identity?.id_num || "";
+      const icNo = 
+        statusData?.id_num || 
+        statusData?.data?.id_num || 
+        statusData?.identity?.id_num || 
+        "";
 
       if (!icNo) {
         console.error("Missing MyKad number from journey status:", statusData);
@@ -221,7 +227,7 @@ export default function PersonalMalaysianEmail() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={handleGlobalBack}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />

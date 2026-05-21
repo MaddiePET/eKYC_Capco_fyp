@@ -111,8 +111,8 @@ function PersonalMalaysianMobileFaceCapture() {
             "Content-Type": "application/json" 
             },
             body: JSON.stringify({ 
-                journeyId, 
-                status: "face_failed" 
+              journeyId, 
+              status: "face_failed" 
             }),
         });
       }

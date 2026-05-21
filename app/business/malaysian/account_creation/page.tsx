@@ -92,7 +92,7 @@ export default function BusinessMalaysianAccountCreation() {
       },
     };
 
-    const res = await fetch("/api/application/msian_current_account", {
+    const res = await fetch("/api/application/msian_business_account", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
+import { decrypt } from "@/lib/cryptoSecurity";
+
 // Fetch Accounts for Dashboard Context
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
@@ -18,15 +20,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const query = `
       SELECT 
         u.user_id AS id,
-        u.username AS name,
-        c.email AS email,
+        u.username,
+        c.email,
         c.ph_no AS phone,
         u.img AS avatar,
-        u.branch AS type,
+        CASE 
+          WHEN ca.account_no IS NOT NULL THEN 'Current'
+          ELSE 'Personal'
+        END AS type,
+        u.branch,
         CASE WHEN u.status = 'Malaysian' THEN true ELSE false END AS "isMalaysian"
       FROM banka."User" u
       JOIN banka."Customer" c
         ON u.cust_id = c.cust_id
+      LEFT JOIN banka."Current_account" ca
+        ON u.user_id = ca.user_id
       WHERE u.cust_id = (
         SELECT cust_id
         FROM banka."User"
@@ -37,7 +45,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const result = await pool.query(query, [username]);
 
-    return NextResponse.json(result.rows);
+    const accounts = result.rows.map((row) => ({
+      id: row.id,
+      username: row.username,
+      name: row.username,
+      email: row.email ? decrypt(row.email, "banka") : "",
+      phone: row.phone ? decrypt(row.phone, "banka") : "",
+      avatar: row.avatar,
+      type: row.type,
+      isMalaysian: row.isMalaysian,
+    }));
+
+    return NextResponse.json(accounts);
   } catch (error: any) {
     console.error("Error fetching user list details:", error);
     return NextResponse.json(

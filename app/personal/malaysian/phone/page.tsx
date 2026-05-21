@@ -11,22 +11,19 @@ type Step = "confirm" | "change" | "otp";
 
 export default function PersonalMalaysianPhone() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
-  
   const [originalPhoneNumber, setOriginalPhoneNumber] = useState("");
   const [newPhoneNumber, setNewPhoneNumber] = useState("");
   const [isChangedNumberFlow, setIsChangedNumberFlow] = useState(false);
-  
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  
+  const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
@@ -43,7 +40,7 @@ export default function PersonalMalaysianPhone() {
 
       if (response.ok && data.success && data.identity) {
         const identityData = data.formData || data.identity;
-        const rawPhone = identityData.ph_no_1 || identityData.phone_number || identityData.phoneNumber || "";
+        const rawPhone = identityData.ph_no || identityData.phone_number || identityData.phoneNumber || "";
 
         if (rawPhone) {
           let digitsOnly = rawPhone.replace(/\D/g, "");
@@ -72,13 +69,15 @@ export default function PersonalMalaysianPhone() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
     if (timer > 0) {
       interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     }
+
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleGlobalBack = () => {
+  const handleBack = () => {
     if (step === "otp") {
       setStep(isChangedNumberFlow ? "change" : "confirm");
     } else if (step === "change") {
@@ -100,7 +99,7 @@ export default function PersonalMalaysianPhone() {
     }, 800);
   };
 
-  const handleChangeNumberFlow = () => {
+  const handleChangeNumber = () => {
     setIsChangedNumberFlow(true);
     setNewPhoneNumber("");
     setOtp(["", "", "", "", "", ""]);
@@ -131,17 +130,8 @@ export default function PersonalMalaysianPhone() {
     }
   };
 
-  const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      otpInputs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerifyPhone = async () => {
+  const handleVerifyOTP = async () => {
     try {
-      setIsSubmitting(true);
-      setSubmitError(null);
-
       localStorage.setItem(
         "phoneVerification",
         JSON.stringify({
@@ -152,10 +142,13 @@ export default function PersonalMalaysianPhone() {
 
       router.push(`/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`);
     } catch (error: any) {
-      console.error("Phone save error:", error);
-      setSubmitError(error.message || "Failed to save phone number.");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Malaysian phone verification error:", error);
+    }
+  };
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpInputs.current[index - 1]?.focus();
     }
   };
 
@@ -199,7 +192,7 @@ export default function PersonalMalaysianPhone() {
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
-          onClick={handleGlobalBack}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -218,8 +211,8 @@ export default function PersonalMalaysianPhone() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
         </Link>
@@ -267,7 +260,7 @@ export default function PersonalMalaysianPhone() {
 
               <button
                 type="button"
-                onClick={handleChangeNumberFlow}
+                onClick={handleChangeNumber}
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
               >
                 No, change number
@@ -324,14 +317,13 @@ export default function PersonalMalaysianPhone() {
                     </div>
 
                     <input
-                      autoFocus
-                      maxLength={10}
-                      className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                      placeholder="Enter your mobile number"
                       type="tel"
+                      maxLength={10}
+                      required 
+                      placeholder="Enter your mobile number"                     
+                      className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                       value={newPhoneNumber}
                       onChange={(e) => setNewPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
-                      required
                     />
                   </div>
                 </div>
@@ -394,23 +386,17 @@ export default function PersonalMalaysianPhone() {
             </div>
 
             <div className="space-y-4">
-              {submitError && (
-                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
-                  {submitError}
-                </div>
-              )}
-
               <button
                 type="button"
-                onClick={handleVerifyPhone}
-                disabled={otp.join("").length < 6 || isSubmitting}
+                onClick={handleVerifyOTP}
+                disabled={otp.join("").length < 6 || isLoading}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
                   otp.join("").length === 6 
                     ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                 }`}
               >
-                {isSubmitting ? "Verifying..." : "Verify"}
+                {isLoading ? "Verifying..." : "Verify"}
               </button>
 
               <div className="text-center">

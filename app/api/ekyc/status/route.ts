@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { journeyId, status, id_type, id_num } = await req.json();
+    const { journeyId, status, id_type, id_num, step } = await req.json();
 
     if (!journeyId || !status) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
@@ -28,9 +28,11 @@ export async function POST(req: Request) {
     const updatedData = {
       ...existingData,
       status, 
+      ...(step !== undefined && { step }),
       ...(id_type !== undefined && { id_type }),
       ...(id_num !== undefined && { id_num }),
     };
+    console.log("SAVING STATUS:", updatedData);
 
     statusStore.set(journeyId, updatedData);
 

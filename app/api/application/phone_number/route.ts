@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { encrypt } from "@/lib/cryptoSecurity";
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
 
-    const { cust_id, ph_no_1 } = body;
+    const { cust_id, ph_no } = body;
 
-    if (cust_id === undefined || cust_id === null || !ph_no_1) {
+    if (cust_id === undefined || cust_id === null || !ph_no) {
       return NextResponse.json(
-        { error: "cust_id and ph_no_1 are required." },
+        { error: "cust_id and ph_no are required." },
         { status: 400 }
       );
     }
 
     const query = `
       UPDATE banka."Customer"
-      SET ph_no_1 = $1
+      SET ph_no = $1
       WHERE cust_id = $2
       RETURNING *;
     `;
 
-    const values = [ph_no_1, cust_id];
+    const values = [encrypt(ph_no, "banka"), cust_id];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
