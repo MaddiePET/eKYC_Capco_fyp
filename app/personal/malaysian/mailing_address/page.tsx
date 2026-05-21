@@ -14,20 +14,9 @@ export default function PersonalMalaysianMailingAddress() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
-
-  const idType =
-    searchParams.get("id_type") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
-    "ic";
-
-  const idNum =
-    searchParams.get("id_num") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
-    "";
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
+  const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
+  const idNum = searchParams.get("id_num") || (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") || "";
 
   const [mailingData, setMailingData] = useState({
     permanentAddress: "",
@@ -120,7 +109,7 @@ export default function PersonalMalaysianMailingAddress() {
   const isFormValid =
     mailingData.add1.trim() !== "" &&
     mailingData.add2.trim() !== "" &&
-    mailingData.postal.trim() !== "" &&
+    mailingData.postal.trim() !== "" && mailingData.postal.trim().length === 5 &&
     mailingData.state.trim() !== "" &&
     mailingData.country.trim() !== "";
 
@@ -303,20 +292,6 @@ export default function PersonalMalaysianMailingAddress() {
               <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
                 {mailingData.country}
               </span>
-
-              <svg
-                className="w-4 h-4 text-gray-400 ml-auto"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
             </div>
           </div>
 

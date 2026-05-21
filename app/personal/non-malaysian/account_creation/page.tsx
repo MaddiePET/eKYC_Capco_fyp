@@ -50,6 +50,7 @@ export default function PersonalNonMalaysianAccountCreation() {
   const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(password);
   const score = (password.length >= 8 ? 1 : 0) + (/[0-9]/.test(password) ? 1 : 0) + (/[A-Z]/.test(password) ? 1 : 0) + (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
+
   const getPasswordStrength = (): string => {
     if (password.length === 0) return "";
     if (score <= 1) return "Weak";
@@ -321,7 +322,11 @@ export default function PersonalNonMalaysianAccountCreation() {
                 </div>
               </div>
 
-              <div className="relative">
+              <div>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Confirm Password<span className="text-error-500">*</span>
+                </Label>
+
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E]"
@@ -333,6 +338,12 @@ export default function PersonalNonMalaysianAccountCreation() {
                   {showConfirmPassword ? <EyeIcon className="w-5 h-5" /> : <EyeCloseIcon className="w-5 h-5" />}
                 </button>
               </div>
+
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                  {submitError}
+                </div>
+              )}
 
               {submitError && (
                 <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">

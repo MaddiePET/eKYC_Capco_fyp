@@ -98,9 +98,7 @@ export default function PersonalNonMalaysianApplication() {
     sourceOfIncome: "",
     isOfAge: null as boolean | null,
   });
-  const [documents, setDocuments] = useState<DocEntry[]>([
-    { id: Date.now(), name: "", preview: null }
-  ]);
+  const [documents, setDocuments] = useState<DocEntry[]>([{ id: Date.now(), name: "", preview: null }]);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
@@ -731,7 +729,7 @@ export default function PersonalNonMalaysianApplication() {
             <div className="pt-10 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that all selected information is correct.
-               </p>
+              </p>
               
               <button 
                 onClick={handleApplicationContinue}

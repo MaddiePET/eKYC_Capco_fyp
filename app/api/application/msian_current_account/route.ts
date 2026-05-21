@@ -3,6 +3,7 @@ import { pool } from "@/lib/db";
 import { hashPassword } from "@/hashpw";
 import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 
+// Generates a random 16 digit savings account number
 function generateAccountNumber() {
   let accountNo = "";
   for (let i = 0; i < 16; i++) {
@@ -26,14 +27,44 @@ export async function POST(req: Request) {
   try {
     await client.query("BEGIN");
 
+    console.log("FULL SUBMIT DATA:", JSON.stringify(data, null, 2));
+    console.log("personalInfo:", data.personalInfo);
+    console.log("contactInfo:", data.contactInfo);
+    console.log("businessContact:", data.businessContact?.bus_email);
+    console.log("businessAddress section:", data.businessAddress);
+    console.log("businessAddress.businessAddress:", data.businessAddress?.businessAddress);
+    console.log("businessAddress.mailingAddress:", data.businessAddress?.mailingAddress);
+    console.log("business details:", data.businessParticulars);
+
     const personalInfo = data.personalInfo || {};
-    const contactInfo = data.contactInfo || {};
-    const phoneVerification = data.phoneVerification || {};
-    const businessParticulars = data.businessParticulars || {};
-    const businessContact = data.businessContact || {};
-    const businessAddress = data.businessAddress?.businessAddress || {};
-    const mailingAddress = data.businessAddress?.mailingAddress || {};
-    const account = data.account || {};
+    const personalAddress = {
+      add_1:
+        personalInfo.add_1 ||
+        personalInfo.streetAddress ||
+        personalInfo.add1 ||
+        "",
+
+      add_2:
+        personalInfo.add_2 ||
+        personalInfo.city ||
+        personalInfo.add2 ||
+        "",
+
+      postcode:
+        personalInfo.postcode ||
+        personalInfo.postal ||
+        "",
+
+      state:
+        personalInfo.state ||
+        "",
+
+      country:
+        personalInfo.country ||
+        "Malaysia",
+    };
+
+    if (!personalAddress.add_1) throw new Error("Personal address line 1 is missing");
 
     const homeAddressRes = await client.query(
       `
@@ -70,14 +101,13 @@ export async function POST(req: Request) {
       RETURNING cust_id
       `,
       [
-        hash(personalInfo.id_num || personalInfo.nric),
-        enc(personalInfo.id_num || personalInfo.nric),
-        enc(personalInfo.fullName || personalInfo.full_name),
-        personalInfo.id_type || "IC",
-        personalInfo.dob || null,
-        enc(phoneVerification.phoneNumber || phoneVerification.ph_no),
-        enc(contactInfo.email),
-        homeAddId,
+        data.personalInfo?.id_num || personalInfo.idNumber,
+        data.personalInfo?.fullName || personalInfo.full_name,
+        "IC",
+        data.personalInfo?.dob || personalInfo.date_of_birth ,
+        data.phoneVerification?.phoneNumber || personalInfo.ph_no_1,
+        data.contactInfo?.email || personalInfo.email ,
+        home_add,
       ]
     );
 
@@ -111,17 +141,44 @@ export async function POST(req: Request) {
       RETURNING user_id
       `,
       [
-        custId,
-        account.username,
-        hashedPassword,
-        account.status || "Pending",
-        account.securityPhrase || account.sec_phrase,
-        data.branchInfo?.branch || account.branch,
-        profileBuffer,
+        cust_id,
+        data.account?.username || null,
+        hashedPassword || null,
+        "PENDING",
+        profileBuffer || null,
+        data.account?.securityPhrase || null,
+        data.businessAddress?.preferredBranch || null,
       ]
     );
+    const user_id = userRes.rows[0].user_id;
 
-    const userId = userRes.rows[0].user_id;
+    const businessAddress = {
+      add_1:
+        data.businessAddress?.businessAddress?.addressLine1 ||
+        data.businessAddress?.addressLine1 || "",
+      add_2:
+        data.businessAddress?.businessAddress?.addressLine2 ||
+        data.businessAddress?.addressLine2 || "",
+      postcode:
+        data.businessAddress?.businessAddress?.postcode ||
+        data.businessAddress?.postcode || "",
+      state:
+        data.businessAddress?.businessAddress?.state ||
+        data.businessAddress?.state || "",
+      country:
+        data.businessAddress?.businessAddress?.country ||
+        data.businessAddress?.country || "Malaysia",
+    };
+    if (!businessAddress.add_1) throw new Error("Business address line 1 is missing");
+
+    const mailingAddress = {
+      add_1: data.businessAddress?.mailingAddress?.addressLine1 || "",
+      add_2: data.businessAddress?.mailingAddress?.addressLine2 || "",
+      postcode: data.businessAddress?.mailingAddress?.postcode || "",
+      state: data.businessAddress?.mailingAddress?.state || "",
+      country: data.businessAddress?.mailingAddress?.country || "Malaysia",
+    };
+    const isMailingSameAsBusiness = data.businessAddress?.isMailingSameAsBusiness ?? true;
 
     const businessAddressRes = await client.query(
       `
@@ -142,25 +199,32 @@ export async function POST(req: Request) {
 
     const businessAddId = businessAddressRes.rows[0].add_id;
 
-    const mailingAddressRes = await client.query(
-      `
-      INSERT INTO banka."Address" (
-        add_1, add_2, postcode, state, country
-      )
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING add_id
-      `,
-      [
-        enc(mailingAddress.add_1 || mailingAddress.streetAddress1 || businessAddress.add_1),
-        enc(mailingAddress.add_2 || mailingAddress.streetAddress2 || mailingAddress.city || businessAddress.add_2),
-        enc(mailingAddress.postcode || mailingAddress.postal || businessAddress.postcode),
-        enc(mailingAddress.state || businessAddress.state),
-        enc(mailingAddress.country || businessAddress.country || "Malaysia"),
-      ]
-    );
+    let mail_add_id = bus_add_id;
+    if (!isMailingSameAsBusiness) {
+      const mailingAddressRes = await client.query(
+        `
+        INSERT INTO banka."Address" (
+          add_1, 
+          add_2, 
+          postcode, 
+          state, 
+          country
+        )
+        VALUES ($1,$2,$3,$4,$5)
+        RETURNING add_id
+        `,
+        [
+          mailingAddress.add_1,
+          mailingAddress.add_2,
+          mailingAddress.postcode,
+          mailingAddress.state,
+          mailingAddress.country,
+        ]
+      );
+      mail_add_id = mailingAddressRes.rows[0].add_id;
+    }
 
-    const mailingAddId = mailingAddressRes.rows[0].add_id;
-
+    // 7. Generate a unique 16 digit current account number
     let accountNo = generateAccountNumber();
     let accountExists = true;
 

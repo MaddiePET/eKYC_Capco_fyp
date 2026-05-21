@@ -46,5 +46,7 @@ next-env.d.ts
 # secrets
 jim-db/serviceAccountKey-JIM.json
 jpn-db/serviceAccountKey-JPN.json
-jpn-db/add-jpn-person.ts
 jim-db/add-jim-person.ts
+jpn-db/add-jpn-person.ts
+ssm-db/serviceAccountKey-SSM.json
+banka-db/serviceAccountKey-BANKA.json

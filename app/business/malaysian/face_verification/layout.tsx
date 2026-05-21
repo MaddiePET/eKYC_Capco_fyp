@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Business Account Malaysian Face Verification - DTCOB',
-  description: 'Business Account Malaysian Face Verification page for DTCOB banking services.',
+  title: 'Business Account Malaysian MyKad QR Code Scan - DTCOB',
+  description: 'Business Account Malaysian MyKad QR Code Scan page for DTCOB banking services.',
 };
 
-export default function BusinessMalaysianFaceVerificationLayout({
+export default function BusinessMalaysianMyKadQRCodeLayout({
   children,
 }: {
   children: React.ReactNode;

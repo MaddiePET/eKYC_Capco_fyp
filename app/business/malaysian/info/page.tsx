@@ -10,6 +10,7 @@ import { useFormData } from "@/context/FormContext";
 export default function BusinessMalaysianInfo() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -30,6 +31,7 @@ export default function BusinessMalaysianInfo() {
     state: "",
     country: "Malaysia",
   });
+
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
@@ -116,6 +118,7 @@ export default function BusinessMalaysianInfo() {
     if (typeof window === "undefined") return;
 
     const currentJourneyId = searchParams.get("journeyId") || "";
+    
     const savedJourneyId = localStorage.getItem("journeyId");
 
     // NEW JOURNEY DETECTED
@@ -210,6 +213,31 @@ export default function BusinessMalaysianInfo() {
     const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
     const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
+    const personalInfo = {
+        id_num: formData.nric,
+        fullName: formData.fullName,
+        full_name: formData.fullName,
+        id_type: "IC",
+        dob,
+        ph_no_1: fullPhone,
+        ph_no_2: null,
+        country: formData.country,
+        add1: formData.add1,
+        add2: formData.add2,
+        postcode: formData.postal,
+        state: formData.state,
+      };
+
+      setGlobalFormData({
+      ...globalFormData,
+      journeyId: searchParams.get("journeyId") || "",
+      idType: "ic",
+      idNum: formData.nric,
+      personalInfo,
+    });
+
+
+
     localStorage.setItem(
       "personalInfo",
       JSON.stringify({
@@ -241,7 +269,7 @@ export default function BusinessMalaysianInfo() {
 
 
     router.push(
-      `/business/malaysian/business_particular?id_type=ic&id_num=${encodeURIComponent(
+      `/business/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(
         formData.nric
       )}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
     );
@@ -258,8 +286,8 @@ export default function BusinessMalaysianInfo() {
     formData.nric.trim() !== "" &&
     formData.phoneNumber.trim() !== "" &&
     formData.add1.trim() !== "" &&
-    formData.postal.trim() !== "" &&
     formData.add2.trim() !== "" &&
+    formData.postal.trim() !== "" &&
     formData.state.trim() !== "";
 
   if (!mounted) return null;
@@ -344,6 +372,16 @@ export default function BusinessMalaysianInfo() {
                   Full Name<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
+                    value={formData.fullName}
+                  />
+                </div>
+=======
                 <input 
                   type="text" 
                   readOnly
@@ -351,6 +389,7 @@ export default function BusinessMalaysianInfo() {
                   value={formData.fullName} 
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} 
                 />
+>>>>>>> origin/ashley
               </div>
 
               <div>
@@ -358,6 +397,16 @@ export default function BusinessMalaysianInfo() {
                   NRIC<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
+                    value={formData.nric}
+                  />
+                </div>
+=======
                 <input 
                   type="text" 
                   readOnly 
@@ -365,6 +414,7 @@ export default function BusinessMalaysianInfo() {
                   value={formData.nric} 
                   onChange={(e) => setFormData({ ...formData, nric: e.target.value })} 
                 />
+>>>>>>> origin/ashley
               </div>
 
               <div>
@@ -372,6 +422,34 @@ export default function BusinessMalaysianInfo() {
                   Date of Birth<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.dobDay}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.dobMonth}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.dobYear}
+                    />
+=======
                 <div className="grid grid-cols-3 gap-3">
                   <div className="relative">
                     <select 
@@ -452,6 +530,7 @@ export default function BusinessMalaysianInfo() {
                         />
                       </svg>
                     </div>
+>>>>>>> origin/ashley
                   </div>
                 </div>
               </div>
@@ -472,6 +551,16 @@ export default function BusinessMalaysianInfo() {
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
+<<<<<<< HEAD
+                  <div className="flex-1 flex items-center gap-2 px-4 py-2.5 border-2 rounded-r-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.phoneNumber}
+                    />
+                  </div>
+=======
                   <input 
                     type="text" 
                     readOnly
@@ -479,6 +568,7 @@ export default function BusinessMalaysianInfo() {
                     value={formData.phoneNumber} 
                     onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} 
                   />
+>>>>>>> origin/ashley
                 </div>
               </div>
             </div>
@@ -489,6 +579,16 @@ export default function BusinessMalaysianInfo() {
                   Address 1<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    value={formData.add1}
+                  />
+                </div>
+=======
                 <input 
                   type="text" 
                   readOnly
@@ -496,6 +596,7 @@ export default function BusinessMalaysianInfo() {
                   value={formData.add1} 
                   onChange={(e) => setFormData({ ...formData, add1: e.target.value })} 
                 />
+>>>>>>> origin/ashley
               </div>
             
             <div>
@@ -503,6 +604,17 @@ export default function BusinessMalaysianInfo() {
                   Address 2<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    value={formData.add2}
+                  />
+                </div>
+              </div>
+=======
                 <input 
                   type="text" 
                   readOnly
@@ -511,6 +623,7 @@ export default function BusinessMalaysianInfo() {
                   onChange={(e) => setFormData({ ...formData, add2: e.target.value })} 
                 />
             </div>
+>>>>>>> origin/ashley
 
               <div className="grid grid-cols-2 gap-5">
                 <div>
@@ -518,6 +631,16 @@ export default function BusinessMalaysianInfo() {
                     Postal Code<span className="text-red-500">*</span>
                   </label>
 
+<<<<<<< HEAD
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.postal}
+                    />
+                  </div>
+=======
                   <input 
                     type="text" 
                     readOnly
@@ -525,6 +648,7 @@ export default function BusinessMalaysianInfo() {
                     value={formData.postal} 
                     onChange={(e) => setFormData({ ...formData, postal: e.target.value })} 
                   />
+>>>>>>> origin/ashley
                 </div>
 
                 <div>
@@ -532,6 +656,17 @@ export default function BusinessMalaysianInfo() {
                   State<span className="text-red-500">*</span>
                 </label>
 
+<<<<<<< HEAD
+                  <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                  <input
+                    type="text"
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    value={formData.state}
+                  />
+                </div>
+                </div>
+=======
                 <input 
                   type="text" 
                   readOnly
@@ -540,6 +675,7 @@ export default function BusinessMalaysianInfo() {
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })} 
                 />
               </div>
+>>>>>>> origin/ashley
               </div>
 
               <div>
@@ -549,6 +685,8 @@ export default function BusinessMalaysianInfo() {
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
+<<<<<<< HEAD
+=======
 
                   <svg 
                     className="w-4 h-4 text-gray-400" 
@@ -563,6 +701,7 @@ export default function BusinessMalaysianInfo() {
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
                     />
                   </svg>
+>>>>>>> origin/ashley
                 </div>
               </div>
             </div>

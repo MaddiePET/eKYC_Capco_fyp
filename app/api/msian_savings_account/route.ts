@@ -167,6 +167,7 @@ export async function POST(req: Request) {
         id_type,
         dob,
         ph_no,
+        ph_no,
         email,
         home_add
       )

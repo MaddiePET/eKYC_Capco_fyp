@@ -45,6 +45,22 @@ function BusinessMalaysianMobileMyKadCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
+  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image(); 
+      img.src = `data:image/jpeg;base64,${base64}`;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(800 / img.width, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
+      };
+    });
+  };
+
   useEffect(() => {
     if (!journeyId) {
       alert("Invalid link. Please scan the QR code again from your desktop.");

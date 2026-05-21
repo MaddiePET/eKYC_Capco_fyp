@@ -36,12 +36,11 @@ export default function PersonalMalaysianInfo() {
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
       const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
       ];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "January",
+        month: monthNames[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -54,19 +53,19 @@ export default function PersonalMalaysianInfo() {
       return {
         day: day.toString().padStart(2, "0"),
         month: [
-          "January", "February", "March", "April", "May", "June",
-          "July", "August", "September", "October", "November", "December",
-        ][month - 1] || "January",
+          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
+        ][month - 1] || "",
         year,
       };
     }
 
-    return { day: "", month: "January", year: "" };
+    return { day: "", month: "", year: "" };
   };
 
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
+    
     return {
       title: identity.title || "",
       fullName: identity.full_name || identity.name || identity.fullName || "",
@@ -263,6 +262,7 @@ export default function PersonalMalaysianInfo() {
       </div>
 
       <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button
           type="button"
           onClick={() => router.push("/personal/malaysian/email")}
@@ -285,6 +285,7 @@ export default function PersonalMalaysianInfo() {
             className="block dark:invert-0 invert" 
           />
 
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -507,20 +508,6 @@ export default function PersonalMalaysianInfo() {
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.country}</span>
-
-                  <svg 
-                    className="w-4 h-4 text-gray-400 ml-auto" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                    />
-                  </svg>
                 </div>
               </div>
             </div>
