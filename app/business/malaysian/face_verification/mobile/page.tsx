@@ -43,6 +43,21 @@ function BusinessMalaysianMobileFaceCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
+  const base64ToBlob = (base64: string, mimeType = 'image/jpeg') => {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+    for (let i = 0; i < byteCharacters.length; i += 512) {
+      const slice = byteCharacters.slice(i, i + 512);
+      const byteNumbers = new Array(slice.length);
+      for (let j = 0; j < slice.length; j++) {
+        byteNumbers[j] = slice.charCodeAt(j);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    return new Blob(byteArrays, { type: mimeType });
+  };
+
   const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
@@ -59,41 +74,29 @@ function BusinessMalaysianMobileFaceCapture() {
     setErrorMessage(null);
 
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(selfieFile);
-      const selfieBase64 = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
-      });
+      const formData = new FormData();
+      formData.append("journeyId", journeyId);
+      formData.append("selfie", selfieFile);
+      formData.append("passport", base64ToBlob(idCardBase64), "idcard.jpg");
 
       const faceApiRes = await fetch("/api/ekyc/okayface", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ journeyId, selfieBase64, idCardBase64 }),
+        body: formData,
       });
 
       const faceResult = await faceApiRes.json();
 
-            console.log("OkayFace output:", faceResult);
+      console.log("OkayFace output:", faceResult);
 
       if (faceResult.status === "success") {
       const liveApiRes = await fetch("/api/ekyc/okaylive", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          journeyId,
-          selfieBase64,
-          idCardBase64,
-        }),
+        body: formData,
       });
 
         const liveResult = await liveApiRes.json();
 
-        console.log("OkayLive status:", liveApiRes.status);
-        console.log("OkayLive output:", liveResult);
-
-         if (!liveApiRes.ok) {
+        if (!liveApiRes.ok) {
           throw new Error(liveResult.message || "OkayLive failed");
         }
 

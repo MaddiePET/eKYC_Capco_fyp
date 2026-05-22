@@ -37,7 +37,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Server password configuration error" }, { status: 500 });
     }
 
-    // Diagnostic Check: Verify password comparison match output
     const isMatch = await bcrypt.compare(password, user.password);
     console.log(`[AUTH DIAGNOSTIC] BCrypt evaluation result for ${username}:`, isMatch);
 
@@ -45,7 +44,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Decrypt user identity attributes with fallbacks
     let plainName = "";
     let plainEmail = "";
 
@@ -63,7 +61,6 @@ export async function POST(req: Request) {
       plainEmail = user.email || "";
     }
 
-    // Normalize user image attachment byte buffers
     let avatarBase64 = "";
     if (user.img && Buffer.isBuffer(user.img)) {
       avatarBase64 = `data:image/jpeg;base64,${user.img.toString("base64")}`;
