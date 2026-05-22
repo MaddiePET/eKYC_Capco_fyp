@@ -95,8 +95,13 @@ async function lookupJIMIdentity(idNum: string) {
 
   if (!idNum) return null;
 
+  console.log(`\n[JIM API]`);
+  console.log(`Plaintext Parameter Extracted: "${idNum}"`);
+
   const normalizedPassport = idNum.trim();
   const lookupHash = hashLookup(normalizedPassport);
+
+  console.log(`Generated Index Hash: ${lookupHash}`);
 
   const querySnapshot = await db
     .collection(JIM_NONRESIDENTS_COLLECTION)
@@ -105,11 +110,24 @@ async function lookupJIMIdentity(idNum: string) {
     .get();
 
   if (querySnapshot.empty) {
+    console.log(`[VERIFICATION FAILED] Record mismatch. No matching entry found for hash: ${lookupHash}`);
     return null;
   }
 
+  console.log(`[MATCH FOUND]`);
+
   const encryptedData = querySnapshot.docs[0].data();
   const decryptedData = decryptJIMData(encryptedData);
+
+  console.log(`Full Name: ${decryptedData.full_name}`);
+  console.log(`Birth Date: ${decryptedData.date_of_birth}`);
+  console.log(`Sex: ${decryptedData.sex}`);
+  console.log(`Nationality: ${decryptedData.nationality}`);
+  console.log(`Country: ${decryptedData.country}`);
+  console.log(`Issue Date: ${decryptedData.issue_date}`);
+  console.log(`Expiry Date: ${decryptedData.exp_date}`);
+  console.log(`Issuing Office: ${decryptedData.issue_office}`);
+  console.log(`Visa Type: ${decryptedData.visa_type}\n`);
 
   return {
     source: "jim",
