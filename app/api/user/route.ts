@@ -3,7 +3,6 @@ import { pool } from "@/lib/db";
 
 import { decrypt } from "@/lib/cryptoSecurity";
 
-// Fetch Accounts for Dashboard Context
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(req.url);
@@ -16,7 +15,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Query your PostgreSQL database using your pool client
     const query = `
       SELECT 
         u.user_id AS id,
@@ -66,7 +64,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Registration Account Creation 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();

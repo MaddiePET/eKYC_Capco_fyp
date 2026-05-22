@@ -10,7 +10,6 @@ export async function GET(
     const { username } = await context.params;
     console.log("PROFILE QUERY USERNAME:", username);
 
-    // SQL query aligned with the exact schema columns in BANKA_DB_18_05_V1.backup
     const query = `
       SELECT
         u.username,
@@ -42,7 +41,6 @@ export async function GET(
 
     const user = result.rows[0];
 
-    // Decrypt the encrypted sensitive database records safely using catch blocks
     let plainFullName = "";
     let plainPhone = "";
     let plainEmail = "";
@@ -50,7 +48,7 @@ export async function GET(
     try {
       plainFullName = user.full_name ? decrypt(user.full_name, "banka") : "";
     } catch {
-      plainFullName = user.full_name || ""; // Fallback if data was stored unencrypted
+      plainFullName = user.full_name || "";
     }
 
     try {
@@ -65,7 +63,6 @@ export async function GET(
       plainEmail = user.email || "";
     }
 
-    // Convert avatar byte buffers to string or data URL securely
     let avatarString = "";
     if (user.img) {
       if (Buffer.isBuffer(user.img)) {
