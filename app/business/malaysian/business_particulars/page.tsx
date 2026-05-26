@@ -25,25 +25,13 @@ interface Business {
   };
 }
 
-
 export default function BusinessMalaysianBusinessParticulars() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const journeyId =
-    searchParams.get("journeyId") ||
-    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
-    "";
-
-  const idType =
-    searchParams.get("id_type") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
-    "ic";
-
-  const idNum =
-    searchParams.get("id_num") ||
-    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
-    "";
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
+  const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
+  const idNum = searchParams.get("id_num") || (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") || "";
   
   const [mounted, setMounted] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
@@ -167,7 +155,7 @@ export default function BusinessMalaysianBusinessParticulars() {
         year: y || "",
         businessType: biz.type || "",
         role: "",
-        businessAddress: extractedAddress, // Update local state
+        businessAddress: extractedAddress,
       });
     }
   }
@@ -187,16 +175,14 @@ export default function BusinessMalaysianBusinessParticulars() {
     }
   };
 
-  const handleNextStep1 = () => {
+  const handleNext = () => {
     setStep(2);
   };
 
   const handleFinalSubmit = () => {
-    // Find the raw business object
     const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
     
     if (biz) {
-      // Normalize the data immediately
       const normalizedBusiness = {
         reg_no: biz.brn || "",
         bus_name: biz.name || "",
@@ -211,7 +197,6 @@ export default function BusinessMalaysianBusinessParticulars() {
         bus_state: formData.businessAddress.state,
       };
 
-      // FIX: Save all versions to storage
       saveToStorage("selectedBusiness", biz);
       saveToStorage("businessParticulars", normalizedBusiness);
       saveToStorage("ssmCompanyData", biz);
@@ -231,7 +216,6 @@ export default function BusinessMalaysianBusinessParticulars() {
           msic_name: formData.msicName,
         },
         businessAddress: {
-          // Pass the mapped business address here
           businessAddress: formData.businessAddress, 
           mailingAddress: {
             addressLine1: "",
@@ -249,10 +233,16 @@ export default function BusinessMalaysianBusinessParticulars() {
     router.push(`/business/malaysian/business_address?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`);
   };
 
-  const inputClasses =
-    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
-  const readOnlyClasses =
-    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
+  const isFormValid = 
+    formData.businessName.trim() !== "" &&
+    formData.brn.trim() !== "" &&
+    formData.msicCode.trim() !== "" &&
+    formData.msicName.trim() !== "" &&
+    formData.day.trim() !== "" &&
+    formData.month.trim() !== "" &&
+    formData.year.trim() !== "" &&
+    formData.businessType.trim() !== "" &&
+    formData.role.trim() !== "";
 
   if (!mounted) return null;
 
@@ -349,7 +339,7 @@ export default function BusinessMalaysianBusinessParticulars() {
 
               {!loadingBusinesses && !businessError && linkedBusinesses.length === 0 && (
                 <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                  No registered business linked with your IC number.
+                  No registered business linked with your MyKad number.
                 </p>
               )}
 
@@ -396,12 +386,12 @@ export default function BusinessMalaysianBusinessParticulars() {
                   onClick={() => router.push("/")}
                   className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] active:scale-[0.98]"
                 >
-                  Cancel Process
+                  Cancel
                 </button>
               ) : (
                 <button
                   type="button"
-                  onClick={handleNextStep1}
+                  onClick={handleNext}
                   disabled={!selectedBusinessId || loadingBusinesses}
                   className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
                 >
@@ -446,9 +436,9 @@ export default function BusinessMalaysianBusinessParticulars() {
 
                   <input
                     type="text"
-                    className={readOnlyClasses}
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.businessName}
-                    readOnly 
                   />
                 </div>
 
@@ -459,9 +449,9 @@ export default function BusinessMalaysianBusinessParticulars() {
 
                   <input 
                     type="text" 
-                    className={readOnlyClasses} 
+                    readOnly
+                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.brn} 
-                    readOnly 
                   />
                 </div>
 
@@ -479,18 +469,16 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="string"
-                      placeholder="00000"
-                      className={readOnlyClasses}
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.msicCode}
-                      readOnly 
                     />
 
                     <input
                       type="string"
-                      placeholder="Title"
-                      className={readOnlyClasses}
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.msicName}
-                      readOnly 
                     />
                   </div>
                 </div>
@@ -503,28 +491,26 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <div className="grid grid-cols-3 gap-3">
                     <input
                       type="string"
-                      className={readOnlyClasses}
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.day}
-                      readOnly 
                     />
 
                     <input
                       type="string"
-                      className={readOnlyClasses}
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.month}
-                      readOnly 
                     />
-                    
 
                     <input
                       type="string"
-                      className={readOnlyClasses}
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.year}
-                      readOnly 
                     />
                   </div>
                 </div>
-
 
                 <div className="md:col-span-2">
                   <div className="grid grid-cols-2 gap-2">
@@ -535,12 +521,11 @@ export default function BusinessMalaysianBusinessParticulars() {
                       </label>
 
                       <div className="relative">
-
                         <input
                           type="string"
-                          className={readOnlyClasses}
+                          readOnly
+                          className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                           value={formData.businessType}
-                          readOnly 
                         />
 
                         <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -566,9 +551,12 @@ export default function BusinessMalaysianBusinessParticulars() {
                           onChange={(e) =>
                             setFormData({ ...formData, role: e.target.value })
                           }
-                          className={inputClasses}
+                          className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                         >
-                          <option value="" disabled>
+                          <option 
+                            value="" 
+                            disabled
+                          >
                             Select Role
                           </option>
 
@@ -596,7 +584,6 @@ export default function BusinessMalaysianBusinessParticulars() {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -610,18 +597,12 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <button
                     type="button"
                     onClick={handleFinalSubmit}
-                    disabled={
-                      !formData.businessName ||
-                      !formData.brn ||
-                      !formData.msicCode ||
-                      !formData.msicName ||
-                      !formData.day ||
-                      !formData.month ||
-                      !formData.year ||
-                      !formData.businessType ||
-                      !formData.role
-                    }
-                    className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
+                    disabled={!isFormValid}
+                    className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
+                      isFormValid 
+                        ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                    }`}
                   >
                     Continue
                   </button>

@@ -69,7 +69,9 @@ export default function BusinessMalaysianFaceQRCode() {
 
   const handleNext = () => {
     if (isVerified) {
-      router.push(`/business/malaysian/phone?journeyId=${encodeURIComponent(journeyId || "")}`);
+      router.push(
+        `/business/malaysian/otp?journeyId=${encodeURIComponent(journeyId || "")}`
+      );
     }
   };
 

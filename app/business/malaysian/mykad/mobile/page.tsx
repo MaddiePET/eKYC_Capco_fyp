@@ -110,6 +110,7 @@ function BusinessMalaysianMobileMyKadCapture() {
           isBack: false,
         }),
       });
+
       const frontDocData = await frontDocRes.json();
       if (frontDocData.status !== "success") {
         throw new Error(frontDocData.message || "not meeting quality standards");
@@ -125,6 +126,7 @@ function BusinessMalaysianMobileMyKadCapture() {
           isBack: true,
         }),
       });
+
       const backDocData = await backDocRes.json();
 
       if (backDocData.status !== "success") {
@@ -156,7 +158,9 @@ function BusinessMalaysianMobileMyKadCapture() {
 
       await fetch("/api/ekyc/status", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           journeyId,
           status: "verified",
@@ -189,7 +193,8 @@ function BusinessMalaysianMobileMyKadCapture() {
             "Content-Type": "application/json" 
           },
           body: JSON.stringify({ 
-            journeyId, status: "failed" 
+            journeyId, 
+            status: "failed" 
           })
         });
       }

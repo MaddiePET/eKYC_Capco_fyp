@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { QRCodeSVG } from "qrcode.react";
 
-export default function PersonalMalaysianMyKadQRCode() {
+export default function BusinessMalaysianMyKadQRCode() {
   const router = useRouter();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");

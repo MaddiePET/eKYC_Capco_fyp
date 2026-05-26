@@ -239,7 +239,7 @@ export default function BusinessMalaysianBusinessAddress() {
     });
 
     router.push(
-      `/business/malaysian/contact?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`
+      `/business/malaysian/contacts?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`
     );
   };
 
@@ -563,7 +563,7 @@ export default function BusinessMalaysianBusinessAddress() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Postcode<span className="text-red-500">*</span>
+                    Postal Code<span className="text-red-500">*</span>
                   </label>
 
                   <input

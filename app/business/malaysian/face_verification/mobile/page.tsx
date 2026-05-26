@@ -31,6 +31,7 @@ function BusinessMalaysianMobileFaceCapture() {
 
         if (data.status === "face_failed") {
           setFailCount(MAX_ATTEMPTS);
+
           setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
         } else if (data.status === "face_verified") {
           setSuccess(true);
@@ -77,7 +78,7 @@ function BusinessMalaysianMobileFaceCapture() {
       const formData = new FormData();
       formData.append("journeyId", journeyId);
       formData.append("selfie", selfieFile);
-      formData.append("passport", base64ToBlob(idCardBase64), "idcard.jpg");
+      formData.append("idCard", base64ToBlob(idCardBase64), "idcard.jpg");
 
       const faceApiRes = await fetch("/api/ekyc/okayface", {
         method: "POST",
@@ -148,7 +149,6 @@ function BusinessMalaysianMobileFaceCapture() {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[100dvh] px-4 pt-24 pb-6 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">

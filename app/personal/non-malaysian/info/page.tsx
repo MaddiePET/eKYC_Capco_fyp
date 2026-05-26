@@ -28,16 +28,13 @@ export default function PersonalNonMalaysianInfo() {
   });
 
   const searchParams = useSearchParams();
-  
   const journeyId = searchParams.get("journeyId") || "";
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
-      ];
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       return {
         day: date.getDate().toString().padStart(2, "0"),
         month: monthNames[date.getMonth()] || "",
@@ -52,13 +49,10 @@ export default function PersonalNonMalaysianInfo() {
       const day = Number(isoMatch[3]);
       return {
         day: day.toString().padStart(2, "0"),
-        month: [
-          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
-        ][month - 1] || "",
+        month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"][month - 1] || "",
         year,
       };
     }
-
     return { day: "", month: "", year: "" };
   };
 
@@ -91,7 +85,6 @@ export default function PersonalNonMalaysianInfo() {
 
       if (response.ok && data.success) {
         const identityData = data.formData || data.identity;
-
         setFormData((prev) => ({
           ...prev,
           ...normalizeIdentity(identityData, idType, idNum),
@@ -115,7 +108,8 @@ export default function PersonalNonMalaysianInfo() {
     const currentJourneyId = searchParams.get("journeyId") || "";
     const savedJourneyId = localStorage.getItem("nonMsianJourneyId");
 
-    if (currentJourneyId && savedJourneyId && savedJourneyId !== currentJourneyId) { localStorage.removeItem("nonMsianInfo");
+    if (currentJourneyId && savedJourneyId && savedJourneyId !== currentJourneyId) { 
+      localStorage.removeItem("nonMsianInfo");
       localStorage.removeItem("nonMsianAddress");
       localStorage.removeItem("nonMsianApplication");
       localStorage.removeItem("nonMsianIdType");
@@ -127,16 +121,8 @@ export default function PersonalNonMalaysianInfo() {
     }
 
     const queryParams = new URLSearchParams(window.location.search);
-
-    const idType =
-      queryParams.get("id_type") ||
-      localStorage.getItem("nonMsianIdType") ||
-      "passport";
-
-    const idNum =
-      queryParams.get("id_num") ||
-      localStorage.getItem("nonMsianIdNum") ||
-      "";
+    const idType = queryParams.get("id_type") || localStorage.getItem("nonMsianIdType") || "passport";
+    const idNum = queryParams.get("id_num") || localStorage.getItem("nonMsianIdNum") || "";
 
     if (idNum) {
       localStorage.setItem("nonMsianIdType", idType);
@@ -153,18 +139,8 @@ export default function PersonalNonMalaysianInfo() {
 
   const handleNext = () => {
     const months: Record<string, string> = {
-      January: "01",
-      February: "02",
-      March: "03",
-      April: "04",
-      May: "05",
-      June: "06",
-      July: "07",
-      August: "08",
-      September: "09",
-      October: "10",
-      November: "11",
-      December: "12",
+      January: "01", February: "02", March: "03", April: "04", May: "05", June: "06",
+      July: "07", August: "08", September: "09", October: "10", November: "11", December: "12",
     };
 
     const nonMsianInfo = {
@@ -172,7 +148,6 @@ export default function PersonalNonMalaysianInfo() {
       id_num: formData.passportNumber,
       full_name: formData.fullName,
       dob: `${formData.dobYear}-${months[formData.dobMonth]}-${formData.dobDay}`,
-
       non_msian_details: {
         pp_issue_office: formData.issuingOffice,
         pp_issue_date: formData.issueDate,
@@ -241,9 +216,9 @@ export default function PersonalNonMalaysianInfo() {
           type="button"
           onClick={() => 
             router.push(
-              `/personal/non-malaysian/email?journeyId=${encodeURIComponent(journeyId)}`
+              `/personal/non-malaysian/otp?journeyId=${encodeURIComponent(journeyId)}`
             )
-          }
+          }          
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
@@ -251,7 +226,7 @@ export default function PersonalNonMalaysianInfo() {
           Back
         </button>
 
-        <Link 
+        <Link   
           href="/" 
           className="flex items-center gap-2"
         >
@@ -262,7 +237,7 @@ export default function PersonalNonMalaysianInfo() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-          
+
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -351,7 +326,7 @@ export default function PersonalNonMalaysianInfo() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Date of Birth<span className="text-red-500">*</span>
                 </label>
-
+                
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                     <input
@@ -390,11 +365,11 @@ export default function PersonalNonMalaysianInfo() {
                 </label>
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
-                    value={formData.issuingOffice}
+                  <input 
+                    type="text" 
+                    readOnly 
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200" 
+                    value={formData.issuingOffice} 
                   />
                 </div>
               </div>
@@ -405,11 +380,11 @@ export default function PersonalNonMalaysianInfo() {
                 </label>
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="text-sm font-bold text-gray-700 dark:text-gray-200"
-                    value={formData.nationality}
+                  <input 
+                    type="text" 
+                    readOnly 
+                    className="text-sm font-bold text-gray-700 dark:text-gray-200" 
+                    value={formData.nationality} 
                   />
                 </div>
               </div>
@@ -421,11 +396,11 @@ export default function PersonalNonMalaysianInfo() {
                   </label>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                    <input
-                      type="text"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.issueDate}
+                    <input 
+                      type="text" 
+                      readOnly 
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed" 
+                      value={formData.issueDate} 
                     />
                   </div>
                 </div>
@@ -436,11 +411,11 @@ export default function PersonalNonMalaysianInfo() {
                   </label>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                    <input
-                      type="text"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.expiryDate}
+                    <input 
+                      type="text" 
+                      readOnly 
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed" 
+                      value={formData.expiryDate} 
                     />
                   </div>
                 </div>
@@ -467,7 +442,7 @@ export default function PersonalNonMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
+                  
                   <Link 
                     href="/support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

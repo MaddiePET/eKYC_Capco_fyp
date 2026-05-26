@@ -70,7 +70,7 @@ export default function PersonalNonMalaysianFaceQRCode() {
   const handleNext = () => {
     if (isVerified) {
       router.push(
-        `/personal/non-malaysian/phone?journeyId=${encodeURIComponent(journeyId || "")}`
+        `/personal/non-malaysian/otp?journeyId=${encodeURIComponent(journeyId || "")}`
       );
     }
   };
@@ -181,7 +181,7 @@ export default function PersonalNonMalaysianFaceQRCode() {
       </header>
 
       <main className="relative w-full max-w-2xl z-10">
-        <div className="mb-10 text-center">
+         <div className="mb-10 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Scan Your Face
           </h1>
@@ -200,8 +200,8 @@ export default function PersonalNonMalaysianFaceQRCode() {
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
-                isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                isVerified 
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -214,7 +214,7 @@ export default function PersonalNonMalaysianFaceQRCode() {
                     className={`rounded-xl transition-all duration-500 ${
                       isVerified || isFailed ? "opacity-30 blur-sm" : "opacity-100"
                     }`}
-                  />
+                  />                  
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                       <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
@@ -248,7 +248,7 @@ export default function PersonalNonMalaysianFaceQRCode() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
                 </span>
-
+                
                 Waiting for face scan...
               </div>
             )}

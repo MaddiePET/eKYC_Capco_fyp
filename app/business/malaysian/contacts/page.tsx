@@ -8,9 +8,9 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import Label from "@/components/form/Label";
 import { useFormData } from "@/context/FormContext";
 
-type Step = "details" | "email-otp" | "phone-otp";
+type Step = "details" | "email-otp";
 
-export default function BusinessMalaysianContact() {
+export default function BusinessMalaysianBusinessContacts() {
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
@@ -46,12 +46,11 @@ export default function BusinessMalaysianContact() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleSendOtp = async (nextStep: Step) => {
-  setIsLoading(true);
-  setMessage("");
-  setMessageType("");
+  const handleSendOtp = async () => {
+    setIsLoading(true);
+    setMessage("");
+    setMessageType("");
 
-  if (nextStep === "email-otp") {
     try {
       const res = await fetch("/api/otp/email/send", {
         method: "POST",
@@ -81,17 +80,7 @@ export default function BusinessMalaysianContact() {
     } finally {
       setIsLoading(false);
     }
-
-    return;
-  }
-
-  setTimeout(() => {
-    setIsLoading(false);
-    setStep(nextStep);
-    setOtp(["", "", "", "", "", ""]);
-    setTimer(60);
-  }, 800);
-};
+  };
 
   const handleVerifyOtp = async () => {
     const enteredOtp = otp.join("");
@@ -100,58 +89,47 @@ export default function BusinessMalaysianContact() {
     setMessage("");
     setMessageType("");
 
-    if (step === "email-otp") {
-      try {
-        const res = await fetch("/api/otp/email/verify", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            otp: enteredOtp,
-          }),
-        });
+    try {
+      const res = await fetch("/api/otp/email/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          otp: enteredOtp,
+        }),
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (!res.ok) {
-          setMessage(data.error || "Invalid OTP. Please try again.");
-          setMessageType("error");
-          return;
-        }
-
-        setStep("phone-otp");
-        setOtp(["", "", "", "", "", ""]);
-        setTimer(60);
-        setMessage("Email verified successfully. Please verify your phone number.");
-        setMessageType("success");
-      } catch (error) {
-        console.error("Verify business email OTP error:", error);
-        setMessage("Something went wrong while verifying the email OTP.");
+      if (!res.ok) {
+        setMessage(data.error || "Invalid OTP. Please try again.");
         setMessageType("error");
-      } finally {
         setIsLoading(false);
+        return;
       }
 
-      return;
-    }
+      setFormData((prev: any) => ({
+        ...prev,
+        businessContact: {
+          ...prev?.businessContact,
+          bus_email: email.trim(),
+          bus_email_verified: true,
+          bus_ph_no: phoneNumber.trim(),
+        },
+      }));
 
-    if (step === "phone-otp") {
       setTimeout(() => {
-        setFormData((prev: any) => ({
-          ...prev,
-          businessContact: {
-            ...prev?.businessContact,
-            bus_email: email.trim(),
-            bus_email_verified: true,
-            bus_ph_no: phoneNumber.trim(),
-          },
-        }));
-
         setIsLoading(false);
         router.push("/business/malaysian/supporting_documents");
-      }, 800);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Verify business email OTP error:", error);
+      setMessage("Something went wrong while verifying the email OTP.");
+      setMessageType("error");
+      setIsLoading(false);
     }
   };
 
@@ -190,33 +168,33 @@ export default function BusinessMalaysianContact() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#3D405B]/80" 
+          <path
+            className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
-          <path 
-            className="fill-[#3D405B]" 
+          
+          <path
+            className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
-        <svg 
-          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" 
-          preserveAspectRatio="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1440 320"
         >
-          <path 
-            className="fill-[#F0CA8E]" 
+          <path
+            className="fill-[#F0CA8E]"
             d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
           />
         </svg>
@@ -234,14 +212,14 @@ export default function BusinessMalaysianContact() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          
+
           Back
         </button>
 
         <Link 
           href="/" 
           className="flex items-center gap-2"
-        >
+        >     
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -263,18 +241,17 @@ export default function BusinessMalaysianContact() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Enter Your Business Contact Details
               </h1>
-              
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your business contact information to proceed with registration.
               </p>
             </div>
 
             {message && (
-              <div
-               className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                messageType === "success"
-                   ? "bg-green-50 border-green-200 text-green-600"
-                   : "bg-red-50 border-red-200 text-red-600"
+              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success" 
+                  ? "bg-green-50 border-green-200 text-green-600" 
+                  : "bg-red-50 border-red-200 text-red-600"
                 }`}
               >
                 {message}
@@ -284,7 +261,7 @@ export default function BusinessMalaysianContact() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleSendOtp("email-otp");
+                handleSendOtp();
               }}
             >
               <div className="space-y-6">
@@ -304,9 +281,11 @@ export default function BusinessMalaysianContact() {
                 </div>
 
                 <div>
-                  <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Business Phone Number<span className="text-red-500">*</span>
-                  </Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="block text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Business Phone Number<span className="text-red-500">*</span>
+                    </Label>
+                  </div>
 
                   <div className="flex mt-2">
                     <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
@@ -315,14 +294,12 @@ export default function BusinessMalaysianContact() {
                         alt="MY" 
                         className="w-5 h-auto rounded-sm shadow-sm" 
                       />
-
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
                     </div>
 
                     <input
                       type="tel"
-                      maxLength={10} 
-                      required
+                      disabled
                       placeholder="Enter your mobile number"
                       className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                       value={phoneNumber}
@@ -333,9 +310,9 @@ export default function BusinessMalaysianContact() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || !email || phoneNumber.length < 9}
+                  disabled={isLoading || !email} 
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                    !!email && phoneNumber.length >= 9
+                    !!email
                       ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
@@ -360,61 +337,15 @@ export default function BusinessMalaysianContact() {
             </div>
             
             {message && (
-              <div
-                className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                  messageType === "success"
-                    ? "bg-green-50 border-green-200 text-green-600"
-                    : "bg-red-50 border-red-200 text-red-600"
+              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success" 
+                  ? "bg-green-50 border-green-200 text-green-600" 
+                  : "bg-red-50 border-red-200 text-red-600"
                 }`}
               >
-              {message}
+                {message}
               </div>
             )}
-
-            <div className="space-y-6">
-              <div className="flex justify-center gap-2">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    ref={(el) => {otpInputs.current[index] = el;}}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(e.target.value, index)}
-                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  />
-                ))}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleVerifyOtp}
-                disabled={otp.join("").length < 6 || isLoading}
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  otp.join("").length === 6
-                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
-                }`}
-              >
-                {isLoading ? "Verifying..." : "Verify"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === "phone-otp" && (
-          <div className="animate-in fade-in duration-500">
-            <div className="mb-8 text-center">
-              <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-                Verify Your Business Phone Number
-              </h1>
-
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">+60 {phoneNumber}</span>. Please provide the code to proceed with the registration.
-              </p>
-            </div>
 
             <div className="space-y-6">
               <div className="flex justify-center gap-2">
@@ -477,7 +408,7 @@ export default function BusinessMalaysianContact() {
 
           <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
             <span>
-              Your business contact details are used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+              Standard rates may apply. Your business contact details are used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
             </span>
           </p>
         </div>

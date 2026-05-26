@@ -91,7 +91,8 @@ function PersonalMalaysianMobileMyKadCapture() {
           "Content-Type": "application/json" 
         },
         body: JSON.stringify({ 
-          journeyId, base64ImageString: fImg }),
+          journeyId, base64ImageString: fImg 
+        }),
       });
       
       const frontIdData = await frontIdRes.json();
@@ -109,6 +110,7 @@ function PersonalMalaysianMobileMyKadCapture() {
           isBack: false,
         }),
       });
+
       const frontDocData = await frontDocRes.json();
       if (frontDocData.status !== "success") {
         throw new Error(frontDocData.message || "not meeting quality standards");
@@ -124,6 +126,7 @@ function PersonalMalaysianMobileMyKadCapture() {
           isBack: true,
         }),
       });
+      
       const backDocData = await backDocRes.json();
 
       if (backDocData.status !== "success") {

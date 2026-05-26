@@ -70,7 +70,7 @@ export default function PersonalMalaysianFaceQRCode() {
   const handleNext = () => {
     if (isVerified) {
       router.push(
-        `/personal/malaysian/phone?journeyId=${encodeURIComponent(journeyId || "")}`
+        `/personal/malaysian/otp?journeyId=${encodeURIComponent(journeyId || "")}`
       );
     }
   };

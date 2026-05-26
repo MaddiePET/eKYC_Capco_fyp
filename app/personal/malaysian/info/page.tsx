@@ -38,9 +38,7 @@ export default function PersonalMalaysianInfo() {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
     if (!Number.isNaN(date.getTime())) {
-      const monthNames = [
-        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
-      ];
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",];
       return {
         day: date.getDate().toString().padStart(2, "0"),
         month: monthNames[date.getMonth()] || "",
@@ -55,9 +53,7 @@ export default function PersonalMalaysianInfo() {
       const day = Number(isoMatch[3]);
       return {
         day: day.toString().padStart(2, "0"),
-        month: [
-          "January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",
-        ][month - 1] || "",
+        month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",][month - 1] || "",
         year,
       };
     }
@@ -134,16 +130,8 @@ export default function PersonalMalaysianInfo() {
     }
 
     const queryParams = new URLSearchParams(window.location.search);
-
-    const idType =
-      queryParams.get("id_type") ||
-      localStorage.getItem("id_type") ||
-      "ic";
-
-    const idNum =
-      queryParams.get("id_num") ||
-      localStorage.getItem("id_num") ||
-      "";
+    const idType = queryParams.get("id_type") || localStorage.getItem("id_type") || "ic";
+    const idNum = queryParams.get("id_num") || localStorage.getItem("id_num") || "";
 
     if (idNum) {
       setFormData((prev) => ({
@@ -271,7 +259,7 @@ export default function PersonalMalaysianInfo() {
           type="button"
           onClick={() => 
             router.push(
-              `/personal/malaysian/email?journeyId=${encodeURIComponent(journeyId)}`
+              `/personal/malaysian/otp?journeyId=${encodeURIComponent(journeyId)}`
             )
           }          
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"

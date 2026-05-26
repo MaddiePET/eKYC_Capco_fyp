@@ -36,15 +36,15 @@ async function encryptSsmJsonFile() {
       const regNo = company.registration_number || "";
       return {
         ...company,
-        surrogate_key: hashLookup(regNo),                         // Unique Document Identifier (Primary Key)
-        registration_number: encrypt(regNo, "ssm"),             // The Real Locked Corporate Data
+        surrogate_key: hashLookup(regNo),                     
+        registration_number: encrypt(regNo, "ssm"),        
         business_name: encrypt(company.business_name || company.company_name, "ssm"),
         company_name: encrypt(company.company_name || company.business_name, "ssm"),
         bus_add1: encrypt(company.bus_add1, "ssm"),
         bus_addr2: encrypt(company.bus_addr2, "ssm"),
         bus_postcode: encrypt(company.bus_postcode, "ssm"),
         bus_state: encrypt(company.bus_state, "ssm"),
-        msic_code: company.msic_code || "", // Keeping operational code fields search indexed
+        msic_code: company.msic_code || "", 
         msic_name: company.msic_name || "",
         business_type: company.business_type || "",
         status: company.status || "Active"
@@ -57,11 +57,11 @@ async function encryptSsmJsonFile() {
       
       return {
         ...person,
-        surrogate_key: hashLookup(`${regNo}-${cleanedIC}`), // Unique Composite Person Document ID PK
-        company_surrogate_key: hashLookup(regNo),          // Links back to corporate index hash (relational)
-        ic_number_hash: hashLookup(cleanedIC),             // Search indexed hash matching government lookup
-        ic_number: encrypt(cleanedIC, "ssm"),           // The Real Locked Data
-        registration_number: encrypt(regNo, "ssm"),     // The Real Locked Corporate Data
+        surrogate_key: hashLookup(`${regNo}-${cleanedIC}`),
+        company_surrogate_key: hashLookup(regNo),          
+        ic_number_hash: hashLookup(cleanedIC),            
+        ic_number: encrypt(cleanedIC, "ssm"),           
+        registration_number: encrypt(regNo, "ssm"), 
         full_name: encrypt(person.full_name, "ssm"),
         date_of_birth: person.date_of_birth || "",
         role: person.role || "Partner",
@@ -82,7 +82,7 @@ async function encryptSsmJsonFile() {
     ];
 
     fs.writeFileSync(outputPath, JSON.stringify(finalOutputWrapper, null, 2));
-    console.log("Success! Encrypted file created at: ssm-db/SSM_json_encrypted.json 🔐");
+    console.log("Success! Encrypted file created at: ssm-db/SSM_json_encrypted.json");
 
   } catch (error) {
     console.error("Encryption migration routine failed:", error);

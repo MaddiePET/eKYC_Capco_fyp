@@ -99,7 +99,7 @@ export default function LogIn() {
     }
   };
 
-  const handleConfirmYes = () => {
+  const handleConfirm = () => {
     setStep("password");
   };
 
@@ -145,16 +145,15 @@ export default function LogIn() {
       }
 
       setAttempts(3);
-
       const data = await res.json();
 
       try {
-        localStorage.setItem("currentUsername", data.username);
-        localStorage.setItem("currentAccount", data.name);
-        localStorage.setItem("currentUserAvatar", data.avatar); 
-        localStorage.setItem("currentUserEmail", data.email);
+        localStorage.setItem("currentUsername", data.username || "");
+        localStorage.setItem("currentAccount", data.name || "");
+        localStorage.setItem("currentUserAvatar", data.avatar || ""); 
+        localStorage.setItem("currentUserEmail", data.email || "");
       } catch (storageError) {
-        console.warn("Avatar too large for localStorage.");
+        console.warn("Session allocation limits hit, pruning avatar storage.");
         localStorage.setItem("currentUserAvatar", "");
       }
 
@@ -205,7 +204,7 @@ export default function LogIn() {
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
         <button 
           type="button" 
           onClick={handleBack} 
@@ -228,7 +227,7 @@ export default function LogIn() {
             className="block dark:invert-0 invert" 
           />          
           
-          <h1 className="text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
         </Link>
@@ -344,7 +343,7 @@ export default function LogIn() {
             <div className="space-y-3">
               <button 
                 type="button" 
-                onClick={handleConfirmYes} 
+                onClick={handleConfirm} 
                 className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 Yes, that's me
