@@ -140,7 +140,6 @@ function PersonalMalaysianMobileFaceCapture() {
       });        
       setSuccess(true);
 
-
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }

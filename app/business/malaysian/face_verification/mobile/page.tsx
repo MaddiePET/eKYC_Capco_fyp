@@ -121,7 +121,7 @@ function BusinessMalaysianMobileFaceCapture() {
       );
 
       if (hasFailedFacialVerification) {
-        throw new Error ("Face does not match thr MyKad photo");
+        throw new Error ("Face does not match the MyKad photo");
       }
 
       await fetch("/api/ekyc/status" , {
