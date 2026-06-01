@@ -70,7 +70,12 @@ const AddressSection = ({
             value={addressData[type].streetAddress1}
             disabled={disabled}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              updateField(type, "streetAddress1", e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""))
+              updateField(type, "streetAddress1", e.target.value
+                .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+              )
             }
           />
         </div>
@@ -87,7 +92,11 @@ const AddressSection = ({
             value={addressData[type].streetAddress2}
             disabled={disabled}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              updateField(type, "streetAddress2", e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""))
+              updateField(type, "streetAddress2", e.target.value
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+              )
             }
           />
         </div>
@@ -123,7 +132,12 @@ const AddressSection = ({
               value={addressData[type].city}
               disabled={disabled}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                updateField(type, "city", e.target.value.replace(/[^a-zA-Z ]/g, ""))
+                updateField(type, "city", e.target.value
+                  .replace(/[^a-zA-Z ]/g, "")
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")
+                )
               }
             />
           </div>
@@ -142,7 +156,12 @@ const AddressSection = ({
               value={addressData[type].state}
               disabled={disabled}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                updateField(type, "state", e.target.value.replace(/[^a-zA-Z ]/g, ""))
+                updateField(type, "state", e.target.value
+                  .replace(/[^a-zA-Z ]/g, "")
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")
+                )
               }
             />
           </div>

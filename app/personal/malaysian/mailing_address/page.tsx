@@ -218,7 +218,11 @@ export default function PersonalMalaysianMailingAddress() {
                 onChange={(e) =>
                   setMailingData({
                     ...mailingData,
-                    add1: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                    add1: e.target.value
+                    .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" "),
                   })
                 }
               />
@@ -237,7 +241,11 @@ export default function PersonalMalaysianMailingAddress() {
                 onChange={(e) =>
                   setMailingData({
                     ...mailingData,
-                    add2: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                    add2: e.target.value
+                    .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" "),
                   })
                 }
               />
@@ -277,7 +285,11 @@ export default function PersonalMalaysianMailingAddress() {
                   onChange={(e) =>
                     setMailingData({
                       ...mailingData,
-                      state: e.target.value.replace(/[^a-zA-Z ]/g, ""),
+                      state: e.target.value
+                      .replace(/[^a-zA-Z ]/g, "")
+                      .split(" ")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
                     })
                   }
                 />

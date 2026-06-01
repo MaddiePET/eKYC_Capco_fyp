@@ -347,7 +347,7 @@ export default function PersonalMalaysianAccountCreation() {
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E]"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase()))}
                 />
               </div>
 
