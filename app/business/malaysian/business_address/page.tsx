@@ -372,7 +372,11 @@ export default function BusinessMalaysianBusinessAddress() {
                   onChange={(e) =>
                     setBusinessAddress({
                       ...businessAddress,
-                      addressLine1: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                      addressLine1: e.target.value
+                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                      .split(" ")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
                     })
                   }
                 />
@@ -391,7 +395,11 @@ export default function BusinessMalaysianBusinessAddress() {
                   onChange={(e) =>
                     setBusinessAddress({
                       ...businessAddress,
-                      addressLine2: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                      addressLine2: e.target.value
+                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                      .split(" ")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
                     })
                   }
                 />
@@ -431,7 +439,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     onChange={(e) =>
                       setBusinessAddress({
                         ...businessAddress,
-                        state: e.target.value.replace(/[^a-zA-Z ]/g, ""),
+                        state: e.target.value
+                        .replace(/[^a-zA-Z ]/g, "")
+                        .split(" ")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" "),
                       })
                     }
                   />
@@ -539,7 +551,11 @@ export default function BusinessMalaysianBusinessAddress() {
                   onChange={(e) =>
                     setMailingAddress({
                       ...mailingAddress,
-                      addressLine1: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                      addressLine1: e.target.value
+                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                      .split(" ")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
                     })
                   }
                 />
@@ -558,7 +574,11 @@ export default function BusinessMalaysianBusinessAddress() {
                   onChange={(e) =>
                     setMailingAddress({
                       ...mailingAddress,
-                      addressLine2: e.target.value.replace(/[^a-zA-Z0-9,.\-\/ ]/g, ""),
+                      addressLine2: e.target.value
+                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                      .split(" ")
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(" "),
                     })
                   }
                 />
@@ -598,7 +618,11 @@ export default function BusinessMalaysianBusinessAddress() {
                     onChange={(e) =>
                       setMailingAddress({
                         ...mailingAddress,
-                        state: e.target.value.replace(/[^a-zA-Z ]/g, ""),
+                        state: e.target.value
+                        .replace(/[^a-zA-Z ]/g, "")
+                        .split(" ")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" "),
                       })
                     }
                   />

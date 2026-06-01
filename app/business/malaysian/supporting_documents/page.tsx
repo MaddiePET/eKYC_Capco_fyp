@@ -193,7 +193,11 @@ export default function BusinessMalaysianSupportingDocuments() {
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   value={doc.name}
                   onChange={(e) => {
-                    const sanitized = e.target.value.replace(/[^a-zA-Z0-9_ ]/g, "");
+                    const sanitized = e.target.value
+                    .replace(/[^a-zA-Z0-9 ]/g, "")
+                    .split(" ")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ");
                     updateDoc(doc.id, { name: sanitized });
                   }}
                 />
