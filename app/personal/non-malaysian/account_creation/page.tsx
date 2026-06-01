@@ -354,7 +354,7 @@ export default function PersonalNonMalaysianAccountCreation() {
                 type="button" 
                 onClick={handleNext} 
                 disabled={username.length < 5 || !profilePreview} 
-                className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
+                className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200"
               >
                 Continue
               </button>
@@ -490,7 +490,7 @@ export default function PersonalNonMalaysianAccountCreation() {
                 type="button"
                 onClick={handleNext} 
                 disabled={!password || !securityPhrase || password !== confirmPassword || !isPasswordValid || isSubmitting}  
-                className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
+                className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200"
               >
                 {isSubmitting ? "Creating Account..." : "Create Account"}
               </button>
