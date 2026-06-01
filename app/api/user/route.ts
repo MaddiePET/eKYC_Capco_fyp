@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-
 import { decrypt } from "@/lib/cryptoSecurity";
+
+function parseAvatar(imgField: any): string {
+  if (!imgField) return "";
+
+  if (Buffer.isBuffer(imgField)) {
+    const rawString = imgField.toString("utf-8").trim();
+    if (
+      rawString.startsWith("http://") ||
+      rawString.startsWith("https://") ||
+      rawString.startsWith("data:image/")
+    ) {
+      return rawString;
+    }
+    return `data:image/jpeg;base64,${imgField.toString("base64")}`;
+  }
+
+  if (typeof imgField === "string") {
+    return imgField;
+  }
+
+  return "";
+}
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
@@ -27,7 +48,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           ELSE 'Personal'
         END AS type,
         u.branch,
-        CASE WHEN u.status = 'Malaysian' THEN true ELSE false END AS "isMalaysian"
+        CASE 
+          WHEN LOWER(c.id_type) IN ('ic', 'mykad', 'nric', 'malaysian') THEN true 
+            ELSE false 
+          END AS "isMalaysian"
       FROM banka."User" u
       JOIN banka."Customer" c
         ON u.cust_id = c.cust_id
@@ -43,18 +67,27 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const result = await pool.query(query, [username]);
 
-    const accounts = result.rows.map((row) => ({
-      id: row.id,
-      username: row.username,
-      name: row.username,
-      email: row.email ? decrypt(row.email, "banka") : "",
-      phone: row.phone ? decrypt(row.phone, "banka") : "",
-      avatar: row.avatar,
-      type: row.type,
-      isMalaysian: row.isMalaysian,
-    }));
+    const accounts = result.rows.map((row) => {
+      let resolvedAvatar = parseAvatar(row.avatar);
+      
+      if (!resolvedAvatar) {
+        resolvedAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(row.username || "User")}`;
+      }
+
+      return {
+        id: row.id,
+        username: row.username,
+        name: row.username,
+        email: row.email ? decrypt(row.email, "banka") : "",
+        phone: row.phone ? decrypt(row.phone, "banka") : "",
+        avatar: resolvedAvatar,
+        type: row.type,
+        isMalaysian: row.isMalaysian,
+      };
+    });
 
     return NextResponse.json(accounts);
+    
   } catch (error: any) {
     console.error("Error fetching user list details:", error);
     return NextResponse.json(
@@ -67,15 +100,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
-    const {
-      cust_id,
-      username,
-      password,
-      status,
-      sec_phrase,
-      branch,
-      img,
-    } = body;
+    const { cust_id, username, password, status, sec_phrase, branch, img } = body;
 
     if (!cust_id || !username || !password || !status || !sec_phrase || !branch) {
       return NextResponse.json(
@@ -85,36 +110,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const query = `
-      INSERT INTO banka."User" (
-        cust_id,
-        username,
-        password,
-        status,
-        sec_phrase,
-        branch,
-        img
-      )
+      INSERT INTO banka."User" (cust_id, username, password, status, sec_phrase, branch, img)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
 
-    const values = [
-      cust_id,
-      username,
-      password,
-      status,
-      sec_phrase,
-      branch,
-      img || null,
-    ];
-
+    const values = [cust_id, username, password, status, sec_phrase, branch, img || null];
     const result = await pool.query(query, values);
 
     return NextResponse.json(
-      {
-        message: "User account created successfully",
-        data: result.rows[0],
-      },
+      { message: "User account created successfully", data: result.rows[0] },
       { status: 201 }
     );
   } catch (error: any) {

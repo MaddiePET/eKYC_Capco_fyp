@@ -40,9 +40,10 @@ export default function PersonalNonMalaysianAccountCreation() {
   }, []);
 
   const avatarOptions: string[] = [
-    "https://api.dicebear.com/7.x/initials/svg?seed=JD&backgroundColor=3D405B",
-    "https://api.dicebear.com/7.x/initials/svg?seed=Business&backgroundColor=1e293b",
-    "https://api.dicebear.com/7.x/initials/svg?seed=DT&backgroundColor=0ea5e9",
+    "https://api.dicebear.com/7.x/initials/svg?seed=MP&backgroundColor=9B8EC7",
+    "https://api.dicebear.com/7.x/initials/svg?seed=AT&backgroundColor=FFD369",
+    "https://api.dicebear.com/7.x/initials/svg?seed=JD&backgroundColor=D51C39",
+    "https://api.dicebear.com/7.x/initials/svg?seed=GP&backgroundColor=F4ABC4",
   ];
 
   const phraseOptions: string[] = ["Whale Hello There!", "Sofa So Good..", "Donut Worry Be Happy!"];
