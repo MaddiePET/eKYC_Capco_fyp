@@ -131,7 +131,6 @@ export default function PersonalMalaysianAccountCreation() {
         user: {
           username,
           password,
-          status: "PENDING",
           img: profilePreview || null,
           sec_phrase: securityPhrase,
           branch: branchInfo.branch || "Main Branch",

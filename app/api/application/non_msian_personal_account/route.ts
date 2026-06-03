@@ -125,7 +125,6 @@ export async function POST(req: Request) {
     const cleanUser = {
       username: user.username || "",
       password: user.password,
-      status: user.status || "PENDING",
       sec_phrase: user.sec_phrase || "",
       branch: user.branch || "International Branch",
     };
@@ -269,15 +268,14 @@ export async function POST(req: Request) {
 
     const userResult = await client.query(
       `
-      INSERT INTO banka."User" (cust_id, username, password, status, img, sec_phrase, branch)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING user_id
       `,
       [
         custId,
         cleanUser.username,
         hashedPassword,
-        cleanUser.status,
         profileBuffer,
         cleanUser.sec_phrase,
         cleanUser.branch,
