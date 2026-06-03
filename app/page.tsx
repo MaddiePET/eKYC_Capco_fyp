@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import Label from "@/components/form/Label";
 import NavigationIcon from "@/icons/navigation.svg";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 
 export default function Home() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -12,6 +12,11 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentWord, setCurrentWord] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const words = ["Intelligent Automation", "Instant Verification", "Effortless Compliance"];
 
@@ -54,6 +59,42 @@ export default function Home() {
     { name: "Kavitha Ramanathan", text: "I love how DTCOB’s platform doesn’t require me to jump through hoops. It’s quick, secure, and easy.", stars: 5, image: "/images/user/user-06.jpg" },
     { name: "Siti Aishah", text: "The entire onboarding experience was smooth and user-friendly. I had no issues at all.", stars: 4, image: "/images/user/user-05.jpg" },
   ];
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormStatus(null);
+
+    if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
+      setFormStatus({ type: 'error', message: 'Please fill in all required fields.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: contactName, email: contactEmail, message: contactMessage }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message.');
+      }
+
+      setFormStatus({ type: 'success', message: data.message || 'Your message has been sent successfully.' });
+      setContactName('');
+      setContactEmail('');
+      setContactMessage('');
+    } catch (error) {
+      console.error('Contact form submit error:', error);
+      setFormStatus({ type: 'error', message: (error as Error).message || 'Failed to send message, please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] dark:bg-gray-950 text-gray-800 dark:text-white/95 selection:bg-[#F0CA8E] selection:text-[#3D405B]">
@@ -347,7 +388,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="lg:w-1/2">
               <h2 className="text-3xl font-extrabold mb-8 text-[#3D405B] dark:text-white">Contact DTCOB</h2>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
@@ -357,6 +398,8 @@ export default function Home() {
                       type="text" 
                       className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       placeholder="Enter your username" 
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
                       required 
                     />
                   </div>
@@ -368,6 +411,8 @@ export default function Home() {
                       type="email" 
                       className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       placeholder="Enter your email address" 
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
                       required 
                     />
                   </div>
@@ -379,13 +424,22 @@ export default function Home() {
                   <textarea 
                     className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 h-32 resize-none" 
                     placeholder="Describe message here"
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                    required
                   ></textarea>
                 </div>
+                {formStatus && (
+                  <p className={`text-sm font-medium ${formStatus.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {formStatus.message}
+                  </p>
+                )}
                 <button 
                   type="submit" 
-                  className="inline-flex items-center justify-center w-full px-6 py-2.5 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] shadow-lg hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d]"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center justify-center w-full px-6 py-2.5 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] shadow-lg hover:bg-[#2c2f42] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d]"
                 >
-                  Submit Form
+                  {isSubmitting ? 'Sending...' : 'Submit Form'}
                 </button>
               </form>
             </div>
@@ -399,7 +453,7 @@ export default function Home() {
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center justify-center sm:justify-start gap-2">
                   <svg className="w-4 h-4 text-[#F0CA8E]" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path></svg>
-                  <a href="mailto:info@company.com" className="hover:text-[#F0CA8E] font-medium transition-colors">dtcob@company.com</a>
+                  <a href="mailto:dtcobank@gmail.com" className="hover:text-[#F0CA8E] font-medium transition-colors">dtcobank@gmail.com</a>
                 </p>
               </div>
               <div className="relative w-full h-48 opacity-50 dark:opacity-30 -mt-20 pointer-events-none drop-shadow-sm">
