@@ -42,7 +42,7 @@ export default function PersonalMalaysianAccountCreation() {
   const avatarOptions: string[] = [
     "https://api.dicebear.com/7.x/initials/svg?seed=MP&backgroundColor=9B8EC7",
     "https://api.dicebear.com/7.x/initials/svg?seed=AT&backgroundColor=FFD369",
-    "https://api.dicebear.com/7.x/initials/svg?seed=JD&backgroundColor=D51C39",
+    "https://api.dicebear.com/7.x/initials/svg?seed=JD&backgroundColor=B7A3E3",
     "https://api.dicebear.com/7.x/initials/svg?seed=GP&backgroundColor=F4ABC4",
   ];
 

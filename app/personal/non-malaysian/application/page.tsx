@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
-
-interface Branch {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  address: string;
-}
+import { BRANCHES } from "@/data/branches";
+import { QRCodeSVG } from "qrcode.react";
+import { 
+  non_malaysian_occupations, 
+  non_malaysian_employment_types, 
+  non_malaysian_source_of_income, 
+  income_range 
+} from "@/data/application";
 
 interface CustomSelectProps {
   label: string;
@@ -26,14 +26,8 @@ interface DocEntry {
   id: number;
   name: string;
   preview: string | null;
-  fileBase64?:string
+  fileBase64?: string;
 }
-
-const BRANCHES: Branch[] = [
-  { id: "subang-jaya", name: "Subang Jaya Branch", lat: 3.0738, lng: 101.5883, address: "Jalan SS 15, Subang Jaya" },
-  { id: "kuala-lumpur", name: "KL Main Branch", lat: 3.1390, lng: 101.6869, address: "Bukit Bintang, Kuala Lumpur" },
-  { id: "petaling-jaya", name: "Petaling Jaya Branch", lat: 3.1073, lng: 101.6067, address: "Section 00, Petaling Jaya" },
-];
 
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2)) * 111;
@@ -61,7 +55,7 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
           value="" 
           disabled 
           className="text-gray-400"
-        >          
+        >
           Please Select
         </option>
 
@@ -103,7 +97,9 @@ export default function PersonalNonMalaysianApplication() {
     employmentType: "",
     sourceOfIncome: "",
     isOfAge: null as boolean | null,
+    userAge: null as number | null,
   });
+
   const [documents, setDocuments] = useState<DocEntry[]>([{ id: Date.now(), name: "", preview: null }]);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
@@ -119,6 +115,31 @@ export default function PersonalNonMalaysianApplication() {
 
   useEffect(() => {
     setMounted(true);
+
+    try {
+      const nonMsianInfoStr = localStorage.getItem("nonMsianInfo");
+      if (nonMsianInfoStr) {
+        const nonMsianInfo = JSON.parse(nonMsianInfoStr);
+        if (nonMsianInfo.dob) {
+          const dobDate = new Date(nonMsianInfo.dob);
+          const today = new Date();
+          let age = today.getFullYear() - dobDate.getFullYear();
+          const m = today.getMonth() - dobDate.getMonth();
+          
+          if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+            age--;
+          }
+          
+          if (age >= 18) {
+            setFormData(prev => ({ ...prev, isOfAge: true, userAge: age }));
+          } else {
+            setFormData(prev => ({ ...prev, isOfAge: false, userAge: age }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing nonMsianInfo for age verification:", error);
+    }
   }, []);
 
   const handleRequestLocation = () => {
@@ -321,11 +342,7 @@ export default function PersonalNonMalaysianApplication() {
                   required 
                   value={formData.occupation} 
                   onChange={(e) => setFormData({...formData, occupation: e.target.value})}
-                  options={[
-                    {value: "accounting", label: "Accounting"},
-                    {value: "student", label: "Student"},
-                    {value: "engineer", label: "Engineer"}
-                  ]}
+                  options={non_malaysian_occupations}
                 />
 
                 <CustomSelect 
@@ -333,10 +350,7 @@ export default function PersonalNonMalaysianApplication() {
                   required 
                   value={formData.incomeRange} 
                   onChange={(e) => setFormData({...formData, incomeRange: e.target.value})}
-                  options={[
-                    {value: "1-1000", label: "RM1 - RM1,000"},
-                    {value: "1001-3000", label: "RM1,001 - RM3,000"}
-                  ]}
+                  options={income_range}
                 />
 
                 <CustomSelect 
@@ -344,10 +358,7 @@ export default function PersonalNonMalaysianApplication() {
                   required 
                   value={formData.employmentType} 
                   onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
-                  options={[
-                    {value: "government", label: "Government"},
-                    {value: "private", label: "Private"}
-                  ]}
+                  options={non_malaysian_employment_types}
                 />
 
                 <CustomSelect 
@@ -355,42 +366,57 @@ export default function PersonalNonMalaysianApplication() {
                   required 
                   value={formData.sourceOfIncome} 
                   onChange={(e) => setFormData({...formData, sourceOfIncome: e.target.value})}
-                  options={[
-                    {value: "salary", label: "Salary"}
-                  ]}
+                  options={non_malaysian_source_of_income}
                 />
               </div>
 
               <div className="pt-4 text-center">
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                  Are you at least 18 years old?<span className="text-red-500">*</span>
+                  Are you 18 years or older?<span className="text-red-500">*</span>
                 </label>
 
-                <div className="flex justify-center gap-8 mt-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                    <input 
-                      type="radio" 
-                      name="age" 
-                      checked={formData.isOfAge === true} 
-                      className="w-4 h-4 accent-[#3D405B]" 
-                      onChange={() => setFormData({...formData, isOfAge: true})}
-                    /> 
-                      
-                    Yes
-                  </label>
-                    
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-white">
-                    <input 
-                      type="radio" 
-                      name="age" 
-                      className="w-4 h-4 accent-[#3D405B]" 
-                      checked={formData.isOfAge === false} 
-                      onChange={() => setFormData({...formData, isOfAge: false})}
-                    /> 
-                      
-                    No
-                  </label>
-                </div>
+                {formData.isOfAge === true ? (
+                  <div className="flex justify-center items-center gap-2 mt-2 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 py-2.5 px-4 rounded-lg inline-flex border border-green-200 dark:border-green-800/50">
+                    <svg 
+                      className="w-5 h-5" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
+                      />
+                    </svg>
+
+                    Verified: {formData.userAge} years old
+                  </div>
+                ) : formData.isOfAge === false ? (
+                  <div className="flex justify-center items-center gap-2 mt-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 py-2.5 px-4 rounded-lg inline-flex border border-red-200 dark:border-red-800/50">
+                    <svg 
+                      className="w-5 h-5" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                      />
+                    </svg>
+
+                    You are {formData.userAge} years old. You must be at least 18 to apply.
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center gap-2 mt-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 py-2.5 px-4 rounded-lg inline-flex border border-gray-200 dark:border-gray-700">
+                    <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-gray-700 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
+                    Checking eligibility...
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 flex flex-col items-center">
