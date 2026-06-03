@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { hashPassword } from "@/scripts/hashpw";
 import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
+import { sendAccountConfirmationEmail } from "@/lib/sendAccountConfirmationEmail";
 
 export const runtime = "nodejs";
 
@@ -368,6 +369,17 @@ export async function POST(req: Request) {
       );
 
     await client.query("COMMIT");
+    
+    try {
+      await sendAccountConfirmationEmail({
+        to: contactInfo.email || personalInfo.email,
+        fullName: customerFullName,
+        accountType: "Malaysian Business Current Account",
+        accountNo,
+    });
+} catch (emailError) {
+  console.error("Confirmation email failed:", emailError);
+}
 
     return NextResponse.json(
       {
