@@ -6,14 +6,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
-
-interface Branch {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  address: string;
-}
+import { BRANCHES } from "@/data/branches";
 
 interface Address {
   addressLine1: string;
@@ -27,30 +20,6 @@ interface UserLocation {
   lat: number;
   lng: number;
 }
-
-const BRANCHES: Branch[] = [
-  {
-    id: "subang-jaya",
-    name: "Subang Jaya Branch",
-    lat: 3.0738,
-    lng: 101.5883,
-    address: "Jalan SS 15, Subang Jaya",
-  },
-  {
-    id: "kuala-lumpur",
-    name: "KL Main Branch",
-    lat: 3.139,
-    lng: 101.6869,
-    address: "Bukit Bintang, Kuala Lumpur",
-  },
-  {
-    id: "petaling-jaya",
-    name: "Petaling Jaya Branch",
-    lat: 3.1073,
-    lng: 101.6067,
-    address: "Section 00, Petaling Jaya",
-  },
-];
 
 export default function BusinessMalaysianBusinessAddress() {
   const router = useRouter();
