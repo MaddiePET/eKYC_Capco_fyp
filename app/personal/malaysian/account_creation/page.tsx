@@ -26,6 +26,8 @@ export default function PersonalMalaysianAccountCreation() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
+  const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,6 +151,14 @@ export default function PersonalMalaysianAccountCreation() {
 
       const result = await response.json();
       if (!response.ok) {
+        if (response.status ===409) {
+          setDuplicateAccountMessage(
+            result.error || "You already have a savings account with us. Please log in to continue. "
+          );
+          setDuplicateAccountPopup(true)
+          return;
+        }
+
         throw new Error(result.error || "Failed to complete account registration.");
       }
 
@@ -192,6 +202,31 @@ export default function PersonalMalaysianAccountCreation() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {duplicateAccountPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+         <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl dark:bg-gray-900">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-100 text-2xl font-bold text-yellow-600">
+            !
+          </div>
+
+         <h2 className="mb-2 text-lg font-bold text-gray-800 dark:text-white">
+           Savings Account Already Exists
+         </h2>
+
+         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+           {duplicateAccountMessage}
+         </p>
+
+         <button
+           type="button"
+           onClick={() => router.push("/login")}
+           className="w-full rounded-lg bg-[#3D405B] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#2c2f42]"
+         >
+           Go to Login
+         </button>
+       </div>
+    </div>
+  )}
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"

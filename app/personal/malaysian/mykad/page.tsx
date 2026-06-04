@@ -15,6 +15,37 @@ export default function PersonalMalaysianMyKadQRCode() {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
+  const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
+
+
+  const checkExistingSavingsAccount = async (idNum: string) => {
+  const response = await fetch("/api/application/check_existing_savings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id_num: idNum,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (response.status === 409) {
+    setDuplicateAccountMessage(
+      result.error || "You already have a savings account with us. Please log in to continue."
+    );
+    setDuplicateAccountPopup(true);
+    return true;
+  }
+
+  if (!response.ok) {
+    throw new Error(result.error || "Failed to check existing savings account.");
+  }
+
+  return false;
+};
 
   useEffect(() => {
     const jId = localStorage.getItem("journeyId") || "";
@@ -47,6 +78,21 @@ export default function PersonalMalaysianMyKadQRCode() {
         const data = await res.json();
 
         if (data.status === "verified") {
+          const detectedIdNum = data.id_num;
+
+          if (!detectedIdNum) {
+            console.error("IC number missing from verified eKYC status.");
+            setIsFailed(true);
+            clearInterval(checkStatus);
+            return;
+          }
+
+          const hasExistingSavings = await checkExistingSavingsAccount(detectedIdNum);
+
+          if (hasExistingSavings) {
+            clearInterval(checkStatus);
+            return;
+          }
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "failed") {
@@ -71,6 +117,31 @@ export default function PersonalMalaysianMyKadQRCode() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {duplicateAccountPopup && (
+       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">
+         <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+           !
+         </div>
+
+         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+           Savings Account Already Exists
+         </h2>
+
+         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+           {duplicateAccountMessage}
+         </p>
+
+        <button
+          type="button"
+          onClick={() => router.push("/login")}
+          className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
+        >
+          Go to Login
+        </button>
+      </div>
+    </div>
+   )}
       {isFailed && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">

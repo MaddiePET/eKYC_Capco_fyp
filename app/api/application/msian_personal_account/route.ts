@@ -198,6 +198,30 @@ export async function POST(req: Request) {
   if (existingCustomerResult.rows.length > 0) {
     custId = existingCustomerResult.rows[0].cust_id;
 
+
+  const existingSavingsResult = await client.query(
+    `
+    SELECT s.account_no
+    FROM banka."Savings_account" s
+    JOIN banka."User" u ON s.user_id = u.user_id
+    WHERE u.cust_id = $1
+    LIMIT 1
+    `,
+    [custId]
+  );
+
+  if (existingSavingsResult.rows.length > 0) {
+    await client.query("ROLLBACK");
+
+    return NextResponse.json(
+      {
+        error: "You already have a savings account with us. Please log in to continue.",
+        redirectTo: "/login",
+      },
+      {status: 409 }
+    )
+  }
+
     await client.query(
       `
       UPDATE banka."Customer"
