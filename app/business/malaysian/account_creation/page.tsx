@@ -9,7 +9,7 @@ import Label from "@/components/form/Label";
 import EyeIcon from "@/icons/eye.svg";
 import EyeCloseIcon from "@/icons/eye-close.svg";
 import { loadFromStorage } from "@/lib/storage";
-import { useFormData, MasterFormData } from "@/context/FormContext";
+import { useFormData } from "@/context/FormContext";
 
 type Step = "profile" | "password" | "pending";
 
@@ -28,6 +28,10 @@ export default function BusinessMalaysianAccountCreation() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  
+  // Real-time username verification states
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [isValidatingUsername, setIsValidatingUsername] = useState(false);
 
   const { formData, setFormData } = useFormData();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -208,9 +212,26 @@ export default function BusinessMalaysianAccountCreation() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === "profile") {
-      setStep("password");
+      try {
+        setIsValidatingUsername(true);
+        setUsernameError(null);
+        
+        const res = await fetch(`/api/auth/check_username?username=${encodeURIComponent(username.trim())}`);
+        const data = await res.json();
+        
+        if (data.exists) {
+          setUsernameError("This username is already taken. Please choose another.");
+          return;
+        }
+        
+        setStep("password");
+      } catch (err) {
+        setUsernameError("Unable to verify username availability. Please try again.");
+      } finally {
+        setIsValidatingUsername(false);
+      }
     } else if (step === "password") {
       handleFinalSubmit();
     }
@@ -230,6 +251,7 @@ export default function BusinessMalaysianAccountCreation() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {/* Background SVGs block */}
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
@@ -241,7 +263,6 @@ export default function BusinessMalaysianAccountCreation() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -270,14 +291,11 @@ export default function BusinessMalaysianAccountCreation() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          
+
           Back
         </button>
 
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -299,7 +317,7 @@ export default function BusinessMalaysianAccountCreation() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Create Your Account
               </h1>
-              
+
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Choose your profile photo and username to get started.
               </p>
@@ -320,7 +338,6 @@ export default function BusinessMalaysianAccountCreation() {
                         className="w-full h-full object-cover" 
                         alt="Profile" 
                       />
-
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
                       </div>
@@ -340,7 +357,6 @@ export default function BusinessMalaysianAccountCreation() {
                           d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" 
                         />
                       </svg>
-
                       <span className="text-[10px] text-gray-400 uppercase font-bold">Upload</span>
                     </div>
                   )}
@@ -374,6 +390,12 @@ export default function BusinessMalaysianAccountCreation() {
                   ))}
                 </div>
               </div>
+              
+              {usernameError && (
+                <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                  {usernameError}
+                </div>
+              )}
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -384,17 +406,20 @@ export default function BusinessMalaysianAccountCreation() {
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E]"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase()))}
+                  onChange={(e) => {
+                    setUsernameError(null);
+                    setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase()));
+                  }}
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={username.length < 5 || !profilePreview}
+                disabled={username.length < 5 || !profilePreview || isValidatingUsername}
                 className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
               >
-                Continue
+                {isValidatingUsername ? "Checking Availability..." : "Continue"}
               </button>            
             </div>
           </div>
@@ -581,8 +606,8 @@ export default function BusinessMalaysianAccountCreation() {
         {step !== "pending" && (
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+              
               <Link 
                 href="/support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

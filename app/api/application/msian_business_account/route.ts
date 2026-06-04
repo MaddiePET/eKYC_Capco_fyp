@@ -189,16 +189,16 @@ export async function POST(req: Request) {
 
     const usernameCheck = await client.query(
       `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
-      [targetUsername]
+      [targetUsername.trim()]
     );
 
     if (usernameCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: "This user profile identifier username is already registered." },
+        { error: "This username is already taken. Please choose another." },
         { status: 400 }
       );
     }
-
+    
     const rawPassword = account.password;
     if (!rawPassword) throw new Error("Account secure profile validation password parameter is missing.");
 

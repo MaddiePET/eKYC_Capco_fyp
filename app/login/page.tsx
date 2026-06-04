@@ -247,7 +247,7 @@ export default function LogIn() {
             </div>
             
             {usernameError && (
-              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 {usernameError}
               </div>
             )}

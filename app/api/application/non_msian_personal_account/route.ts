@@ -255,6 +255,18 @@ export async function POST(req: Request) {
       throw new Error("Password is missing");
     }
 
+    const usernameCheck = await client.query(
+      `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
+      [cleanUser.username.trim()]
+    );
+
+    if (usernameCheck.rows.length > 0) {
+      return NextResponse.json(
+        { error: "This username is already taken. Please choose another." },
+        { status: 400 }
+      );
+    }
+
     const hashedPassword = await hashPassword(cleanUser.password);
 
     let profileBuffer: Buffer | null = null;

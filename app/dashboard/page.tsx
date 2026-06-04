@@ -158,8 +158,8 @@ export default function Dashboard() {
 
     if (username || name) {
       setUserProfile({
-        name: username || name || "Unknown User",
-        email: email || "user@example.com",
+        name: username || name || "",
+        email: email || "",
         avatar: localAvatar || "",
       });
     }
@@ -392,6 +392,7 @@ export default function Dashboard() {
                 >
                   <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
                 </button>
+                
                 <Dropdown 
                   isOpen={isTargetDropdownOpen} 
                   onClose={() => setIsTargetDropdownOpen(false)} 
@@ -734,13 +735,21 @@ export default function Dashboard() {
                   <tr key={order.id}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded-full shrink-0 border border-gray-100 dark:border-gray-700">
-                          <img 
-                            src={userProfile.avatar} 
-                            alt={userProfile.name} 
-                            className="w-full h-full object-cover" 
-                            onError={(e) => { (e.target as HTMLImageElement).src = ""; }} 
-                          />
+                        <div className="h-10 w-10 overflow-hidden rounded-full shrink-0 border border-gray-100 dark:border-gray-700 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                          {userProfile.avatar ? (
+                            <img 
+                              src={userProfile.avatar} 
+                              alt={userProfile.name} 
+                              className="w-full h-full object-cover" 
+                              onError={() => { 
+                                setUserProfile((prev) => ({ ...prev, avatar: "" }));
+                              }} 
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+                              {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "?"}
+                            </span>
+                          )}
                         </div>
 
                         <div>
@@ -754,7 +763,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </td>
-                    
+
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{order.product}</td>
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{order.price}</td>
                     <td className="px-5 py-4">
