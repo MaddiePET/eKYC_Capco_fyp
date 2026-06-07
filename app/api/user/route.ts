@@ -44,8 +44,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         c.ph_no AS phone,
         u.img AS avatar,
         CASE 
-          WHEN ca.account_no IS NOT NULL THEN 'Current'
-          ELSE 'Personal'
+          WHEN ca.account_no IS NOT NULL THEN 'Current Account'
+          ELSE 'Savings Account'
         END AS type,
         u.branch,
         CASE 

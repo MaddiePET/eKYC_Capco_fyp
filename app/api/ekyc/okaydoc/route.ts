@@ -21,6 +21,7 @@ export async function POST(req: Request) {
         halfSizeImage: base64Image,
         fullSizeImage: body.fullSizeImage || ""
       };
+
       console.log("OkayDoc passport verification - journeyId:", journeyId);
     } else if (isBack) {
       okaydocBody = {
@@ -30,7 +31,8 @@ export async function POST(req: Request) {
         version: "2",
         docType: "mykad_back"
       };
-      console.log("OkayDoc MyKad BACK verification - journeyId:", journeyId);
+
+      console.log("OkayDoc MyKad verification - journeyId:", journeyId);
     } else {
       okaydocBody = {
         journeyId: journeyId,
@@ -51,6 +53,7 @@ export async function POST(req: Request) {
         islamFieldTamperingDetection:"true",
         qualityCheckDetection:"true"
       };
+      
       console.log("OkayDoc MyKad verification - journeyId:", journeyId);
     } 
 

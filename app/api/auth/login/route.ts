@@ -78,7 +78,6 @@ export async function POST(req: Request) {
       email: plainEmail,
       avatar: avatarBase64,
     });
-
   } catch (err) {
     console.error("CRITICAL EXCEPTION IN LOGIN HANDLER:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

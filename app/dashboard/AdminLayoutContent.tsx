@@ -26,7 +26,7 @@ type Account = {
   email: string;
   phone: string;
   avatar: string;
-  type: "Personal" | "Business";
+  type: "Savings Account" | "Current Account";
   isMalaysian: boolean;
 };
 
@@ -57,7 +57,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [loggedInUser, setLoggedInUser] = useState<{name: string, avatar: string, email: string} | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<"Personal" | "Business" | null>(null);
+  const [selectedType, setSelectedType] = useState<"Savings Account" | "Current Account" | null>(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [otpStep, setOtpStep] = useState(1);
@@ -66,8 +66,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [otpDigits, setOtpDigits] = useState(new Array(6).fill(""));
   const [otpTimer, setOtpTimer] = useState(0);
   const [targetAccount, setTargetAccount] = useState("");
-  const [canCreatePersonal, setCanCreatePersonal] = useState(true);
-  const [canCreateBusiness, setCanCreateBusiness] = useState(true);
+  const [canCreateSavings, setCanCreateSavings] = useState(true);
+  const [canCreateCurrent, setCanCreateCurrent] = useState(true);
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [currentUsername, setCurrentUsername] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,7 +93,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
         name: loggedInUser.name,
         email: loggedInUser.email,
         avatar: loggedInUser.avatar, 
-        type: "Personal" as const,
+        type: "Savings Account" as const,
         isMalaysian: false,
         phone: ""
       };
@@ -109,7 +109,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
     return navItems.filter((item) => {
       if (item.name === "Add Account") {
-        if (activeAccount?.type === "Personal" && !activeAccount?.isMalaysian) {
+        if (activeAccount?.type === "Savings Account" && !activeAccount?.isMalaysian) {
           return false; 
         }
       }
@@ -219,17 +219,17 @@ export default function AdminLayoutContent({ children }: { children: React.React
   }, [isOtpModalOpen, otpStep]);
 
   const handleOpenAccountModal = () => {
-    if (activeAccount?.type === "Personal") {
+    if (activeAccount?.type === "Savings Account") {
       if (activeAccount.isMalaysian) {
-        setCanCreatePersonal(false);
-        setCanCreateBusiness(true);
+        setCanCreateSavings(false);
+        setCanCreateCurrent(true);
       } else {
-        setCanCreatePersonal(false);
-        setCanCreateBusiness(false);
+        setCanCreateSavings(false);
+        setCanCreateCurrent(false);
       }
     } else {
-      setCanCreatePersonal(true);
-      setCanCreateBusiness(true);
+      setCanCreateSavings(true);
+      setCanCreateCurrent(true);
     }
     setModalStep(1);
     setSelectedType(null);
@@ -237,10 +237,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
   };
 
   const handleConfirmCreation = () => {
-    if (selectedType === "Business") {
-      router.push("/business/malaysian/info");
+    if (selectedType === "Current Account") {
+      router.push("/current/malaysian/info");
     } else {
-      router.push("/personal/malaysian/info");
+      router.push("/savings/malaysian/info");
     }
     setIsModalOpen(false);
   };
@@ -860,53 +860,53 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 </p>
               </div>
 
-              <div className={`grid grid-cols-1 gap-6 ${(canCreateBusiness && canCreatePersonal) ? 'sm:grid-cols-2' : 'max-w-xs mx-auto'}`}>
-                {canCreatePersonal && (
+              <div className={`grid grid-cols-1 gap-6 ${(canCreateCurrent && canCreateSavings) ? 'sm:grid-cols-2' : 'max-w-xs mx-auto'}`}>
+                {canCreateSavings && (
                   <div 
-                    onClick={() => setSelectedType("Personal")} 
+                    onClick={() => setSelectedType("Savings Account")} 
                     className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                      selectedType === "Personal" 
+                      selectedType === "Savings Account" 
                         ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
                         : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
                     }`}
                   >
-                    {selectedType === "Personal" && (
+                    {selectedType === "Savings Account" && (
                       <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                     )}
-                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Personal" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
-                      Personal Account
+                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Savings Account" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
+                      Savings Account
                     </h3>
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      Create a new personal banking account
+                      Create a new savings account
                     </p>
                   </div>
                 )}
 
-                {canCreateBusiness && (
+                {canCreateCurrent && (
                   <div 
-                    onClick={() => setSelectedType("Business")} 
+                    onClick={() => setSelectedType("Current Account")} 
                     className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                      selectedType === "Business" 
+                      selectedType === "Current Account" 
                         ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
                         : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
                     }`}
                   >
-                    {selectedType === "Business" && (
+                    {selectedType === "Current Account" && (
                       <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                     )}
-                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Business" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
-                      Business Account
+                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Current Account" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
+                      Current Account
                     </h3>
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      Create a new business banking account
+                      Create a new business current account
                     </p>
                   </div>
                 )}
@@ -939,7 +939,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
               
               <div className="relative p-4 mb-8 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm max-w-xs mx-auto border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                  {selectedType} Account
+                  {selectedType}
                 </p>
                 <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Selected Account Type

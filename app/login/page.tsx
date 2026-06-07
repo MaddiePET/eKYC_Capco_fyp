@@ -270,7 +270,7 @@ export default function LogIn() {
                       type="text"
                       value={username}
                       onChange={(e) => {
-                        const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
+                        const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
                         checkUsername(cleanedValue);

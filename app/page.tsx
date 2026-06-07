@@ -219,8 +219,8 @@ export default function Home() {
                 </span>
               </h2>
               <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-                <Link href="/personal/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition-all rounded-lg bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-1 active:scale-95">Personal Account</Link>
-                <Link href="/business/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold transition-all bg-transparent border-2 rounded-lg text-[#F0CA8E] border-[#F0CA8E] hover:bg-[#F0CA8E]/10 hover:-translate-y-1 active:scale-95">Business Account</Link>
+                <Link href="/savings/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition-all rounded-lg bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-1 active:scale-95">Savings Account</Link>
+                <Link href="/current/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold transition-all bg-transparent border-2 rounded-lg text-[#F0CA8E] border-[#F0CA8E] hover:bg-[#F0CA8E]/10 hover:-translate-y-1 active:scale-95">Current Account</Link>
               </div>
             </div>
             <div className="lg:w-1/2 w-full group">

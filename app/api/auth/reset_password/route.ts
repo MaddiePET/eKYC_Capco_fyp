@@ -19,28 +19,28 @@ export async function POST(req: Request) {
 
     const userResult = await client.query(
       `SELECT u.user_id, c.id_num_hash 
-       FROM banka."User" u
-       JOIN banka."Customer" c ON u.cust_id = c.cust_id
-       WHERE LOWER(u.username) = LOWER($1)`,
+      FROM banka."User" u
+      JOIN banka."Customer" c ON u.cust_id = c.cust_id
+      WHERE LOWER(u.username) = LOWER($1)`,
       [username]
     );
 
     if (userResult.rows.length === 0) {
-      return NextResponse.json({ error: "Username or ID number not found. Please try again." }, { status: 400 });
+      return NextResponse.json({ error: "Username and/or MyKad/Passport number not found. Please try again." }, { status: 400 });
     }
 
     const user = userResult.rows[0];
 
     if (action === "verify") {
       if (!idNumber) {
-        return NextResponse.json({ error: "ID Number is required." }, { status: 400 });
+        return NextResponse.json({ error: "MyKad/Passport Number is required." }, { status: 400 });
       }
 
       const cleanIdNum = String(idNumber).replace(/[-\s]/g, "").toUpperCase();
       const inputIdHash = hashLookup(cleanIdNum);
 
       if (user.id_num_hash !== inputIdHash) {
-        return NextResponse.json({ error: "Username or ID number not found. Please try again." }, { status: 400 });
+        return NextResponse.json({ error: "Username and/or MyKad/Passport number not found. Please try again." }, { status: 400 });
       }
 
       return NextResponse.json({ message: "Identity verified successfully." }, { status: 200 });
@@ -55,18 +55,15 @@ export async function POST(req: Request) {
 
       await client.query(
         `UPDATE banka."User" 
-         SET password = $1 
-         WHERE LOWER(username) = LOWER($2)`,
+        SET password = $1 
+        WHERE LOWER(username) = LOWER($2)`,
         [hashedPassword, username]
       );
 
       await client.query("COMMIT");
-      
       return NextResponse.json({ message: "Password updated successfully." }, { status: 200 });
     }
-
     return NextResponse.json({ error: "Invalid action." }, { status: 400 });
-
   } catch (error: any) {
     await client.query("ROLLBACK");
     console.error("Password reset error:", error);

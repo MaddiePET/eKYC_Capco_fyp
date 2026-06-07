@@ -27,7 +27,6 @@ export default function ResetPassword() {
     setMounted(true);
   }, []);
 
-  // Shared Password Validation Logic
   const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(newPassword);
   const score = (newPassword.length >= 8 ? 1 : 0) + (/[0-9]/.test(newPassword) ? 1 : 0) + (/[A-Z]/.test(newPassword) ? 1 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 1 : 0);
 
@@ -152,12 +151,14 @@ export default function ResetPassword() {
             className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
           >
             <ChevronLeftIcon className="w-5 h-5" />
+
             Back
           </button>
         )}
+
         <Link 
-            href="/" 
-            className={`flex items-center gap-2 ${step === 'success' ? 'mx-auto' : ''}`}
+          href="/" 
+          className={`flex items-center gap-2 ${step === 'success' ? 'mx-auto' : ''}`}
         >
           <Image    
             src="/images/logo/logo-light.svg" 
@@ -165,16 +166,15 @@ export default function ResetPassword() {
             width={40} 
             height={40} 
             className="block dark:invert-0 invert" 
-            />          
+          />          
 
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
-        </h1>
+          </h1>
         </Link>
       </div>
 
-      <div className="relative w-full max-w-md z-10">
-        
+      <div className="relative w-full max-w-md z-10"> 
         {step === "verify" && (
           <div className="animate-in fade-in duration-500">
             <div className="mb-8 text-center">
@@ -183,7 +183,7 @@ export default function ResetPassword() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Please enter your username and registered ID number to verify your identity.
+                Please enter your username and registered MyKad / Passport number to verify your identity.
               </p>
             </div>
             
@@ -196,14 +196,14 @@ export default function ResetPassword() {
             <form onSubmit={handleVerify} className="space-y-5">
               <div>
                 <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                    Username<span className="text-error-500">*</span>
+                  Username<span className="text-error-500">*</span>
                 </Label>
 
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase()))}
                   required
                 />
               </div>
@@ -215,9 +215,21 @@ export default function ResetPassword() {
 
                 <input
                   className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
-                  placeholder="Enter your ID number"
+                  placeholder="Enter your MyKad / Passport number"
                   value={idNumber}
-                  onChange={(e) => setIdNumber(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setIdNumber("");
+                      return;
+                    }
+                    const firstChar = value.charAt(0).toUpperCase();
+                    const secondChar = value.charAt(1).toUpperCase();
+                    if (/[A-Z]/.test(firstChar + secondChar)) {
+                      const rest = value.slice(2).replace(/[^0-9]/g, "");
+                      setIdNumber(firstChar + secondChar + rest);
+                    }
+                  }}
                   required
                 />
               </div>
@@ -252,13 +264,12 @@ export default function ResetPassword() {
             )}
 
             <form 
-                onSubmit={handleReset} 
-                className="space-y-5"
+              onSubmit={handleReset} 
+              className="space-y-5"
             >
               <div>
-
                 <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                    New Password<span className="text-error-500">*</span>
+                  New Password<span className="text-error-500">*</span>
                 </Label>
 
                 <div className="relative">
@@ -274,7 +285,7 @@ export default function ResetPassword() {
                   <span 
                     onClick={() => setShowPassword(!showPassword)} 
                     className="absolute z-30 cursor-pointer -translate-y-1/2 right-4 top-1/2"
-                >
+                  >
                     {showPassword ? <EyeIcon className="w-5 h-5 fill-gray-500" /> : <EyeCloseIcon className="w-5 h-5 fill-gray-500" />}
                   </span>
                 </div>
@@ -299,7 +310,6 @@ export default function ResetPassword() {
                   </div>
                 )}
 
-                {/* Password strength meter */}
                 <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full mt-3 overflow-hidden">
                   <div className={`h-full transition-all duration-500 ${
                       newPassword.length === 0 ? 'w-0' :
@@ -353,12 +363,12 @@ export default function ResetPassword() {
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
-                >
+              >
                 <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M5 13l4 4L19 7"
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  d="M5 13l4 4L19 7"
                 />
               </svg>
             </div>
@@ -379,23 +389,22 @@ export default function ResetPassword() {
             </button>
           </div>
         )}
-
       </div>
 
       <div className="mt-5 text-center">
-            <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+        <p className="text-sm font-normal">
+          <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
-              <Link 
-                href="/support" 
-                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-               >
-                Contact Support
-              </Link>
-            </p>
-          </div>
+          <Link 
+            href="/contact_support" 
+            className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          >
+            Contact Support
+          </Link>
+        </p>
+      </div>
 
-          <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
