@@ -37,58 +37,19 @@ export default function CurrentMalaysianAccountCreation() {
   useEffect(() => {
     setMounted(true);
     
-    if (step === "pending") return;
-
-    let emailToSet = "";
-
-    if (formData?.businessContact?.bus_email) {
-      emailToSet = formData.businessContact.bus_email;
-    } else if (formData?.personalInfo?.email) {
-      emailToSet = formData.personalInfo.email;
-    }
-
-    if (!emailToSet) {
-      try {
-        const storedBizContact = localStorage.getItem("businessContact");
-        if (storedBizContact) {
-          const parsed = JSON.parse(storedBizContact);
-          emailToSet = parsed.bus_email || parsed.email || "";
-        }
-      } catch (e) {
-        console.error("Failed to parse businessContact", e);
-      }
-    }
-
-    if (!emailToSet) {
-      try {
-        const storedContact = localStorage.getItem("contactInfo");
-        if (storedContact) {
-          const parsed = JSON.parse(storedContact);
-          emailToSet = parsed.email || parsed.email_address || "";
-        }
-      } catch (e) {
-        console.error("Failed to parse contactInfo", e);
-      }
-    }
-
-    if (!emailToSet) {
-      try {
-        const storedPersonal = localStorage.getItem("personalInfo");
-        if (storedPersonal) {
-          const parsed = JSON.parse(storedPersonal);
-          emailToSet = parsed.email || parsed.email_address || "";
-        }
-      } catch (e) {
-        console.error("Failed to parse personalInfo", e);
-      }
-    }
-
-    if (!emailToSet) {
-      emailToSet = localStorage.getItem("currentUserEmail") || "";
-    }
+    // Attempt to get contact info from local storage
+    const savedContactData = loadFromStorage("contactInfo", {} as any);
+    
+    // Fallback chain just like the personal page
+    const emailToSet = 
+      formData?.businessContact?.bus_email || 
+      formData?.personalInfo?.email || 
+      savedContactData?.email || 
+      savedContactData?.email_address || 
+      "";
       
     setUserEmail(emailToSet);
-  }, [formData, step]);
+  }, [formData]);
 
   const avatarOptions: string[] = [
     "https://api.dicebear.com/7.x/initials/svg?seed=MP&backgroundColor=9B8EC7",
@@ -127,31 +88,13 @@ export default function CurrentMalaysianAccountCreation() {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      let storedPersonalInfo = {} as any;
-      let storedContactInfo = {} as any;
-      let storedBusinessContact = {} as any;
-      let storedBusinessParticulars = {} as any;
-      let storedHomeAddress = {} as any;
-      let selectedBusiness = {} as any;
-      let ssmData = {} as any;
-
-      try {
-        storedPersonalInfo = JSON.parse(localStorage.getItem("personalInfo") || "{}");
-        storedContactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
-        storedBusinessContact = JSON.parse(localStorage.getItem("businessContact") || "{}");
-        storedBusinessParticulars = JSON.parse(localStorage.getItem("businessParticulars") || "{}");
-        storedHomeAddress = JSON.parse(localStorage.getItem("homeAddress") || "{}");
-        selectedBusiness = JSON.parse(localStorage.getItem("selectedBusiness") || "{}");
-        ssmData = JSON.parse(localStorage.getItem("ssmCompanyData") || localStorage.getItem("companyData") || "{}");
-      } catch (e) {
-        storedPersonalInfo = loadFromStorage("personalInfo", {} as any);
-        storedContactInfo = loadFromStorage("contactInfo", {} as any);
-        storedBusinessContact = loadFromStorage("businessContact", {} as any); 
-        storedBusinessParticulars = loadFromStorage("businessParticulars", {} as any);
-        storedHomeAddress = loadFromStorage("homeAddress", {} as any);
-        selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
-        ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
-      }
+      const storedPersonalInfo = loadFromStorage("personalInfo", {} as any);
+      const storedContactInfo = loadFromStorage("contactInfo", {} as any);
+      const storedBusinessContact = loadFromStorage("businessContact", {} as any); 
+      const storedBusinessParticulars = loadFromStorage("businessParticulars", {} as any);
+      const storedHomeAddress = loadFromStorage("homeAddress", {} as any);
+      const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
+      const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
 
       const normalizedBusiness = {
         registration_number:
@@ -196,29 +139,28 @@ export default function CurrentMalaysianAccountCreation() {
       const postcode = rawBusAddr.postcode || storedBiz.postcode || storedBusinessParticulars.bus_postcode || ssmData.bus_postcode || "";
       const state = rawBusAddr.state || storedBiz.state || storedBusinessParticulars.bus_state || ssmData.bus_state || "";
       const country = rawBusAddr.country || storedBiz.country || ssmData.country || "Malaysia";
+      
+      const storedMode = localStorage.getItem("mode");
+      const storedCurrentCustId = localStorage.getItem("currentCustId");
 
-      const finalResolvedEmail = 
-        formData.businessContact?.bus_email || 
-        storedBusinessContact.bus_email || 
-        storedBusinessContact.email || 
-        storedContactInfo.email || 
-        storedContactInfo.email_address || 
-        storedPersonalInfo.email || 
-        storedPersonalInfo.email_address || 
-        userEmail || 
-        localStorage.getItem("currentUserEmail") || 
-        "";
+      const applicationMode =
+        formData.applicationMode ||
+        storedMode ||
+        (storedCurrentCustId ? "existing_customer" : "new_user");
+
+      console.log("ACCOUNT CREATION applicationMode:", applicationMode);
+      console.log("ACCOUNT CREATION storedMode:", storedMode);
+      console.log("ACCOUNT CREATION currentCustId:", storedCurrentCustId);
 
       const finalPayload = {
         journeyId: formData.journeyId || localStorage.getItem("journeyId") || "",
+        applicationMode,
+
         personalInfo: {
           id_num: formData.idNum || storedPersonalInfo.id_num || storedPersonalInfo.idNumber || "",
           full_name: storedPersonalInfo.full_name || storedPersonalInfo.fullName || "",
           dob: storedPersonalInfo.dob || storedPersonalInfo.dateOfBirth || "",
           id_type: "IC",
-          gender: storedPersonalInfo.gender || "",
-          ph_no: storedPersonalInfo.ph_no || "",
-          email: finalResolvedEmail,
           streetAddress: storedHomeAddress.add_1 || storedHomeAddress.streetAddress || "",
           city: storedHomeAddress.add_2 || storedHomeAddress.city || "",
           postal: storedHomeAddress.postcode || storedHomeAddress.postal || "",
@@ -230,16 +172,16 @@ export default function CurrentMalaysianAccountCreation() {
         businessContact: {
           bus_ph_no: formData.businessContact?.bus_ph_no || storedPersonalInfo.ph_no || "",
           phoneNumber: formData.businessContact?.bus_ph_no || storedPersonalInfo.ph_no || "",
-          bus_email: finalResolvedEmail,
-          email: finalResolvedEmail,
+          bus_email: formData.businessContact?.bus_email || storedBusinessContact.bus_email || storedContactInfo.email || userEmail || "",
+          email: formData.businessContact?.bus_email || storedBusinessContact.bus_email || storedContactInfo.email || userEmail || "",
         },
-        
+
         businessAddress: {
           preferredBranch: formData.businessAddress?.preferredBranch || "Main Corporate Branch",
           isMailingSameAsBusiness: formData.businessAddress?.isMailingSameAsBusiness ?? true,
           businessAddress: {
             addressLine1: addressLine1,
-            addressLine2: addressLine2, 
+            addressLine2: addressLine2,
             postcode: postcode,
             state: state,
             country: country,
@@ -252,6 +194,7 @@ export default function CurrentMalaysianAccountCreation() {
             country: rawMailAddr.country || country,
           },
         },
+
         account: {
           username: username.trim(),
           password: password,
@@ -281,11 +224,9 @@ export default function CurrentMalaysianAccountCreation() {
           username: username.trim(),
           securityPhrase: securityPhrase,
           profilePreview: profilePreview || "",
-          accountNo: result.account_no,
         },
       }));
 
-      setUserEmail(finalResolvedEmail);
       setStep("pending");
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -676,7 +617,7 @@ export default function CurrentMalaysianAccountCreation() {
             </p>
 
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
-              {userEmail || "your registered email address"}
+              {userEmail}
             </p>
 
             <button 
