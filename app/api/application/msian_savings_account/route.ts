@@ -19,7 +19,7 @@ function mapGender(frontendGender: string) {
     case "F": return "F";
     case "Non-binary": return "NB";
     case "Prefer not to say": return "NONE";
-    default: return "NONE"; // Fallback
+    default: return "NONE";
   }
 }
 

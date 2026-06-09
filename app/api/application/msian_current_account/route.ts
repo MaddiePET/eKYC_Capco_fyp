@@ -22,14 +22,22 @@ function hash(value: any) {
   return value ? hashLookup(String(value).replace(/-/g, "").trim().toUpperCase()) : null;
 }
 
+function mapGender(frontendGender: string) {
+  switch (frontendGender) {
+    case "M": return "M";
+    case "F": return "F";
+    case "Non-binary": return "NB";
+    case "Prefer not to say": return "NONE";
+    default: return "NONE";
+  }
+}
+
 export async function POST(req: Request) {
   const client = await pool.connect();
 
   try {
     const data = await req.json();
-
-    const journeyId = data.journeyId;
-
+    
     const personalInfo = data.personalInfo || {};
     const contactInfo = data.contactInfo || {};
     const businessContact = data.businessContact || {};
@@ -47,72 +55,20 @@ export async function POST(req: Request) {
         extractedName: customerFullName,
         extractedDob: personalInfo.dob
       });
-
       return NextResponse.json(
         { error: "Customer MyKad number, full name, and date of birth are required." },
         { status: 400 }
       );
     }
 
-    if (!journeyId) {
-      return NextResponse.json(
-        {error: "Missing eKYC journey ID."},
-        {status: 400}
-      );
-    }
+    await client.query("BEGIN");
 
     const cleanIdNum = String(customerIdNum).replace(/-/g, "").trim().toUpperCase();
-
-    const statusRes = await fetch(
-      `${req.headers.get("origin") || "http://localhost:3000"}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
-    );
-
-    const statusData = await statusRes.json();
-    console.log("DEBUG business statusData:", statusData);
-
-    const statusIdType = statusData.id_type?.toLowerCase();
-    const statusIdNum = statusData.id_num?.replace(/-/g, "").trim().toUpperCase();
-
-    if (
-      statusData.status !== "face_verified" || !["ic", "mykad", "nric"].includes(statusIdType) || statusIdNum !== cleanIdNum
-    ) {
-      return NextResponse.json(
-        { error: "eKYC session was not verified. Please restart MyKad verification." },
-        { status: 403 }
-      );
-    }
-
-    const scorecardLists = statusData.scorecard?.scorecardResultList || [];
-
-    let totalChecks = 0;
-    let passedChecks = 0;
-
-    for (const scorecardItem of scorecardLists) {
-      const checks = scorecardItem.checkResultList || [];
-
-      for (const check of checks) {
-        totalChecks++;
-
-        if (check.checkStatus === "P") {
-          passedChecks++;
-        }
-      }
-    }
-
-    if (totalChecks === 0) {
-      return NextResponse.json(
-        { error: "No scorecard checks found for this journey." },
-        { status: 400 }
-      );
-    }
-
-    const scorecardResult = Number(((passedChecks / totalChecks) * 100).toFixed(2));
-
-    console.log("DEBUG business scorecardResult:", scorecardResult);
-
-    await client.query("BEGIN");
-    
     const identityLookupHash = hashLookup(cleanIdNum);
+
+    const customerPhone = personalInfo.ph_no || phoneVerification.phoneNumber || personalInfo.ph_no_1 || businessContact.bus_ph_no || businessContact.phoneNumber || "";
+    const customerEmail = personalInfo.email || contactInfo.email || businessContact.bus_email || businessContact.email || "";
+    const customerGender = mapGender(personalInfo.gender);
 
     const existingCustomerCheck = await client.query(
       `
@@ -124,8 +80,8 @@ export async function POST(req: Request) {
       [identityLookupHash]
     );
 
-    let custId: number;
-    let homeAddId: number | null = null;
+    let custId;
+    let homeAddId = null;
 
     if (existingCustomerCheck.rows.length > 0) {
       custId = existingCustomerCheck.rows[0].cust_id;
@@ -133,6 +89,29 @@ export async function POST(req: Request) {
 
       console.log(
         `[CURRENT ACCOUNT] Existing customer found. Reusing cust_id: ${custId}, home_add: ${homeAddId}`
+      );
+
+      await client.query(
+        `
+        UPDATE banka."Customer"
+        SET
+          full_name = $1,
+          id_type = $2,
+          dob = $3,
+          ph_no = $4,
+          email = $5,
+          gender = $6
+        WHERE cust_id = $7
+        `,
+        [
+          enc(customerFullName),
+          personalInfo.id_type || "IC",
+          personalInfo.dob,
+          enc(customerPhone),
+          enc(customerEmail),
+          customerGender,
+          custId,
+        ]
       );
     } else {
       const personalAddress = {
@@ -186,9 +165,9 @@ export async function POST(req: Request) {
           enc(customerFullName),
           personalInfo.id_type || "IC",
           personalInfo.dob,
-          personalInfo.gender,
-          enc(phoneVerification.phoneNumber || personalInfo.ph_no_1 || personalInfo.ph_no),
-          enc(contactInfo.email || personalInfo.email),
+          customerGender,
+          enc(customerPhone),
+          enc(customerEmail),
           homeAddId,
         ]
       );
@@ -196,62 +175,57 @@ export async function POST(req: Request) {
       custId = customerRes.rows[0].cust_id;
     }
 
-    const targetUsername = account.username;
-    if (!targetUsername) throw new Error("Account registration username parameter is empty.");
+    const existingUserId = data.userId || null;
+    let userId = existingUserId;
 
-    const usernameCheck = await client.query(
-      `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
-      [targetUsername.trim()]
-    );
+    if (!userId) {
+      const targetUsername = account.username;
+      if (!targetUsername) throw new Error("Account registration username parameter is empty.");
 
-    if (usernameCheck.rows.length > 0) {
-      return NextResponse.json(
-        { error: "This username is already taken. Please choose another." },
-        { status: 400 }
+      const usernameCheck = await client.query(
+        `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
+        [targetUsername]
       );
+
+      if (usernameCheck.rows.length > 0) {
+        return NextResponse.json(
+          { error: "This user profile identifier username is already registered." },
+          { status: 400 }
+        );
+      }
+
+      const rawPassword = account.password;
+      if (!rawPassword) throw new Error("Account secure profile validation password parameter is missing.");
+
+      const hashedPassword = await hashPassword(rawPassword);
+
+      let profileBuffer = null;
+      const imgData = account.profilePreview || account.img;
+      if (imgData) {
+        profileBuffer = imgData.startsWith("data:image")
+          ? Buffer.from(imgData.split(",")[1], "base64")
+          : Buffer.from(imgData);
+      } else {
+        profileBuffer = Buffer.alloc(0);
+      }
+
+      const userRes = await client.query(
+        `
+        INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING user_id
+        `,
+        [
+          custId,
+          targetUsername,
+          hashedPassword,
+          profileBuffer,
+          account.securityPhrase,
+          businessAddressData.preferredBranch || "Main Branch",
+        ]
+      );
+      userId = userRes.rows[0].user_id;
     }
-    
-    const rawPassword = account.password;
-    if (!rawPassword) throw new Error("Account secure profile validation password parameter is missing.");
-
-    const hashedPassword = await hashPassword(rawPassword);
-
-    let profileBuffer: Buffer | null = null;
-
-    const imgData = account.profilePreview || account.img;
-
-    if (imgData) {
-      profileBuffer = imgData.startsWith("data:image")
-        ? Buffer.from(imgData.split(",")[1], "base64")
-        : Buffer.from(imgData);
-    } else {
-      profileBuffer = Buffer.alloc(0);
-    }
-
-    const userRes = await client.query(
-      `
-      INSERT INTO banka."User" (
-        cust_id,
-        username,
-        password,
-        img,
-        sec_phrase,
-        branch
-      )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING user_id
-      `,
-      [
-        custId,
-        targetUsername,
-        hashedPassword,
-        profileBuffer,
-        account.securityPhrase || "",
-        businessAddressData.preferredBranch || "Main Corporate Branch",
-      ]
-    );
-
-    const userId = userRes.rows[0].user_id;
 
     const businessAddress = {
       add_1: businessAddressData.businessAddress?.addressLine1 || businessAddressData.addressLine1 || "",
@@ -326,9 +300,7 @@ export async function POST(req: Request) {
       "";
 
     const normalizedBusinessType = businessType.toLowerCase();
-
-    const isSoleProprietorship =
-      normalizedBusinessType.includes("sole proprietorship");
+    const isSoleProprietorship = normalizedBusinessType.includes("sole proprietorship");
 
     const existingCurrentAccountRes = await client.query(
       `
@@ -340,7 +312,7 @@ export async function POST(req: Request) {
       [regNoHash]
     );
 
-    let existingAccountNo: string | null = null;
+    let existingAccountNo = null;
 
     if (existingCurrentAccountRes.rows.length > 0) {
       existingAccountNo = existingCurrentAccountRes.rows[0].account_no;
@@ -430,31 +402,24 @@ export async function POST(req: Request) {
 
     await client.query(
       `
-      INSERT INTO banka."Journey" (
-        journey_id,
-        cust_id,
-        application_date,
-        approval_date,
-        scorecard_result
-      )
-      VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
+      UPDATE banka."Customer"
+      SET account_no = $1
+      WHERE cust_id = $2
       `,
-      [
-        journeyId,
-        custId,
-        scorecardResult,
-      ]
+      [enc(accountNo), custId]
     );
 
     await client.query("COMMIT");
-    
+
     try {
-      await sendAccountConfirmationEmail({
-        to: contactInfo.email || personalInfo.email,
-        fullName: customerFullName,
-        accountType: "Malaysian Business Current Account",
-        accountNo,
-      });
+      if (customerEmail) {
+        await sendAccountConfirmationEmail({
+          to: customerEmail,
+          fullName: customerFullName,
+          accountType: "Malaysian Current Account",
+          accountNo: accountNo,
+        });
+      }
     } catch (emailError) {
       console.error("Confirmation email failed:", emailError);
     }
@@ -468,7 +433,6 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-    
   } catch (error: any) {
     await client.query("ROLLBACK");
     console.error("Malaysian current account deployment exception path hit:", error);

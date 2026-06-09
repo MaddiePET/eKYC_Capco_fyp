@@ -264,20 +264,11 @@ export default function CurrentMalaysianInfo() {
       homeAddress,
     });
 
-    if (mode === "existing_customer") {
-      router.push(
-        `/current/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(
-          formData.nric
-        )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
-      );  
-      return;
-    }
-
     router.push(
-      `/current/malaysian/otp?id_type=ic&id_num=${encodeURIComponent(
+      `/current/malaysian/business_particulars?id_type=ic&id_num=${encodeURIComponent(
         formData.nric
       )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
-    );  } catch (error) { 
+    );} catch (error) { 
           console.error("Submission error:", error);
           setSubmitError("Failed to save application data.");
         } finally {

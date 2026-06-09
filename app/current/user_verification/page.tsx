@@ -28,6 +28,13 @@ export default function CurrentUserVerification() {
       }
       
       localStorage.setItem("journeyId", journeyData.journeyId);
+      localStorage.setItem("mode", "new_user");
+      localStorage.removeItem("currentCustId");
+      localStorage.removeItem("cust_id");
+      localStorage.removeItem("id_num");
+      localStorage.removeItem("personalInfo");
+      localStorage.removeItem("homeAddress");
+
       setSelectedOption('new');
       setIsLoading(false);
     } catch (error) {
@@ -39,8 +46,10 @@ export default function CurrentUserVerification() {
 
   const handleNext = () => {
     if (selectedOption === 'existing') {
+      localStorage.setItem("mode", "existing_customer");
       router.push('/login');
     } else if (selectedOption === 'new') {
+      localStorage.setItem("mode", "new_user");
       router.push('/current/malaysian/mykad');
     }
   };
@@ -87,7 +96,6 @@ export default function CurrentUserVerification() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          
           Home
         </button>
 
@@ -168,12 +176,7 @@ export default function CurrentUserVerification() {
               </svg>
             </div>
 
-            <h3 className={`text-lg font-bold mb-2 transition-colors ${
-                selectedOption === 'existing' 
-                  ? 'text-[#3D405B] dark:text-white' 
-                  : 'text-[#3D405B] dark:text-white'
-              }`}
-            >
+            <h3 className="text-lg font-bold mb-2 text-[#3D405B] dark:text-white">
               Existing User
             </h3>
 
@@ -183,7 +186,7 @@ export default function CurrentUserVerification() {
           </div>
 
           <div
-            onClick={() => handleSelectNew()}
+            onClick={handleSelectNew}
             className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
               selectedOption === 'new'
                 ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40'
@@ -228,12 +231,7 @@ export default function CurrentUserVerification() {
               </svg>
             </div>
 
-            <h3 className={`text-lg font-bold mb-2 transition-colors ${
-                selectedOption === 'new' 
-                ? 'text-[#3D405B] dark:text-white' 
-                : 'text-[#3D405B] dark:text-white'
-              }`}
-            >
+            <h3 className="text-lg font-bold mb-2 text-[#3D405B] dark:text-white">
               New User
             </h3>
 
@@ -246,14 +244,14 @@ export default function CurrentUserVerification() {
         <div className="mt-6 w-full max-w-md mx-auto relative z-10">
           <button
             onClick={handleNext}
-            disabled={!selectedOption}
+            disabled={!selectedOption || isLoading}
             className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 ${
               selectedOption
-                ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+              ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
             }`}
           >
-            Continue
+            {isLoading ? "Loading..." : "Continue"}
           </button>
 
           <div className="mt-5 text-center">

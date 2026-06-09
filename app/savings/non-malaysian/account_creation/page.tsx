@@ -83,12 +83,10 @@ export default function SavingsNonMalaysianAccountCreation() {
       const personalInfo = JSON.parse(localStorage.getItem("nonMsianInfo") || "{}");
       const contactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
       
-      // Corrected Address Retrieval
       const savedAddressRoot = JSON.parse(localStorage.getItem("nonMsianAddress") || "{}");
       const storedHomeAddress = savedAddressRoot.address || {};
       const storedMailingAddress = savedAddressRoot.mailingAddress || {};
       
-      // Corrected Application Details Retrieval
       const nonMsianApplication = JSON.parse(localStorage.getItem("nonMsianApplication") || "{}");
       const savings_account = nonMsianApplication.savings_account || {};
       
@@ -123,6 +121,7 @@ export default function SavingsNonMalaysianAccountCreation() {
           dob: personalInfo.dob || "",
           ph_no: phoneVerification.ph_no || phoneVerification.phone_number || "",
           email: personalInfo.email || contactInfo.email || userEmail || "",
+          gender: personalInfo.non_msian_details?.gender || personalInfo.gender || "",
           country: homeAddress.country,
         },
         homeAddress,
@@ -212,7 +211,6 @@ export default function SavingsNonMalaysianAccountCreation() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
-      {/* Background patterns */}
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"

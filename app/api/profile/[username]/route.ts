@@ -13,6 +13,8 @@ export async function GET(
     const query = `
       SELECT
         u.username,
+        u.user_id,
+        u.cust_id,
         u.img,
         c.full_name,
         c.ph_no,
@@ -20,7 +22,7 @@ export async function GET(
         c.id_num,
         sa.occupation,
         sa.account_no AS savings_account_no,
-        ca.account_no AS current_account_no,
+        COALESCE(ca.account_no, cau.account_no) AS current_account_no,
         a.add_1,
         a.add_2,
         a.postcode,
@@ -31,8 +33,10 @@ export async function GET(
         ON u.cust_id = c.cust_id
       LEFT JOIN banka."Savings_account" AS sa
         ON u.user_id = sa.user_id
+      LEFT JOIN banka."Current_account_user" AS cau
+        ON u.user_id = cau.user_id
       LEFT JOIN banka."Current_account" AS ca
-        ON u.user_id = ca.user_id
+        ON cau.account_no = ca.account_no
       LEFT JOIN banka."Address" AS a
         ON c.home_add = a.add_id
       WHERE LOWER(u.username) = LOWER($1)

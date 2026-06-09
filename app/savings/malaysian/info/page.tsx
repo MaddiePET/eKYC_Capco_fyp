@@ -65,7 +65,6 @@ export default function SavingsMalaysianInfo() {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
 
-
     return {
       gender: identity.gender || identity.sex || "",
       fullName: identity.full_name || identity.name || identity.fullName || "",

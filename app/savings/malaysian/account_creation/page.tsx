@@ -36,11 +36,35 @@ export default function SavingsMalaysianAccountCreation() {
   useEffect(() => {
     setMounted(true);
 
+    let email = "";
+
     const savedContactData = localStorage.getItem("contactInfo");
     if (savedContactData) {
-      const parsed = JSON.parse(savedContactData);
-      setUserEmail(parsed.email || "");
+      try {
+        const parsed = JSON.parse(savedContactData);
+        email = parsed.email || parsed.email_address || "";
+      } catch (e) {
+        console.error("Failed to parse contactInfo from localStorage", e);
+      }
     }
+
+    if (!email) {
+      const savedPersonalInfo = localStorage.getItem("personalInfo");
+      if (savedPersonalInfo) {
+        try {
+          const parsed = JSON.parse(savedPersonalInfo);
+          email = parsed.email || parsed.email_address || "";
+        } catch (e) {
+          console.error("Failed to parse personalInfo from localStorage", e);
+        }
+      }
+    }
+
+    if (!email) {
+      email = localStorage.getItem("currentUserEmail") || "";
+    }
+
+    setUserEmail(email);
   }, []);
 
   const avatarOptions: string[] = [
@@ -81,6 +105,8 @@ export default function SavingsMalaysianAccountCreation() {
       setSubmitError(null);
 
       const journeyId = localStorage.getItem("journeyId") || "";
+      
+      const isExistingCustomer = localStorage.getItem("mode") === "existing_customer";
 
       const phoneVerification = JSON.parse(localStorage.getItem("phoneVerification") || "{}");
       const personalInfo = JSON.parse(localStorage.getItem("personalInfo") || "{}");
@@ -114,13 +140,16 @@ export default function SavingsMalaysianAccountCreation() {
 
       const payload = {
         journeyId,
+        isExistingCustomer, // Flag indicating backend to skip scorecard validation check
+        mode: isExistingCustomer ? "existing_customer" : "new_customer",
         customer: {
           id_num: personalInfo.id_num || personalInfo.ic_num || "",
           full_name: personalInfo.full_name || "",
           id_type: personalInfo.id_type || "IC",
           dob: personalInfo.dob || "",
-          ph_no: phoneVerification.ph_no || phoneVerification.phone_number || "",
+          ph_no: phoneVerification.ph_no || phoneVerification.phone_number || personalInfo.ph_no || "",
           email: contactInfo.email || contactInfo.email_address || userEmail || "",
+          gender: personalInfo.gender || "", 
           country: personalInfo.country || "Malaysia",
         },
 
@@ -156,17 +185,25 @@ export default function SavingsMalaysianAccountCreation() {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status ===409) {
+        if (response.status === 409) {
           setDuplicateAccountMessage(
             result.error || "You already have a savings account with us. Please log in to continue. "
           );
-          setDuplicateAccountPopup(true)
+          setDuplicateAccountPopup(true);
           return;
         }
         throw new Error(result.error || "Failed to complete savings account registration.");
       }
 
       console.log("Malaysian savings account registration successful:", result);
+
+      // Explicitly update current account selection keys so dashboard loads the correct account type
+      localStorage.setItem("currentAccount", username.trim());
+      localStorage.setItem("currentUsername", username.trim());
+      localStorage.setItem("currentAccountType", "Savings Account");
+      localStorage.setItem("account_type", "Savings Account");
+      localStorage.setItem("accountType", "Savings Account");
+      localStorage.setItem("selectedAccountType", "Savings Account");
 
       localStorage.removeItem("phoneVerification");
       localStorage.removeItem("personalInfo");
@@ -553,7 +590,7 @@ export default function SavingsMalaysianAccountCreation() {
                 disabled={!password || !securityPhrase || password !== confirmPassword || !isPasswordValid || isSubmitting}
                 className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
               >
-                {isSubmitting ? "Creating..." : "Create Account"}
+                {isSubmitting ? "Creating Account..." : "Create Account"}
               </button>
             </div>
           </div>

@@ -217,49 +217,49 @@ export default function CurrentMalaysianBusinessParticulars() {
   };
 
   useEffect(() => {
-  if (!selectedBusinessId) return;
+    if (!selectedBusinessId) return;
 
-  const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
+    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
 
-  if (!biz) return;
+    if (!biz) return;
 
-  const [y = "", m = "", d = ""] = (biz.start_date || "").split("-");
+    const [y = "", m = "", d = ""] = (biz.start_date || "").split("-");
 
-  const extractedAddress = biz.address || {
-    addressLine1: (biz as any).bus_add1 || "",
-    addressLine2: (biz as any).bus_addr2 || "",
-    postcode: (biz as any).bus_postcode || "",
-    state: (biz as any).bus_state || "",
-    country: (biz as any).country || "Malaysia",
-  };
+    const extractedAddress = biz.address || {
+      addressLine1: (biz as any).bus_add1 || "",
+      addressLine2: (biz as any).bus_addr2 || "",
+      postcode: (biz as any).bus_postcode || "",
+      state: (biz as any).bus_state || "",
+      country: (biz as any).country || "Malaysia",
+    };
 
-  setFormData({
-    businessName: biz.name || "",
-    brn: biz.brn || "",
-    msicCode: biz.msicCode || "",
-    msicName: biz.msicName || "",
-    day: d || "",
-    month: m || "",
-    year: y || "",
-    businessType: biz.type || "",
-    role: "",
-    businessAddress: extractedAddress,
-  });
+    setFormData({
+      businessName: biz.name || "",
+      brn: biz.brn || "",
+      msicCode: biz.msicCode || "",
+      msicName: biz.msicName || "",
+      day: d || "",
+      month: m || "",
+      year: y || "",
+      businessType: biz.type || "",
+      role: "",
+      businessAddress: extractedAddress,
+    });
 
-  if (biz.brn) {
-    checkExistingCurrentAccount(biz.brn, biz.type || "");
-  }
-}, [selectedBusinessId, linkedBusinesses]);
+    if (biz.brn) {
+      checkExistingCurrentAccount(biz.brn, biz.type || "");
+    }
+  }, [selectedBusinessId, linkedBusinesses]);
 
   const handleBack = () => {
     if (step === 1) {
       router.push(
-      `/current/malaysian/info?id_type=${encodeURIComponent(
-        idType
-      )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-        journeyId
-      )}`
-    );
+        `/current/malaysian/info?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}`
+      );
     } else {
       setStep(1);
     }
@@ -369,6 +369,7 @@ export default function CurrentMalaysianBusinessParticulars() {
     formData.businessType.trim() !== "" &&
     formData.role.trim() !== "" &&
     !checkingExistingBusiness;
+
   if (!mounted) return null;
 
   return (
@@ -413,7 +414,6 @@ export default function CurrentMalaysianBusinessParticulars() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-          
           Back
         </button>
 
@@ -435,7 +435,7 @@ export default function CurrentMalaysianBusinessParticulars() {
         </Link>
       </div>
 
-      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-xl"}`}>
+      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-4xl"}`}>
         {step === 1 && (
           <div>
             <div className="mb-10 text-center">
@@ -449,7 +449,6 @@ export default function CurrentMalaysianBusinessParticulars() {
             </div>
 
             <div className="space-y-4">
-              
               {loadingBusinesses && (
                 <p className="text-sm text-center text-gray-500 dark:text-gray-400">
                   Loading linked businesses...
@@ -558,211 +557,219 @@ export default function CurrentMalaysianBusinessParticulars() {
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                {businessAlreadyRegistered && (
-                  <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
-                    This business already has a registered current account. Business address and
-                    contact verification will be skipped. You will continue directly to account
-                    creation and be added to the existing current account.
-                  </div>
-                )}
+            <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+                  {businessAlreadyRegistered && (
+                    <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
+                      This business already has a registered current account. Business address and
+                      contact verification will be skipped. You will continue directly to account
+                      creation and be added to the existing current account.
+                    </div>
+                  )}
 
-                {checkingExistingBusiness && (
-                  <div className="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                    Checking whether this business already has a current account...
-                  </div>
-                )}
-                <div className="md:col-span-2">
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Business Name
-                  </label>
+                  {checkingExistingBusiness && (
+                    <div className="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                      Checking whether this business already has a current account...
+                    </div>
+                  )}
 
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                    value={formData.businessName}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Business Registration Number (BRN)
-                  </label>
-
-                  <input 
-                    type="text" 
-                    readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                    value={formData.brn} 
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      MSIC Code                     
+                      Business Name
                     </label>
 
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                      <input
+                        type="text"
+                        readOnly
+                        className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                        value={formData.businessName}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      MSIC Name                    
+                      Business Registration Number (BRN)
                     </label>
+
+                    <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                      <input 
+                        type="text" 
+                        readOnly
+                        className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                        value={formData.brn} 
+                      />
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="string"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.msicCode}
-                    />
+                  <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                          MSIC Code                     
+                        </label>
 
-                    <input
-                      type="string"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.msicName}
-                    />
+                        <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                          <input
+                            type="text"
+                            readOnly
+                            className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                            value={formData.msicCode}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                          MSIC Name                    
+                        </label>
+
+                        <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                          <input
+                            type="text"
+                            readOnly
+                            className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                            value={formData.msicName}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="md:col-span-2">
-                  <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                    Operation Start Date<span className="text-red-500">*</span>
-                  </label>
+                  <div className="md:col-span-2">
+                    <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                      Operation Start Date<span className="text-red-500">*</span>
+                    </label>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <input
-                      type="string"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.day}
-                    />
-
-                    <input
-                      type="string"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.month}
-                    />
-
-                    <input
-                      type="string"
-                      readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                      value={formData.year}
-                    />
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <div className="grid grid-cols-2 gap-2">
-
-                    <div>
-                      <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                        Business Type<span className="text-red-500">*</span>
-                      </label>
-
-                      <div className="relative">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
                         <input
-                          type="string"
+                          type="text"
                           readOnly
-                          className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                          value={formData.businessType}
+                          className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                          value={formData.day}
                         />
+                      </div>
 
-                        <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                          <svg
-                            className="w-4 h-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                          </svg>
-                        </div>
+                      <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                        <input
+                          type="text"
+                          readOnly
+                          className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                          value={formData.month}
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                        <input
+                          type="text"
+                          readOnly
+                          className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                          value={formData.year}
+                        />
                       </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                        Role<span className="text-red-500">*</span>
-                      </label>
+                  <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                          Business Type<span className="text-red-500">*</span>
+                        </label>
 
-                      <div className="relative">
-                        <select
-                          value={formData.role}
-                          onChange={(e) =>
-                            setFormData({ ...formData, role: e.target.value })
-                          }
-                          className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                        >
-                          <option 
-                            value="" 
-                            disabled
+                        <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                          <input
+                            type="text"
+                            readOnly
+                            className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                            value={formData.businessType}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                          Role<span className="text-red-500">*</span>
+                        </label>
+
+                        <div className="relative">
+                          <select
+                            value={formData.role}
+                            onChange={(e) =>
+                              setFormData({ ...formData, role: e.target.value })
+                            }
+                            className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                           >
-                            Select Role
-                          </option>
-
-                          {["Checker", "Maker", "Both"].map((role) => (
-                            <option key={role} value={role}>
-                              {role}
+                            <option 
+                              value="" 
+                              disabled
+                            >
+                              Select Role
                             </option>
-                          ))}
-                        </select>
 
-                        <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                          <svg
-                            className="w-4 h-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
+                            {["Checker", "Maker", "Both"].map((role) => (
+                              <option key={role} value={role}>
+                                {role}
+                              </option>
+                            ))}
+                          </select>
+
+                          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                            <svg
+                              className="w-4 h-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-4 flex flex-col items-center w-full mx-auto">
-                <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center whitespace-nowrap">
-                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
-                </p>
-
-                <div className="w-full">
-                  <button
-                    type="button"
-                    onClick={handleFinalSubmit}
-                    disabled={!isFormValid}
-                    className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
-                      isFormValid 
-                        ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                    }`}
-                  >
-                    Continue
-                  </button>
-                </div>
-
-                <div className="mt-5 text-center">
-                  <p className="text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
-                    <Link
-                      href="/contact_support"
-                      className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                    >
-                      Contact Support
-                    </Link>
+                <div className="md:col-span-2 pt-4 flex flex-col items-center w-full mx-auto">
+                  <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center whitespace-nowrap">
+                    By clicking continue, you confirm that the information provided is accurate and belongs to you.
                   </p>
+
+                  <div className="w-full">
+                    <button
+                      type="button"
+                      onClick={handleFinalSubmit}
+                      disabled={!isFormValid}
+                      className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
+                        isFormValid 
+                          ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                      }`}
+                    >
+                      Continue
+                    </button>
+                  </div>
+
+                  <div className="mt-5 text-center">
+                    <p className="text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+
+                      <Link
+                        href="/contact_support"
+                        className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                      >
+                        Contact Support
+                      </Link>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
