@@ -69,6 +69,13 @@ export default function BusinessMalaysianBusinessParticulars() {
 
   const [solePropBlockedMessage, setSolePropBlockedMessage] = useState("");
 
+  //UI for form
+  const inputClasses =
+  "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
+
+  const readOnlyClasses =
+    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
+
   const [formData, setFormData] = useState({
     businessName: "",
     brn: "",
@@ -581,7 +588,7 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <input
                     type="text"
                     readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    className={readOnlyClasses}                    
                     value={formData.businessName}
                   />
                 </div>
@@ -594,7 +601,7 @@ export default function BusinessMalaysianBusinessParticulars() {
                   <input 
                     type="text" 
                     readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                    className={readOnlyClasses}
                     value={formData.brn} 
                   />
                 </div>
@@ -614,14 +621,14 @@ export default function BusinessMalaysianBusinessParticulars() {
                     <input
                       type="string"
                       readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      className={readOnlyClasses}
                       value={formData.msicCode}
                     />
 
                     <input
                       type="string"
                       readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      className={readOnlyClasses}
                       value={formData.msicName}
                     />
                   </div>
@@ -636,21 +643,21 @@ export default function BusinessMalaysianBusinessParticulars() {
                     <input
                       type="string"
                       readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      className={readOnlyClasses}
                       value={formData.day}
                     />
 
                     <input
                       type="string"
                       readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      className={readOnlyClasses}
                       value={formData.month}
                     />
 
                     <input
                       type="string"
                       readOnly
-                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      className={readOnlyClasses}
                       value={formData.year}
                     />
                   </div>
@@ -668,7 +675,7 @@ export default function BusinessMalaysianBusinessParticulars() {
                         <input
                           type="string"
                           readOnly
-                          className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                          className={readOnlyClasses}
                           value={formData.businessType}
                         />
 
