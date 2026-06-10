@@ -17,8 +17,13 @@ export default function Home() {
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | string>("");
 
   const words = ["Intelligent Automation", "Instant Verification", "Effortless Compliance"];
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
@@ -276,17 +281,19 @@ export default function Home() {
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                  <input 
+                <input 
                   type="email" 
                   className="w-full pl-12 pr-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 placeholder:text-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                   placeholder="Enter your email address" 
                   required 
+                  suppressHydrationWarning
                 />
               </div>
             </div>
             <button 
               type="submit" 
               className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition rounded-xl bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-0.5"
+              suppressHydrationWarning
             >
               Subscribe
             </button>
@@ -401,6 +408,7 @@ export default function Home() {
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       required 
+                      suppressHydrationWarning
                     />
                   </div>
                   <div>
@@ -414,6 +422,7 @@ export default function Home() {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       required 
+                      suppressHydrationWarning
                     />
                   </div>
                 </div>
@@ -427,6 +436,7 @@ export default function Home() {
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
                     required
+                    suppressHydrationWarning
                   ></textarea>
                 </div>
                 {formStatus && (
@@ -438,6 +448,7 @@ export default function Home() {
                   type="submit" 
                   disabled={isSubmitting}
                   className="inline-flex items-center justify-center w-full px-6 py-2.5 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] shadow-lg hover:bg-[#2c2f42] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d]"
+                  suppressHydrationWarning
                 >
                   {isSubmitting ? 'Sending...' : 'Submit Form'}
                 </button>
@@ -469,8 +480,8 @@ export default function Home() {
           <path fill="currentColor" d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L0,320Z" />
         </svg>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="relative mt-8 text-xs font-medium text-[#2c3d35]">
-            &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
+          <p className="relative mt-8 text-xs font-medium text-[#2c3d35]" suppressHydrationWarning>
+            &copy; {currentYear || "2025"} DTCOB Banking Services. All rights reserved.
           </p>
         </div>
       </footer>

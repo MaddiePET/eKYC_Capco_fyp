@@ -398,7 +398,7 @@ export async function POST(req: Request) {
     await client.query("ROLLBACK");
     console.error("Non-Malaysian savings account error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create account application" },
+      { error: error.message || "Failed to create Non-Malaysian savings account application" },
       { status: 500 }
     );
   } finally {

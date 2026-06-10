@@ -129,7 +129,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
     });
   }, [activeAccount, accounts, isLoadingAccounts]);
 
-  const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : "";
+  // Changed fallback from "" to null to prevent browser console warning
+  const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : null;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
@@ -795,7 +796,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     <div className="mr-3 overflow-hidden rounded-full h-11 w-11 shrink-0 border border-white/20 bg-gray-700">
                       <img 
                         className="w-full h-full object-cover" 
-                        src={safeAvatar}
+                        src={safeAvatar ?? undefined}
                         alt="User" 
                         onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
                       />
@@ -846,7 +847,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         ) : (
                           accounts
                             .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
-                            .map((account) => {const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : "";
+                            .map((account) => {
+                              // Changed fallback from "" to null to prevent browser console warning
+                              const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
 
                             return (
                               <li key={account.id}>
@@ -859,7 +862,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                                   <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
                                     <img 
                                       className="w-full h-full object-cover" 
-                                      src={displayAvatar} 
+                                      src={displayAvatar ?? undefined} 
                                       alt={account.name} 
                                       onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
                                     />
