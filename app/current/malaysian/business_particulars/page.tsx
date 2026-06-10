@@ -560,7 +560,7 @@ export default function CurrentMalaysianBusinessParticulars() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                If your business particulars are different from the registered business on your MyKad below, please update it.
+                The below is the registered business particulars with SSM.
               </p>
             </div>
 
@@ -570,8 +570,7 @@ export default function CurrentMalaysianBusinessParticulars() {
                   {businessAlreadyRegistered && (
                     <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
                       This business already has a registered current account. Business address and
-                      contact verification will be skipped. You will continue directly to account
-                      creation and be added to the existing current account.
+                      contact verification will be skipped.
                     </div>
                   )}
 
