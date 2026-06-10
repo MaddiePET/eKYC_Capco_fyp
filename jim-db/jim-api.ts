@@ -15,15 +15,28 @@ function initializeJIM() {
     if (existingApp) {
       jimApp = existingApp;
     } else {
-      const serviceAccountPath = path.join(
-        process.cwd(),
-        "jim-db",
-        "serviceAccountKey-JIM.json"
-      );
+      let serviceAccount;
 
-      const serviceAccount = JSON.parse(
-        fs.readFileSync(serviceAccountPath, "utf8")
-      );
+      // Try to read from environment variable first (for Vercel/production)
+      if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT) {
+        try {
+          serviceAccount = JSON.parse(process.env.FIREBASE_JIM_SERVICE_ACCOUNT);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JIM_SERVICE_ACCOUNT env var:", err);
+          throw new Error("Invalid FIREBASE_JIM_SERVICE_ACCOUNT JSON");
+        }
+      } else {
+        // Fall back to local file (for local development)
+        const serviceAccountPath = path.join(
+          process.cwd(),
+          "jim-db",
+          "serviceAccountKey-JIM.json"
+        );
+
+        serviceAccount = JSON.parse(
+          fs.readFileSync(serviceAccountPath, "utf8")
+        );
+      }
 
       jimApp = admin.initializeApp(
         {
