@@ -59,6 +59,8 @@ interface BusinessParticulars {
   role?: string;
   msic_code?: string;
   msic_name?: string;
+  currentAccountExists?: boolean;
+  existingAccountNo?: string;
 }
 
 interface BusinessContact {
@@ -70,6 +72,7 @@ export interface MasterFormData {
   journeyId: string;
   idType: string;
   idNum: string;
+  applicationMode?: string;
   
   personalInfo?: PersonalInfo;
   homeAddress?: AddressFields;

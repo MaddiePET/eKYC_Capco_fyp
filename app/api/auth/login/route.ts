@@ -13,11 +13,14 @@ export async function POST(req: Request) {
 
     const query = `
       SELECT 
+        u.user_id,
+        u.cust_id,
         u.username,
         u.password,
         u.img,
         c.full_name,
-        c.email
+        c.email,
+        c.id_num
       FROM banka."User" AS u
       JOIN banka."Customer" AS c ON u.cust_id = c.cust_id
       WHERE LOWER(u.username) = LOWER($1)
@@ -59,6 +62,16 @@ export async function POST(req: Request) {
     } catch (err) {
       console.warn("[DECRYPT WARN] Failed to decrypt email, returning raw string.");
       plainEmail = user.email || "";
+    
+    }
+
+    let plainIdNum = "";
+
+    try {
+      plainIdNum = user.id_num ? decrypt(user.id_num, "banka") : "";
+    } catch (err) {
+      console.warn("[DECRYPT WARN] Failed to decrypt id_num, returning empty string.");
+      plainIdNum = "";
     }
 
     let avatarBase64 = "";
@@ -73,12 +86,14 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
+      user_id: user.user_id,
+      cust_id: user.cust_id,
       username: user.username,
       name: plainName,
       email: plainEmail,
+      id_num: plainIdNum,
       avatar: avatarBase64,
     });
-
   } catch (err) {
     console.error("CRITICAL EXCEPTION IN LOGIN HANDLER:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

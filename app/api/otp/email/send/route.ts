@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: `"Bank A" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Your Bank A Email Verification Code",
+      subject: "Bank A User Email Verification Code",
       html: `
       <div style="margin:0; padding:0; background-color:#f5f7fb; font-family:Arial, Helvetica, sans-serif;">
         <div style="max-width:560px; margin:0 auto; padding:40px 16px;">
@@ -53,9 +53,15 @@ export async function POST(req: Request) {
                 Please enter the verification code below to continue your account registration.
               </p>
 
-              <div style="text-align:center; margin:32px 0;">
-                <div style="display:inline-block; background-color:#eef2ff; border:2px solid #3D405B; color:#2c2f42; font-size:36px; font-weight:800; letter-spacing:10px; padding:18px 28px; border-radius:14px;">
-                  ${otp}
+              <div style="text-align:center; margin:30px 0;">
+                <div style="display:inline-block; background-color:#eef2ff; border:2px solid #3D405B; color:#2c2f42; padding:20px 30px; border-radius:14px;">
+                  <p style="margin:0 0 8px; color:#4b5563; font-size:13px; font-weight:700; letter-spacing:0.4px;">
+                    VERIFICATION CODE
+                  </p>
+                  
+                  <p style="margin:0; color:#2c2f42; font-size:32px; font-weight:800; letter-spacing:6px;">
+                    ${otp}
+                  </p>
                 </div>
               </div>
 
@@ -64,7 +70,7 @@ export async function POST(req: Request) {
               </p>
 
               <p style="margin:0 auto; max-width:420px; color:#4b5563; font-size:13px; line-height:1.6; text-align:center;">
-                If you did not request this verification code, you can safely ignore this email.
+                Please keep this email for your reference. If you did not submit this application, please contact Bank A support immediately.
               </p>
             </div>
 

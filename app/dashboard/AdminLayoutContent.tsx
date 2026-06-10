@@ -5,13 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
-
 import { Modal } from "@/components/ui/modal";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
-
 import ChevronDownIcon from "@/icons/chevron-down.svg";
 import GridIcon from "@/icons/grid.svg";
 import HorizontaLDots from "@/icons/horizontal-dots.svg";
@@ -26,7 +24,7 @@ type Account = {
   email: string;
   phone: string;
   avatar: string;
-  type: "Personal" | "Business";
+  type: "Savings Account" | "Current Account";
   isMalaysian: boolean;
 };
 
@@ -42,8 +40,6 @@ const navItems: NavItem[] = [
   { icon: <UserCircleIcon />, name: "Add Account", path: "#" },
 ];
 
-const othersItems: NavItem[] = [];
-
 export default function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -57,7 +53,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [loggedInUser, setLoggedInUser] = useState<{name: string, avatar: string, email: string} | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<"Personal" | "Business" | null>(null);
+  const [selectedType, setSelectedType] = useState<"Savings Account" | "Current Account" | null>(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [otpStep, setOtpStep] = useState(1);
@@ -66,8 +62,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const [otpDigits, setOtpDigits] = useState(new Array(6).fill(""));
   const [otpTimer, setOtpTimer] = useState(0);
   const [targetAccount, setTargetAccount] = useState("");
-  const [canCreatePersonal, setCanCreatePersonal] = useState(true);
-  const [canCreateBusiness, setCanCreateBusiness] = useState(true);
+  const [canCreateSavings, setCanCreateSavings] = useState(true);
+  const [canCreateCurrent, setCanCreateCurrent] = useState(true);
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [currentUsername, setCurrentUsername] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,21 +80,34 @@ export default function AdminLayoutContent({ children }: { children: React.React
     const foundInAccounts = accounts.find(
       (acc) => acc.username.toLowerCase() === currentUsername.toLowerCase()
     );
+
     if (foundInAccounts) return foundInAccounts;
 
     if (loggedInUser && currentAccountName === loggedInUser.name) {
+      let fallbackType: "Savings Account" | "Current Account" = "Savings Account";
+
+      if (typeof window !== "undefined") {
+        const savedType = localStorage.getItem("currentAccountType") || 
+        localStorage.getItem("account_type") || 
+        localStorage.getItem("accountType") ||
+        localStorage.getItem("selectedAccountType");
+
+        if (savedType === "Current Account" || savedType === "Savings Account") {
+          fallbackType = savedType;
+        }
+      }
+
       return {
         id: 0,
         username: currentUsername,
         name: loggedInUser.name,
         email: loggedInUser.email,
         avatar: loggedInUser.avatar, 
-        type: "Personal" as const,
+        type: fallbackType,
         isMalaysian: false,
         phone: ""
       };
-    }
-    
+    } 
     return null;
   }, [currentUsername, currentAccountName, loggedInUser, accounts]);
 
@@ -109,16 +118,18 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
     return navItems.filter((item) => {
       if (item.name === "Add Account") {
-        if (activeAccount?.type === "Personal" && !activeAccount?.isMalaysian) {
-          return false; 
+        const hasNonMalaysianSavings = accounts.some(acc => acc.type === "Savings Account" && !acc.isMalaysian);
+        const activeIsNonMalaysianSavings = activeAccount?.type === "Savings Account" && !activeAccount?.isMalaysian;
+
+        if (hasNonMalaysianSavings || activeIsNonMalaysianSavings) {
+          return false;
         }
       }
       return true;
     });
-  }, [activeAccount, isLoadingAccounts]);
+  }, [activeAccount, accounts, isLoadingAccounts]);
 
   const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : "";
-
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
@@ -144,53 +155,72 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
       if (username) {
         fetch(`/api/profile/${username}`)
-          .then((res) => {
-            if (!res.ok) throw new Error("Failed to fetch profile");
-            return res.json();
-          })
-          .then((data) => {
-            if (data && data.avatar) {
-              setLoggedInUser(prev => prev ? { ...prev, avatar: data.avatar } : null);
-              localStorage.setItem("currentUserAvatar", data.avatar);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to fetch updated avatar:", err);
-          });
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch profile");
+          return res.json();
+        })
+
+        .then((data) => {
+          if (data && data.avatar) {
+            setLoggedInUser(prev => prev ? { ...prev, avatar: data.avatar } : null);
+            localStorage.setItem("currentUserAvatar", data.avatar);
+          }
+
+          if (data?.id_num && data.id_num !== "undefined") {
+            localStorage.setItem("currentIdNum", data.id_num);
+          }
+
+          if (data?.cust_id) {
+            localStorage.setItem("currentCustId", String(data.cust_id));
+          }
+
+          if (data?.user_id) {
+            localStorage.setItem("currentUserId", String(data.user_id));
+          }
+        })
+
+        .catch((err) => {
+          console.error("Failed to fetch updated avatar:", err);
+        });
       }
     }
 
     setIsLoadingAccounts(true);
-    
+
     const fetchUrl = username ? `/api/user?username=${encodeURIComponent(username)}` : "/api/user";
 
     fetch(fetchUrl)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to load user list. Backend status: ${res.status}`);
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Failed to load user list. Back-end status: ${res.status}`);
+      }
+      return res.json();
+    })
+
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setAccounts(data);
+        if (!name && data.length > 0) {
+          setCurrentAccountName(data[0].name);
+          localStorage.setItem("currentAccount", data[0].name);
         }
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setAccounts(data);
-          if (!name && data.length > 0) {
-            setCurrentAccountName(data[0].name);
-            localStorage.setItem("currentAccount", data[0].name);
-          }
-        }
-      })
-      .catch((err) => {
-        console.error("Database profile initialization error:", err);
-      })
-      .finally(() => setIsLoadingAccounts(false));
+      }
+    })
+
+    .catch((err) => {
+      console.error("Database profile initialization error:", err);
+    })
+      
+    .finally(() => setIsLoadingAccounts(false));
   }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
     if (isOtpModalOpen && otpStep === 2 && otpTimer > 0) {
       interval = setInterval(() => setOtpTimer((prev) => prev - 1), 1000);
     }
+
     return () => clearInterval(interval);
   }, [isOtpModalOpen, otpStep, otpTimer]);
 
@@ -201,11 +231,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
         inputRef.current?.focus();
       }
     };
+
     const handleResize = () => {
       if (isMenuOpenRef.current && window.innerWidth < 640) setApplicationMenuOpen(false);
     };
+
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("resize", handleResize);
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("resize", handleResize);
@@ -219,28 +252,86 @@ export default function AdminLayoutContent({ children }: { children: React.React
   }, [isOtpModalOpen, otpStep]);
 
   const handleOpenAccountModal = () => {
-    if (activeAccount?.type === "Personal") {
-      if (activeAccount.isMalaysian) {
-        setCanCreatePersonal(false);
-        setCanCreateBusiness(true);
+    const hasSavingsAccount = accounts.some(acc => acc.type === "Savings Account");
+    const isCurrentlySavings = activeAccount?.type === "Savings Account";
+    
+    if (hasSavingsAccount || isCurrentlySavings) {
+      setCanCreateSavings(false); 
+
+      const hasNonMalaysianSavings = accounts.some(acc => acc.type === "Savings Account" && !acc.isMalaysian) || (isCurrentlySavings && !activeAccount?.isMalaysian);
+
+      if (hasNonMalaysianSavings) {
+        setCanCreateCurrent(false);
       } else {
-        setCanCreatePersonal(false);
-        setCanCreateBusiness(false);
+        setCanCreateCurrent(true);
       }
     } else {
-      setCanCreatePersonal(true);
-      setCanCreateBusiness(true);
+      setCanCreateSavings(true);
+      setCanCreateCurrent(true);
     }
+
     setModalStep(1);
     setSelectedType(null);
     setIsModalOpen(true);
   };
 
   const handleConfirmCreation = () => {
-    if (selectedType === "Business") {
-      router.push("/business/malaysian/info");
+    const currentAcc = accounts.find(acc => acc.name === currentAccountName);
+    const storedIdNum = localStorage.getItem("currentIdNum");
+    const idNum = storedIdNum && storedIdNum !== "undefined" ? storedIdNum : "";
+    const storedCustId = localStorage.getItem("currentCustId");
+    const custId = storedCustId && storedCustId !== "undefined" ? storedCustId : "";
+
+    if (!custId) {
+      alert("Unable to find your customer profile. Please log in again.");
+      setIsModalOpen(false);
+      router.push("/login");
+      return;
+    }
+
+    if (selectedType) {
+      localStorage.setItem("account_type", selectedType);
+      localStorage.setItem("accountType", selectedType);
+      localStorage.setItem("selectedAccountType", selectedType);
+      localStorage.setItem("currentAccountType", selectedType);
+    }
+
+    const idNumToUse = idNum || localStorage.getItem("currentIdNum") || "";
+
+    const journeyId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+
+    if (!idNumToUse) {
+      alert("Unable to find your identity number. Please log in again.");
+      setIsModalOpen(false);
+      router.push("/login");
+      return;
+    }
+
+    localStorage.setItem("journeyId", journeyId);
+    localStorage.setItem("id_type", "ic");
+    localStorage.setItem("id_num", idNumToUse);
+    localStorage.setItem("mode", "existing_customer");
+
+    const queryStr = `cust_id=${encodeURIComponent(
+      custId
+    )}&id_type=ic&id_num=${encodeURIComponent(
+      idNumToUse
+    )}&journeyId=${encodeURIComponent(
+      journeyId
+    )}&mode=existing_customer&account_type=${encodeURIComponent(
+      selectedType || ""
+    )}`;
+
+    if (selectedType === "Current Account") {
+      router.push(`/current/malaysian/info?${queryStr}`);
+      setIsModalOpen(false);
+      return;
+    }
+
+    if (currentAcc && !currentAcc.isMalaysian) {
+      router.push(`/savings/non-malaysian/info?${queryStr}`);
     } else {
-      router.push("/personal/malaysian/info");
+      router.push(`/savings/malaysian/info?${queryStr}`);
     }
     setIsModalOpen(false);
   };
@@ -272,7 +363,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
       closeUserDropdown();
       return;
     }
+
     const selectedAccount = accounts.find((acc) => acc.name === accountName);
+
     if (selectedAccount) {
       setTargetAccount(accountName);
       setIsUserDropdownOpen(false);
@@ -364,6 +457,13 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
         localStorage.setItem("currentAccount", targetAccount);
         localStorage.setItem("currentUsername", targetAccount);
+        
+        if (targetAccountDetails) {
+          localStorage.setItem("account_type", targetAccountDetails.type);
+          localStorage.setItem("accountType", targetAccountDetails.type);
+          localStorage.setItem("currentAccountType", targetAccountDetails.type);
+          localStorage.setItem("selectedAccountType", targetAccountDetails.type);
+        }
 
         closeOtpModal();
       } catch (error) {
@@ -422,7 +522,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   const renderMenuItems = (items: NavItem[]) => (
     <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => {
+      {items.map((nav) => {
         return (
           <li key={nav.name}>
             {nav.subItems ? (
@@ -442,15 +542,18 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   <button 
                     onClick={handleOpenAccountModal} 
                     className="w-full text-left"
+                    type="button"
                   >
                     <div className="menu-item group cursor-pointer menu-item-inactive">
                       <span className="menu-item-icon-inactive">{nav.icon}</span>
-
                       {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">{nav.name}</span>}
                     </div>
                   </button>
                 ) : (
-                  <Link href={nav.path} className="block">
+                  <Link 
+                    href={nav.path} 
+                    className="block"
+                  >
                     <div className={`menu-item group cursor-pointer ${
                       isActive(nav.path) 
                         ? "menu-item-active" 
@@ -548,6 +651,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
         <button
           onClick={toggleMobileSidebar}
           className="lg:hidden text-white/80 hover:text-white"
+          type="button"
         >
           ✕
         </button>
@@ -564,6 +668,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 id="header-toggle-btn" 
                 className="items-center justify-center w-10 h-10 text-white rounded-lg z-[99999] lg:flex lg:h-11 lg:w-11 lg:border border-white/20"
                 onClick={handleHeaderToggle}
+                type="button"
               >
                 <NavigationIcon
                   className={`w-7 h-7 transition-transform duration-300 ${
@@ -591,6 +696,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
               <button
                 onClick={() => setApplicationMenuOpen(!isApplicationMenuOpen)}
                 className="lg:hidden flex items-center justify-center w-10 h-10 text-white rounded-lg hover:bg-white/10 transition-all"
+                type="button"
               >
                 <MoreDotIcon className="w-6 h-6" />
               </button>
@@ -621,7 +727,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
                     />
 
-                    <button className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70">
+                    <button 
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
+                      type="button"
+                    >
                       <span>⌘</span>
                       <span>K</span>
                     </button>
@@ -630,11 +739,11 @@ export default function AdminLayoutContent({ children }: { children: React.React
               </div>
             </div>
 
-            <div
-              className={`${isApplicationMenuOpen ? "flex" : "hidden"} lg:flex flex-col lg:flex-row absolute lg:static top-full right-0 left-0 lg:left-auto w-full lg:w-auto bg-[#3D405B] lg:bg-transparent px-5 py-4 lg:px-0 lg:py-0 gap-4 shadow-xl lg:shadow-none z-[99999] lg:ml-auto`}>
+            <div className={`${isApplicationMenuOpen ? "flex" : "hidden"} lg:flex flex-col lg:flex-row absolute lg:static top-full right-0 left-0 lg:left-auto w-full lg:w-auto bg-[#3D405B] lg:bg-transparent px-5 py-4 lg:px-0 lg:py-0 gap-4 shadow-xl lg:shadow-none z-[99999] lg:ml-auto`}>
               <div className="flex items-center justify-between w-full lg:w-auto gap-3">
                 <div className="relative z-[99999] flex items-center gap-2 2xsm:gap-3 overflow-visible">
                   <ThemeToggleButton />
+
                   <NotificationDropdown
                     isOpen={isNotificationOpen}
                     setIsOpen={setIsNotificationOpen}
@@ -663,27 +772,32 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       <input
                         ref={inputRef}
                         type="text"
-                        placeholder="Search or type command..."
+                        placeholder="Search..."
                         className="w-full py-3 pl-12 pr-4 text-sm bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20"
                       />
-                      <button className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70">
+                      <button 
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
+                        type="button"
+                      >
                         <span>⌘</span>
                         <span>K</span>
                       </button>
                     </div>
                   </form>
                 </div>
+                
                 <div className="relative">
                   <button 
                     onClick={toggleUserDropdown} 
                     className="flex items-center text-white dropdown-toggle"
+                    type="button"
                   >
                     <div className="mr-3 overflow-hidden rounded-full h-11 w-11 shrink-0 border border-white/20 bg-gray-700">
                       <img 
                         className="w-full h-full object-cover" 
                         src={safeAvatar}
                         alt="User" 
-                        onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
+                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
                       />
                     </div>
                     
@@ -740,13 +854,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
                                   onClick={() => switchAccount(account.name)}
                                   disabled={isProfilePage}
                                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+                                  type="button"
                                 >
                                   <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
                                     <img 
                                       className="w-full h-full object-cover" 
                                       src={displayAvatar} 
                                       alt={account.name} 
-                                      onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
+                                      onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
                                     />
                                   </div>
 
@@ -826,7 +941,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         <path 
                           fillRule="evenodd" 
                           clipRule="evenodd" 
-                          d="M15.1007 19.247C14.6865 19.247 14.3507 18.9112 14.3507 18.497L14.3507 14.245H12.8507V18.497C12.8507 19.7396 13.8581 20.747 15.1007 20.747H18.5007C19.7434 20.747 20.7507 19.7396 20.7507 18.497L20.7507 5.49609C20.7507 4.25345 19.7433 3.24609 18.5007 3.24609H15.1007C13.8581 3.24609 12.8507 4.23377 12.8507 5.49609V9.74501L14.3507 9.74501V5.49609C14.3507 5.08188 14.6865 4.74609 15.1007 4.74609L18.5007 4.74609C18.9149 4.74609 19.2507 5.08188 19.2507 5.49609L19.2507 18.497C19.2507 18.9112 18.9149 19.247 18.5007 19.247H15.1007ZM3.25073 11.9984C3.25073 12.2144 3.34204 12.4091 3.48817 12.546L8.09483 17.1556C8.38763 17.4485 8.86251 17.4487 9.15549 17.1559C9.44848 16.8631 9.44863 16.3882 9.15583 16.0952L5.81116 12.7484L16.0007 12.7484C16.4149 12.7484 16.7507 12.4127 16.7507 11.9984C16.7507 11.5842 16.4149 11.2484 16.0007 11.2484L5.81528 11.2484L9.15585 7.90554C9.44864 7.61255 9.44847 7.13767 9.15547 6.84488C8.86248 6.55209 8.3876 6.55226 8.09481 6.84525L3.52309 11.4202C3.35673 11.5577 3.25073 11.7657 3.25073 11.9984Z" 
+                          d="M15.1007 19.247C14.6865 19.247 14.3507 18.9112 14.3507 18.497L14.3507 14.245H12.8507V18.497C12.8507 19.7396 13.8581 20.747 15.1007 20.747H18.5007C19.7434 20.747 20.7507 19.7396 20.7507 18.497L20.7507 5.49609C20.7507 4.25345 19.7433 3.24609 18.5007 3.24609H15.1007C13.8581 3.24609 12.8507 4.23377 12.8507 5.49609V9.74501L14.3507 9.74501V5.49609C14.3507 5.08188 14.6865 4.74609 15.1007 4.74609L18.5007 4.74609C18.9149 4.74609 19.2507 5.08188 19.2507 5.49609L19.2507 18.497C19.2507 18.9112 18.9149 19.247 18.5007 19.247H15.1007ZM3.25073 11.9984C3.25073 12.2144 3.34204 12.4091 3.48817 12.546L8.09483 17.1556C8.38763 17.4485 8.86251 17.4487 9.15549 17.1559C9.44848 16.8631 9.44863 16.3882 9.15583 16.0952L5.81116 12.7484L16.0007 12.7484C16.4149 12.7484 16.7507 12.4127 16.7507 11.9984C16.7507 11.5842 16.4149 11.2484 16.0007 11.2484L5.81528 11.2484L9.15585 7.90554C9.44864 7.61255 9.44847 7.13767 9.15547 7.13767C8.86248 6.55209 8.3876 6.55226 8.09481 6.84525L3.52309 11.4202C3.35673 11.5577 3.25073 11.7657 3.25073 11.9984Z" 
                         />
                       </svg>
 
@@ -860,53 +975,87 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 </p>
               </div>
 
-              <div className={`grid grid-cols-1 gap-6 ${(canCreateBusiness && canCreatePersonal) ? 'sm:grid-cols-2' : 'max-w-xs mx-auto'}`}>
-                {canCreatePersonal && (
+              <div className={`grid grid-cols-1 gap-6 ${(canCreateSavings && canCreateCurrent) ? 'sm:grid-cols-2' : 'max-w-xs mx-auto'}`}>
+                {canCreateSavings && (
                   <div 
-                    onClick={() => setSelectedType("Personal")} 
+                    onClick={() => setSelectedType("Savings Account")} 
                     className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                      selectedType === "Personal" 
+                      selectedType === "Savings Account" 
                         ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
                         : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
                     }`}
                   >
-                    {selectedType === "Personal" && (
+                    {selectedType === "Savings Account" && (
                       <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        <svg 
+                          className="w-3 h-3" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2.5" 
+                            d="M5 13l4 4L19 7" 
+                          />
                         </svg>
                       </div>
                     )}
-                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Personal" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
-                      Personal Account
+
+                    <h3 className={`text-lg font-bold mb-2 ${
+                      selectedType === "Savings Account" 
+                        ? 'text-[#3D405B] dark:text-white' 
+                        : 'text-gray-800 dark:text-white'
+                      }`}
+                    >
+                      Savings Account
                     </h3>
+
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      Create a new personal banking account
+                      Create a new savings banking account
                     </p>
                   </div>
                 )}
 
-                {canCreateBusiness && (
+                {canCreateCurrent && (
                   <div 
-                    onClick={() => setSelectedType("Business")} 
+                    onClick={() => setSelectedType("Current Account")} 
                     className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                      selectedType === "Business" 
+                      selectedType === "Current Account" 
                         ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
                         : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
                     }`}
                   >
-                    {selectedType === "Business" && (
+                    {selectedType === "Current Account" && (
                       <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        <svg 
+                          className="w-3 h-3" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2.5" 
+                            d="M5 13l4 4L19 7" 
+                          />
                         </svg>
                       </div>
                     )}
-                    <h3 className={`text-lg font-bold mb-2 ${selectedType === "Business" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
-                      Business Account
+
+                    <h3 className={`text-lg font-bold mb-2 ${
+                      selectedType === "Current Account" 
+                        ? 'text-[#3D405B] dark:text-white' 
+                        : 'text-gray-800 dark:text-white'
+                      }`}
+                    >
+                      Current Account
                     </h3>
+
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                      Create a new business banking account
+                      Create a new business current account
                     </p>
                   </div>
                 )}
@@ -916,13 +1065,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button 
                   onClick={() => setModalStep(2)} 
                   disabled={!selectedType} 
-                  className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold text-white transition rounded-lg shadow-theme-xs ${
+                  className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
                     selectedType 
-                      ? 'bg-[#3D405B] hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+                      ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
+                  type="button"
                 >
-                  {isSendingOtp ? "Sending..." : "Continue"}
+                  {isSendingOtp ? "Loading..." : "Continue"}
                 </button>
               </div>
             </>
@@ -932,6 +1082,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   Confirm Account Creation
                 </h1>
+
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Would you like to proceed with creating this account?
                 </p>
@@ -939,9 +1090,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
               
               <div className="relative p-4 mb-8 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm max-w-xs mx-auto border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                  {selectedType} Account
+                  {selectedType}
                 </p>
-                <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Selected Account Type
                 </p>
               </div>
@@ -950,18 +1102,34 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button 
                   onClick={() => setModalStep(1)} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
+                  type="button"
                 >
                   No, go back
                 </button>
+
                 <button 
                   onClick={handleConfirmCreation} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                  type="button"
                 >
                   Yes, continue
                 </button>
               </div>
             </>
           )}
+
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                Contact Support
+              </Link>
+            </p>
+          </div>
 
           <footer className="relative mt-8 text-xs text-gray-400 text-center z-10">
             &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
@@ -981,8 +1149,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   Select Verification Method
                 </h1>
+
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  A security code is required to switch to the account: <span className="font-bold text-gray-800 dark:text-white">{targetAccount}</span>. Select your method.
+                  A security code is required to switch to the account: <span className="font-bold text-gray-800 dark:text-white">{targetAccount}</span>. Please select your method.
                 </p>
               </div>
 
@@ -997,14 +1166,31 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 >
                   {verificationMethod === "Email" && (
                     <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      <svg 
+                        className="w-3 h-3" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2.5" 
+                          d="M5 13l4 4L19 7" 
+                        />
                       </svg>
                     </div>
                   )}
-                  <h3 className={`text-lg font-bold mb-2 ${verificationMethod === "Email" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
+
+                  <h3 className={`text-lg font-bold mb-2 ${
+                    verificationMethod === "Email" 
+                      ? 'text-[#3D405B] dark:text-white' 
+                      : 'text-gray-800 dark:text-white'
+                    }`}
+                  >
                     Via Email
                   </h3>
+
                   <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                     Receive code at your registered email address.
                   </p>
@@ -1020,14 +1206,31 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 >
                   {verificationMethod === "Phone" && (
                     <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      <svg 
+                        className="w-3 h-3" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2.5" 
+                          d="M5 13l4 4L19 7" 
+                        />
                       </svg>
                     </div>
                   )}
-                  <h3 className={`text-lg font-bold mb-2 ${verificationMethod === "Phone" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
+
+                  <h3 className={`text-lg font-bold mb-2 ${
+                    verificationMethod === "Phone" 
+                      ? 'text-[#3D405B] dark:text-white' 
+                      : 'text-gray-800 dark:text-white'
+                    }`}
+                  >
                     Via Phone Number
                   </h3>
+
                   <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                     Receive code via SMS to your registered phone number.
                   </p>
@@ -1038,13 +1241,13 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button 
                   onClick={() => handleSendCode(verificationMethod!)} 
                   disabled={!verificationMethod || isSendingOtp} 
-                  className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold text-white transition rounded-lg shadow-theme-xs ${
-                    verificationMethod 
-                      ? 'bg-[#3D405B] hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                  className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  verificationMethod
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
                 >
-                  {isSendingOtp ? "Sending..." : "Continue"}
+                  {isSendingOtp ? "Sending Code..." : "Continue"}
                 </button>
               </div>
             </>
@@ -1054,6 +1257,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   {verificationMethod === "Email" ? "Verify Your Email" : "Verify Your Phone Number"}
                 </h1>
+
                 {verificationMethod === "Email" ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{targetAccountDetails?.email}</span>. Please provide the code to proceed.
@@ -1104,23 +1308,39 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button 
                   onClick={() => { setOtpStep(1); setOtpCode(''); setOtpDigits(new Array(6).fill('')); }} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
+                  type="button"
                 >
                   No, go back
                 </button>
+                
                 <button 
                   onClick={handleVerifyOtp} 
                   disabled={otpCode.length !== 6} 
-                  className={`inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold text-white transition rounded-lg shadow-theme-xs ${
+                  className={`inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
                     otpCode.length === 6 
-                      ? 'bg-[#3D405B] hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+                      ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
+                  type="button"
                 >
                   Verify
                 </button>
               </div>
             </>
           )}
+
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                Contact Support
+              </Link>
+            </p>
+          </div>
 
           <footer className="relative mt-8 text-xs text-gray-400 text-center z-10">
             &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.

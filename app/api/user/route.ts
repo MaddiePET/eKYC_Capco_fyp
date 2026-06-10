@@ -44,19 +44,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         c.ph_no AS phone,
         u.img AS avatar,
         CASE 
-          WHEN ca.account_no IS NOT NULL THEN 'Current'
-          ELSE 'Personal'
+          WHEN cau.account_no IS NOT NULL THEN 'Current Account'
+          WHEN sa.account_no IS NOT NULL THEN 'Savings Account'
         END AS type,
         u.branch,
         CASE 
           WHEN LOWER(c.id_type) IN ('ic', 'mykad', 'nric', 'malaysian') THEN true 
-            ELSE false 
-          END AS "isMalaysian"
+          ELSE false 
+        END AS "isMalaysian"
       FROM banka."User" u
       JOIN banka."Customer" c
         ON u.cust_id = c.cust_id
-      LEFT JOIN banka."Current_account" ca
-        ON u.user_id = ca.user_id
+      LEFT JOIN banka."Current_account_user" cau
+        ON u.user_id = cau.user_id
+      LEFT JOIN banka."Savings_account" sa
+        ON u.user_id = sa.user_id
       WHERE u.cust_id = (
         SELECT cust_id
         FROM banka."User"

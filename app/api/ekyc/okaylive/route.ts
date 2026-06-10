@@ -34,14 +34,14 @@ export async function POST(req: Request) {
       result = text ? JSON.parse(text) : {};
     } catch (parseError) {
       console.error("Failed to parse OkayLive response:", text);
-      return NextResponse.json({ error: "Invalid JSON response from OKayLive" }, { status: 500 });
+      return NextResponse.json({ error: "Invalid JSON response from OkayLive" }, { status: 500 });
     }
 
-    console.log("OKayLive full response:", JSON.stringify(result, null, 2));
+    console.log("OkayLive full response:", JSON.stringify(result, null, 2));
 
     return NextResponse.json(result, { status: response.status });
   } catch (error: any) {
-    console.error("OKayLive route error:", error.message);
+    console.error("OkayLive route error:", error.message);
     return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
   }
 }

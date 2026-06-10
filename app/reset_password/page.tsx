@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,25 +9,41 @@ import EyeCloseIcon from "@/icons/eye-close.svg";
 import EyeIcon from "@/icons/eye.svg";
 import Label from "@/components/form/Label";
 
+type Step = "request" | "otp" | "reset" | "success";
+type MessageType = "success" | "error" | "";
+
 export default function ResetPassword() {
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
-  const [step, setStep] = useState<"verify" | "reset" | "success">("verify");
+  const [step, setStep] = useState<Step>("request");
   
   const [username, setUsername] = useState("");
-  const [idNumber, setIdNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  const [timer, setTimer] = useState(0);
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<MessageType>("");
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Shared Password Validation Logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
   const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(newPassword);
   const score = (newPassword.length >= 8 ? 1 : 0) + (/[0-9]/.test(newPassword) ? 1 : 0) + (/[A-Z]/.test(newPassword) ? 1 : 0) + (/[^A-Za-z0-9]/.test(newPassword) ? 1 : 0);
 
@@ -39,45 +55,107 @@ export default function ResetPassword() {
     return "Very Strong";
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsLoading(true);
-    setErrorMessage("");
+    setMessage("");
+    setMessageType("");
 
     try {
       const res = await fetch("/api/auth/reset_password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify", username, idNumber }),
+        body: JSON.stringify({ action: "send_otp", username, email }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Verification failed.");
+        throw new Error(data.error || "Failed to send OTP.");
       }
 
-      setStep("reset");
+      setStep("otp");
+      setTimer(60);
+      setMessage("OTP sent successfully. Please check your email.");
+      setMessageType("success");
     } catch (err: any) {
-      setErrorMessage(err.message);
+      setMessage(err.message);
+      setMessageType("error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleVerifyOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const enteredOtp = otp.join("");
+    setIsLoading(true);
+    setMessage("");
+    setMessageType("");
+
+    try {
+      const res = await fetch("/api/auth/reset_password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify_otp", email, otp: enteredOtp }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Invalid OTP. Please try again.");
+      }
+
+      setStep("reset");
+      setMessage("Email verified successfully. You can now reset your password.");
+      setMessageType("success");
+    } catch (err: any) {
+      setMessage(err.message);
+      setMessageType("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (value: string, index: number) => {
+    const cleanValue = value.replace(/[^0-9]/g, "");
+    const newOtp = [...otp];
+    
+    if (cleanValue.length > 1) {
+      const pastedChars = cleanValue.slice(0, 6).split("");
+      pastedChars.forEach((char, i) => {
+        if (index + i < 6) newOtp[index + i] = char;
+      });
+      setOtp(newOtp);
+      otpInputs.current[Math.min(index + pastedChars.length, 5)]?.focus();
+    } else {
+      newOtp[index] = cleanValue;
+      setOtp(newOtp);
+      if (cleanValue && index < 5) otpInputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpInputs.current[index - 1]?.focus();
+    }
+  };
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage("");
+    setMessageType("");
     
     if (newPassword !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      setMessage("Passwords do not match.");
+      setMessageType("error");
       return;
     }
     if (!isPasswordValid) {
-      setErrorMessage("Password does not meet the security requirements.");
+      setMessage("Password does not meet the security requirements.");
+      setMessageType("error");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage("");
 
     try {
       const res = await fetch("/api/auth/reset_password", {
@@ -92,19 +170,21 @@ export default function ResetPassword() {
       }
 
       setStep("success");
+      setMessage("");
     } catch (err: any) {
-      setErrorMessage(err.message);
+      setMessage(err.message);
+      setMessageType("error");
     } finally {
       setIsLoading(false);
     }
   };
 
   if (!mounted) {
-    return <div className="min-h-screen bg-[#F9FAFB] dark:bg-gray-950" />;
+    return <div className="min-h-[100dvh] bg-[#F9FAFB] dark:bg-gray-950" />;
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center min-h-[100dvh] px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
       <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
@@ -138,44 +218,45 @@ export default function ResetPassword() {
         </svg>
       </div>
 
-      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20">
-        {step !== "success" && (
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 w-full">
+        {step !== "success" ? (
           <button 
             type="button" 
             onClick={() => {
-              if (step === "reset") {
-                setStep("verify");
-              } else {
-                router.push("/login");
-              }
+              setMessage("");
+              setMessageType("");
+              if (step === "reset") setStep("otp");
+              else if (step === "otp") setStep("request");
+              else router.push("/login");
             }} 
             className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
           >
             <ChevronLeftIcon className="w-5 h-5" />
+
             Back
           </button>
-        )}
+        ) : <div />}
+
         <Link 
-            href="/" 
-            className={`flex items-center gap-2 ${step === 'success' ? 'mx-auto' : ''}`}
+          href="/" 
+          className="flex items-center gap-2"
         >
-          <Image    
+          <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
             width={40} 
             height={40} 
             className="block dark:invert-0 invert" 
-            />          
+          />
 
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
-        </h1>
+          </h1>
         </Link>
       </div>
 
-      <div className="relative w-full max-w-md z-10">
-        
-        {step === "verify" && (
+      <div className="relative w-full max-w-md z-10"> 
+        {step === "request" && (
           <div className="animate-in fade-in duration-500">
             <div className="mb-8 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
@@ -183,53 +264,128 @@ export default function ResetPassword() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Please enter your username and registered ID number to verify your identity.
+                Please enter your username and registered email address to verify your identity.
               </p>
             </div>
             
-            {errorMessage && (
-              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                {errorMessage}
+            {message && (
+              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
+              }`}>
+                {message}
               </div>
             )}
 
-            <form onSubmit={handleVerify} className="space-y-5">
+            <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
-                <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                    Username<span className="text-error-500">*</span>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Username<span className="text-error-500">*</span>
                 </Label>
 
                 <input
-                  className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase()))}
                   required
                 />
               </div>
 
               <div>
-                <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                  MyKad / Passport No.<span className="text-error-500">*</span>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Email Address<span className="text-error-500">*</span>
                 </Label>
 
                 <input
-                  className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
-                  placeholder="Enter your ID number"
-                  value={idNumber}
-                  onChange={(e) => setIdNumber(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+                  type="email"
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))}
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={isLoading}
-                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:opacity-70"
+                disabled={isLoading || !username || !email}
+                className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  !isLoading && username && email
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                }`}
+              >
+                {isLoading ? "Sending Code..." : "Send Code"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {step === "otp" && (
+          <div className="animate-in fade-in duration-500">
+            <div className="mb-8 text-center">
+              <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
+                Verify Your Email
+              </h1>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{email}</span>. Please provide the code to proceed.
+              </p>
+            </div>
+
+            {message && (
+              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
+              }`}>
+                {message}
+              </div>
+            )}
+            
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <div className="flex justify-center gap-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index} 
+                    type="text" 
+                    inputMode="numeric" 
+                    maxLength={1} 
+                    ref={(el) => { otpInputs.current[index] = el; }}
+                    value={digit} 
+                    onChange={(e) => handleOtpChange(e.target.value, index)} 
+                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                    className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                  />
+                ))}
+              </div>
+              
+              <button 
+                type="submit" 
+                disabled={otp.join("").length < 6 || isLoading} 
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  otp.join("").length === 6 
+                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                }`}
               >
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
             </form>
+            
+            <div className="text-center mt-6">
+              {timer > 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
+                </p>
+              ) : (
+                <button 
+                  type="button" 
+                  onClick={handleSendOtp} 
+                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
+                >
+                  Resend Code
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -245,20 +401,18 @@ export default function ResetPassword() {
               </p>
             </div>
 
-            {errorMessage && (
-              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                {errorMessage}
+            {message && (
+              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                messageType === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
+              }`}>
+                {message}
               </div>
             )}
 
-            <form 
-                onSubmit={handleReset} 
-                className="space-y-5"
-            >
+            <form onSubmit={handleReset} className="space-y-5">
               <div>
-
-                <Label className="block mb-2 text-gray-800 dark:text-white/90">
-                    New Password<span className="text-error-500">*</span>
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  New Password<span className="text-error-500">*</span>
                 </Label>
 
                 <div className="relative">
@@ -274,7 +428,7 @@ export default function ResetPassword() {
                   <span 
                     onClick={() => setShowPassword(!showPassword)} 
                     className="absolute z-30 cursor-pointer -translate-y-1/2 right-4 top-1/2"
-                >
+                  >
                     {showPassword ? <EyeIcon className="w-5 h-5 fill-gray-500" /> : <EyeCloseIcon className="w-5 h-5 fill-gray-500" />}
                   </span>
                 </div>
@@ -299,7 +453,6 @@ export default function ResetPassword() {
                   </div>
                 )}
 
-                {/* Password strength meter */}
                 <div className="h-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full mt-3 overflow-hidden">
                   <div className={`h-full transition-all duration-500 ${
                       newPassword.length === 0 ? 'w-0' :
@@ -320,7 +473,7 @@ export default function ResetPassword() {
               </div>
 
               <div>
-                <Label className="block mb-2 text-gray-800 dark:text-white/90">
+                <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Confirm Password<span className="text-error-500">*</span>
                 </Label>
 
@@ -353,20 +506,19 @@ export default function ResetPassword() {
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
-                >
+              >
                 <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M5 13l4 4L19 7"
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" d="M5 13l4 4L19 7" 
                 />
               </svg>
             </div>
-            
+
             <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
               Password Reset Complete
             </h1>
-            
+
             <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
               Your password has been successfully updated. You can now log in using your new credentials.
             </p>
@@ -379,23 +531,22 @@ export default function ResetPassword() {
             </button>
           </div>
         )}
-
       </div>
 
-      <div className="mt-5 text-center">
-            <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+      <div className="mt-5 text-center z-10">
+        <p className="text-sm font-normal">
+          <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
-              <Link 
-                href="/support" 
-                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-               >
-                Contact Support
-              </Link>
-            </p>
-          </div>
+          <Link 
+            href="/contact_support" 
+            className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          >
+            Contact Support
+          </Link>
+        </p>
+      </div>
 
-          <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>

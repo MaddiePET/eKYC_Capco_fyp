@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
-import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
 
 interface ProfileData {
   username: string;
@@ -16,11 +14,50 @@ interface ProfileData {
   phone: string;
   occupation: string;
   country: string;
-  cityState: string;
+  city?: string;
+  state?: string;
+  cityState?: string;
   postalCode: string;
-  address: string;
+  address1?: string;
+  address2?: string;
+  address?: string;
   location: string;
+  accountNo?: string;
+  accountNumber?: string;
+  account_no?: string;
+  account_number?: string;
+  isMalaysian?: boolean;
+  is_malaysian?: boolean;
 }
+
+const getSplitAddress = (profile: ProfileData) => {
+  if (profile.address1 || profile.address2) {
+    return {
+      address1: profile.address1 || "N/A",
+      address2: profile.address2 || "N/A",
+    };
+  }
+
+  const rawAddress = profile.address || "";
+  if (!rawAddress) {
+    return { 
+      address1: "N/A", 
+      address2: "N/A" 
+    };
+  }
+
+  const parts = rawAddress.split(",");
+  if (parts.length > 1) {
+    const address1 = parts[0].trim();
+    const address2 = parts.slice(1).join(",").trim();
+    return { address1, address2 };
+  }
+
+  return { 
+    address1: rawAddress, 
+    address2: "N/A" 
+  };
+};
 
 export default function Profile() {
   const { isOpen: isMetaModalOpen, openModal: openMetaModal, closeModal: closeMetaModal } = useModal();
@@ -29,249 +66,334 @@ export default function Profile() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      console.log("PROFILE localStorage currentUsername:", localStorage.getItem("currentUsername"));
+    const fetchProfile = async () => {
+      try {
+        const username = localStorage.getItem("currentUsername");
 
-      const username = localStorage.getItem("currentUsername");
+        if (!username) {
+          setLoading(false);
+          return;
+        }
 
-      if (!username) {
-        console.error("No username found in localStorage");
+        const res = await fetch(`/api/profile/${username}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch profile.");
+        }
+
+        const data = await res.json();
+        setProfile(data);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      const res = await fetch(`/api/profile/${username}`);
-      console.log("PROFILE FETCH STATUS:", res.status);
+    fetchProfile();
+  }, []);
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch profile");
-      }
-
-      const data = await res.json();
-      console.log("PROFILE DATA:", data);
-      setProfile(data);
-    } catch (err) {
-      console.error("PROFILE FETCH ERROR:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchProfile();
-}, []);
-
-  const handleMetaSave = () => {
+  const handleMetaSave = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     console.log("Saving meta changes...");
     closeMetaModal();
   };
 
   if (loading) {
-    return <div>Loading profile...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading profile...</p>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <div>Could not load profile.</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">Could not load profile.</p>
+      </div>
+    );
   }
 
+  const accountDisplay = 
+    profile.accountNo || 
+    profile.accountNumber || 
+    profile.account_no || 
+    profile.account_number || 
+    "N/A";
+
+  const { address1, address2 } = getSplitAddress(profile);
+
   return (
-    <div className="space-y-6">
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-col items-center w-full gap-6 xl:flex-row">
-            <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 shrink-0">
-              <img 
-                className="w-full h-full object-cover" 
-                src={profile.avatar} 
-                alt="user" 
-              />
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="p-6 bg-white border border-gray-200 rounded-2xl dark:border-white/20 dark:bg-gray-900/50 shadow-sm">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="w-20 h-20 overflow-hidden ring-4 ring-gray-100 dark:ring-gray-500/50 rounded-full shrink-0 mx-auto sm:mx-0">
+            <img 
+              className="w-full h-full object-cover" 
+              src={profile.avatar || "/owner.jpg"} 
+              alt={`${profile.name}'s avatar`} 
+            />
+          </div>
+
+          <div className="space-y-1 text-center sm:text-left">
+            <h4 className="text-xl font-bold text-gray-800 dark:text-white">
+              {profile.name}
+            </h4>
+            
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Account Number: <span className="font-mono font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs">{accountDisplay}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="p-6 bg-white border border-gray-200 rounded-2xl dark:border-white/20 dark:bg-gray-900/50 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-200 dark:border-white/20">
+              <h4 className="text-lg font-bold text-gray-800 dark:text-white">
+                Personal Information
+              </h4>
+              
+              <button 
+                onClick={openMetaModal} 
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-white/20 dark:hover:bg-gray-900"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  strokeWidth={1.5} 
+                  stroke="currentColor" 
+                  className="w-3.5 h-3.5"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" 
+                  />
+                </svg>
+                Edit
+              </button>
             </div>
 
-            <div className="order-3 xl:order-2">
-              <h4 className="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                {profile.name}
-              </h4>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Full Name
+                  </span>
 
-              <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {profile.occupation}
-                </p>
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {profile.fullName || "N/A"}
+                  </p>
+                </div>
 
-                <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {profile.location}
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Occupation
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {profile.occupation || "N/A"}
+                  </p>
+                </div>
+              </div>
+            
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Email address
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200 break-all">
+                    {profile.email || "N/A"}
+                  </p>
+                </div>
+                
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Phone Number
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {profile.phone || "N/A"}
                   </p>
                 </div>
               </div>
             </div>
-
-            <button onClick={openMetaModal}>
-              Edit
-            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-                Personal Information
-              </h4>
+        <div className="p-6 bg-white border border-gray-200 rounded-2xl dark:border-white/20 dark:bg-gray-900/50 shadow-sm flex flex-col justify-between">
+          <div>
+            <h4 className="pb-4 mb-4 text-lg font-bold text-gray-800 border-b border-gray-200 dark:text-white dark:border-white/20">
+              Address
+            </h4>
 
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-                <div className="lg:col-span-2">
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Full Name
-                  </p>
-                  
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.fullName}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Address 1
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {address1}
                   </p>
                 </div>
-              
-                <div>
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Email address
-                  </p>
 
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.email}
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Address 2
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {address2}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    City, State
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {profile.city && profile.state 
+                      ? `${profile.city}, ${profile.state}` 
+                      : profile.cityState || "N/A"}
                   </p>
                 </div>
                 
                 <div>
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Phone
-                  </p>
-                  
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.phone}
+                  <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                    Postal Code
+                  </span>
+
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {profile.postalCode || "N/A"}
                   </p>
                 </div>
+              </div>
+
+              <div>
+                <span className="block mb-1 text-sm text-gray-500 dark:text-gray-400">
+                  Country
+                </span>
+
+                <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                  {profile.country || "N/A"}
+                </p>
               </div>
             </div>
           </div>
-
-          <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-                Address
-              </h4>
-
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
-                <div>
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Country
-                  </p>
-
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.country}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    City/State
-                  </p>
-
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.cityState}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Postal Code
-                  </p>
-
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.postalCode}
-                  </p>
-                </div>
-
-                <div className="lg:col-span-2">
-                  <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Address
-                  </p>
-
-                  <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                    {profile.address}
-                  </p>
-                </div>
-              </div>
-            </div>
         </div>
       </div>
 
       <Modal 
         isOpen={isMetaModalOpen} 
         onClose={closeMetaModal} 
-        className="max-w-[700px] m-4"
+        className="max-w-[700px] m-40 lg:m-0"
       >
-        <div className="p-4 bg-white rounded-3xl dark:bg-gray-900 lg:p-11">
+        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-[#F9FAFB] p-8 dark:bg-gray-950 shadow-2xl">
+          <div className="text-center mb-10">
+            <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
+              Edit Personal Information
+            </h1>
 
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Edit Personal Information
-          </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Please update your personal information below.
+            </p>
+          </div>
 
-          <form className="flex flex-col">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-              <div className="col-span-2">
-                <Label>Full Name</Label>
+          <form onSubmit={handleMetaSave} className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Full Name<span className="text-red-500">*</span>
+                </label>
 
-                <Input 
+                <input 
                   type="text" 
                   defaultValue={profile.fullName} 
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                 />
               </div>
 
               <div>
-                <Label>
-                  Email Address
-                </Label>
+                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Occupation<span className="text-red-500">*</span>
+                </label>
 
-                <Input 
-                  type="text" 
-                  defaultValue={profile.email} 
-                />
-              </div>
-
-              <div>
-                <Label>Phone</Label>
-
-                <Input 
-                  type="text" 
-                  defaultValue={profile.phone} 
-                />
-              </div>
-
-              <div className="col-span-2">
-                <Label>Occupation</Label>
-
-                <Input 
+                <input 
                   type="text" 
                   defaultValue={profile.occupation} 
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Email Address<span className="text-red-500">*</span>
+                </label>
+
+                <input 
+                  type="email" 
+                  defaultValue={profile.email} 
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
+                  Phone Number<span className="text-red-500">*</span>
+                </label>
+                
+                <input 
+                  type="text" 
+                  defaultValue={profile.phone} 
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button 
-                size="sm" 
-                variant="outline" 
+            <div className="flex flex-row gap-3 mt-4">
+              <button 
+                type="button" 
                 onClick={closeMetaModal}
+                className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
               >
                 Close
-              </Button>
+              </button>
 
-              <Button 
-                size="sm" 
-                onClick={handleMetaSave}
+              <button 
+                type="submit"
+                className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 Save Changes
-              </Button>
+              </button>
             </div>
           </form>
+
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
+                Contact Support
+              </Link>
+            </p>
+          </div>
+
+          <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+            &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
+          </footer>
         </div>
       </Modal>
     </div>

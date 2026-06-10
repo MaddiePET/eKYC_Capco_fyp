@@ -152,6 +152,9 @@ export default function LogIn() {
         localStorage.setItem("currentAccount", data.name || "");
         localStorage.setItem("currentUserAvatar", data.avatar || ""); 
         localStorage.setItem("currentUserEmail", data.email || "");
+        localStorage.setItem("currentUserId", String(data.user_id));
+        localStorage.setItem("currentCustId", String(data.cust_id));
+        localStorage.setItem("currentIdNum", data.id_num);
       } catch (storageError) {
         console.warn("Session allocation limits hit, pruning avatar storage.");
         localStorage.setItem("currentUserAvatar", "");
@@ -247,7 +250,7 @@ export default function LogIn() {
             </div>
             
             {usernameError && (
-              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 {usernameError}
               </div>
             )}
@@ -270,7 +273,7 @@ export default function LogIn() {
                       type="text"
                       value={username}
                       onChange={(e) => {
-                        const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
+                        const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
                         checkUsername(cleanedValue);
