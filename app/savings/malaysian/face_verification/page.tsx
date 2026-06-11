@@ -16,8 +16,36 @@ export default function SavingsMalaysianFaceQRCode() {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState("");
 
   const searchParams = useSearchParams();
+
+  const SCORECARD_PASS_THRESHOLD = 70; //To test change this value to 100
+
+ const calculateScorecardResult = (scorecard: any) => {
+   const scorecardLists = scorecard?.scorecardResultList || [];
+
+  let totalChecks = 0;
+  let passedChecks = 0;
+
+  for (const scorecardItem of scorecardLists) {
+    const checks = scorecardItem.checkResultList || [];
+
+    for (const check of checks) {
+      totalChecks++;
+
+      if (check.checkStatus === "P") {
+        passedChecks++;
+      }
+    }
+  }
+
+  if (totalChecks === 0) {
+    return null;
+  }
+
+  return Number(((passedChecks / totalChecks) * 100).toFixed(2));
+};
 
   useEffect(() => {
     const jId = searchParams.get("journeyId") || localStorage.getItem("journeyId");
@@ -50,13 +78,30 @@ export default function SavingsMalaysianFaceQRCode() {
         const data = await res.json();
 
         if (data.status === "face_verified") {
-          setIsVerified(true);
+          const scorecardResult = calculateScorecardResult(data.scorecard);
 
+          if (scorecardResult === null) {
+          setVerificationError("No scorecard checks were found. Please restart verification.");
+          setIsFailed(true);
+          clearInterval(checkStatus);
+          return;
+        }
+
+         if (scorecardResult < SCORECARD_PASS_THRESHOLD) {
+           setVerificationError(
+             `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`
+            );
+            setIsFailed(true);
+            clearInterval(checkStatus);
+            return;
+          }
+
+          setIsVerified(true);
           clearInterval(checkStatus);
 
         } else if (data.status === "face_failed") {
+          setVerificationError("Face verification failed after multiple attempts. Please return to the home page to restart.");         
           setIsFailed(true);
-
           clearInterval(checkStatus);
         }
       } catch (error) {
@@ -101,18 +146,18 @@ export default function SavingsMalaysianFaceQRCode() {
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Too Many Attempts
+              Verification Not Approved
             </h2>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Face verification failed after multiple attempts. Please return to the home page to restart.
+              {verificationError || "Face verification failed after multiple attempts. Please return to the home page to restart."}            
             </p>
 
             <button
-              onClick={() => window.location.reload()}
+               onClick={() => router.push(`/savings/malaysian/mykad`)}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
             >
-              Try Again
+              Restart Verification
             </button>
           </div>
         </div>
