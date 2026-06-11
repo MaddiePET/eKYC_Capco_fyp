@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 function generateAccountNumber() {
   let accountNo = "";
+
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
@@ -284,6 +285,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(cleanUser.password);
 
     let profileBuffer: Buffer | null = null;
+    
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
@@ -344,8 +346,6 @@ export async function POST(req: Request) {
       ]
     );
 
-    const finalJourneyId = journeyId || `BYPASS-${custId}-${Date.now()}`;
-    
     await client.query(
       `
       INSERT INTO banka."Journey" (
@@ -359,7 +359,7 @@ export async function POST(req: Request) {
       ON CONFLICT (journey_id) DO NOTHING
       `,
       [
-        finalJourneyId,
+        journeyId,
         custId,
         scorecardResult,
       ]

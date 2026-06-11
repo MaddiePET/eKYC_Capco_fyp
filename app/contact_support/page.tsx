@@ -126,9 +126,20 @@ export default function ContactSupportPage() {
           </h1>
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Send us a message and we'll get back to you shortly.
+            Send us a message and we&apos;ll get back to you shortly.
           </p>
         </div>
+
+        {formStatus && (
+          <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+            formStatus.type === "success" 
+              ? "bg-green-50 border-green-200 text-green-600" 
+              : "bg-red-50 border-red-200 text-red-600"
+            }`}
+          >
+            {formStatus.message}
+          </div>
+        )}
 
         <form 
           onSubmit={(e) => {
@@ -180,14 +191,6 @@ export default function ContactSupportPage() {
               required
             />
           </div>
-
-          {formStatus && (
-            <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-              formStatus.type === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
-            }`}>
-              {formStatus.message}
-            </div>
-          )}
 
           <div className="pt-2">
             <button

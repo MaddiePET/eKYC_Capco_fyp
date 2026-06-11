@@ -150,9 +150,9 @@ export async function GET(
       "N/A";
 
     const accountType = isCurrentAccount
-      ? "Current"
+      ? "Current Account"
       : isSavingsAccount
-      ? "Savings"
+      ? "Savings Account"
       : "Unknown";
 
     return NextResponse.json({

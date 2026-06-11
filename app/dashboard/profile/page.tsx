@@ -74,7 +74,6 @@ const getSplitAddress = (profile: ProfileData) => {
   if (parts.length > 1) {
     const address1 = parts[0].trim();
     const address2 = parts.slice(1).join(",").trim();
-
     return { address1, address2 };
   }
 
@@ -122,8 +121,7 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  const handleMetaSave = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleMetaSave = () => {
     console.log("Saving meta changes...");
     closeMetaModal();
   };
@@ -216,10 +214,7 @@ export default function Profile() {
             </h4>
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Account Number:{" "}
-              <span className="font-mono font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs">
-                {accountDisplay}
-              </span>
+              Account Number: <span className="font-mono font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs">{accountDisplay}</span>
             </p>
           </div>
         </div>
@@ -252,6 +247,7 @@ export default function Profile() {
                     d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
                   />
                 </svg>
+
                 Edit
               </button>
             </div>
@@ -510,9 +506,7 @@ export default function Profile() {
 
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">
-                Having trouble?{" "}
-              </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
               <Link
                 href="/contact_support"
@@ -524,8 +518,7 @@ export default function Profile() {
           </div>
 
           <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
-            &copy; {new Date().getFullYear()} DTCOB Banking Services. All
-            rights reserved.
+            &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
           </footer>
         </div>
       </Modal>

@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 function generateAccountNumber() {
   let accountNo = "";
+
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
@@ -112,20 +113,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Combine Address 2 and City into one string separated by a comma
     const homeAdd2Str = homeAddress.add_2 ? homeAddress.add_2.trim() : "";
     const homeCityStr = homeAddress.city ? homeAddress.city.trim() : "";
     const combinedHomeAdd2 = [homeAdd2Str, homeCityStr].filter(Boolean).join(", ");
 
     const cleanHomeAddress = {
       add_1: homeAddress.add_1 || "",
-      add_2: combinedHomeAdd2, // Saves "Street Name, City" to the database
+      add_2: combinedHomeAdd2,
       postcode: homeAddress.postcode || "",
       state: homeAddress.state || "",
       country: homeAddress.country || "",
     };
-
-    const rawGender = customer.gender || customer.non_msian_details?.gender || "";
 
     const cleanCustomer = {
       id_num: normalizedPassportNum,
@@ -134,7 +132,7 @@ export async function POST(req: Request) {
       dob: customer.dob,
       ph_no: customer.ph_no || "",
       email: customer.email || "",
-      gender: mapGender(rawGender),
+      gender: customer.gender,
     };
 
     const idNumHash = hashLookup(cleanCustomer.id_num);
@@ -156,7 +154,6 @@ export async function POST(req: Request) {
 
     await client.query("BEGIN");
 
-    // Create home address with encrypted values
     const homeAddressResult = await client.query(
       `
       INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -182,13 +179,12 @@ export async function POST(req: Request) {
 
       const cleanMailingAddress = {
         add_1: mailingAddress.add_1 || "",
-        add_2: combinedMailAdd2, // Saves "Street Name, City" to the database
+        add_2: combinedMailAdd2,
         postcode: mailingAddress.postcode || "",
         state: mailingAddress.state || "",
         country: mailingAddress.country || "",
       };
 
-      // Create mailing address with encrypted values
       const mailingAddressResult = await client.query(
         `
         INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -293,6 +289,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(cleanUser.password);
 
     let profileBuffer: Buffer | null = null;
+    
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
@@ -347,9 +344,7 @@ export async function POST(req: Request) {
         cleanSavings.is18,
       ]
     );
-    
-    // Save journey registration unconditionally using unique fallback keys with ON CONFLICT resolution
-    const finalJourneyId = journeyId || `BYPASS-${custId}-${Date.now()}`;
+        
     await client.query(
        `
        INSERT INTO banka."Journey" (
@@ -363,7 +358,7 @@ export async function POST(req: Request) {
       ON CONFLICT (journey_id) DO NOTHING
       `,
       [
-        finalJourneyId,
+        journeyId,
         custId,
         scorecardResult,
       ]

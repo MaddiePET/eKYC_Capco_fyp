@@ -129,7 +129,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
     });
   }, [activeAccount, accounts, isLoadingAccounts]);
 
-  // Changed fallback from "" to null to prevent browser console warning
   const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : null;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -648,16 +647,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
         </aside>
       )}
 
-      {isMobileOpen && (
-        <button
-          onClick={toggleMobileSidebar}
-          className="lg:hidden text-white/80 hover:text-white"
-          type="button"
-        >
-          ✕
-        </button>
-      )}
-
       <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
         <header 
           className="sticky top-0 flex w-full border-gray-200 z-[99999] dark:border-gray-800 lg:border-b"
@@ -724,7 +713,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     <input
                       ref={inputRef}
                       type="text"
-                      placeholder="Search or type command..."
+                      placeholder="Search..."
                       className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
                     />
 
@@ -774,15 +763,8 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         ref={inputRef}
                         type="text"
                         placeholder="Search..."
-                        className="w-full py-3 pl-12 pr-4 text-sm bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20"
+                        className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
                       />
-                      <button 
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
-                        type="button"
-                      >
-                        <span>⌘</span>
-                        <span>K</span>
-                      </button>
                     </div>
                   </form>
                 </div>
@@ -798,7 +780,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         className="w-full h-full object-cover" 
                         src={safeAvatar ?? undefined}
                         alt="User" 
-                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
+                        onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
                       />
                     </div>
                     
@@ -848,7 +830,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                           accounts
                             .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
                             .map((account) => {
-                              // Changed fallback from "" to null to prevent browser console warning
                               const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
 
                             return (
@@ -910,7 +891,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         <DropdownItem 
                           onItemClick={closeUserDropdown} 
                           tag="a" 
-                          href="/dashboard/profile" 
+                          href="/contact_support" 
                           className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
                         >
                           <svg 
@@ -1250,7 +1231,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
                 >
-                  {isSendingOtp ? "Sending Code..." : "Continue"}
+                  {isSendingOtp ? "Sending Code..." : "Send Code"}
                 </button>
               </div>
             </>
@@ -1291,10 +1272,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
               <div className="flex justify-center mb-6">
                 {otpTimer > 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Resend code in{" "}
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {otpTimer}s
-                    </span>
+                    Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{otpTimer}s</span>
                   </p>
                 ) : (
                   <button

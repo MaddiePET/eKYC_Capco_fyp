@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       result = text ? JSON.parse(text) : {};
     } catch (parseError) {
       console.error("Failed to parse OkayLive response:", text);
+      
       return NextResponse.json({ error: "Invalid JSON response from OkayLive" }, { status: 500 });
     }
 
@@ -42,6 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result, { status: response.status });
   } catch (error: any) {
     console.error("OkayLive route error:", error.message);
+
     return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
   }
 }
