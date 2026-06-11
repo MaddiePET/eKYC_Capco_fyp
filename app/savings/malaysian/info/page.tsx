@@ -41,7 +41,6 @@ export default function SavingsMalaysianInfo() {
       : "") ||
     "";
 
-  // Force mode to "new_user" if a eKYC journeyId is present in the URL parameters
   const mode =
     searchParams.get("mode") ||
     (searchParams.get("journeyId") ? "new_user" : "") ||
@@ -57,7 +56,9 @@ export default function SavingsMalaysianInfo() {
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
+
     const date = new Date(String(value));
+
     if (!Number.isNaN(date.getTime())) {
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",];
       return {
@@ -72,6 +73,7 @@ export default function SavingsMalaysianInfo() {
       const year = isoMatch[1];
       const month = Number(isoMatch[2]);
       const day = Number(isoMatch[3]);
+
       return {
         day: day.toString().padStart(2, "0"),
         month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",][month - 1] || "",
@@ -145,8 +147,8 @@ export default function SavingsMalaysianInfo() {
 
     if (typeof window === "undefined") return;
 
-    // Safety check: Clear stale local storage parameters if journey transitions
     const savedJourneyId = localStorage.getItem("journeyId");
+    
     if (savedJourneyId && journeyId && savedJourneyId !== journeyId) {
       localStorage.removeItem("personalInfo");
       localStorage.removeItem("homeAddress");

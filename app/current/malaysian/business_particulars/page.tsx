@@ -95,8 +95,6 @@ export default function CurrentMalaysianBusinessParticulars() {
     },
   });
 
-  const ACCOUNT_CREATION_PATH = "/current/malaysian/account_creation";
-
   useEffect(() => {
     setMounted(true);
 

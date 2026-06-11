@@ -1051,9 +1051,7 @@ export default function CurrentMalaysianBusinessAddress() {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble?{" "}
-            </span>
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
 
             <Link
               href="/contact_support"

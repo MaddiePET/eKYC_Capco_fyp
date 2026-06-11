@@ -108,6 +108,7 @@ export default function SavingsMalaysianApplication() {
 
     try {
       const personalInfoStr = localStorage.getItem("personalInfo");
+      
       if (personalInfoStr) {
         const personalInfo = JSON.parse(personalInfoStr);
 

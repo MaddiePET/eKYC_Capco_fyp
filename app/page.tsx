@@ -187,7 +187,10 @@ export default function Home() {
         </div>
       )}
 
-      <section id="section_1" className="relative pt-32 pb-32 lg:pt-36 lg:pb-48 bg-[#3D405B] dark:bg-[#3D405B] overflow-hidden text-white transition-colors duration-500">
+      <section 
+        id="section_1" 
+        className="relative pt-32 pb-32 lg:pt-36 lg:pb-48 bg-[#3D405B] dark:bg-[#3D405B] overflow-hidden text-white transition-colors duration-500"
+      >
         <svg className="absolute top-0 left-0 w-full h-24 sm:h-32 md:h-48 lg:h-64 pointer-events-none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="text-white/5 dark:text-black/10" fill="currentColor" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
           <path className="text-white/10 dark:text-black/20" fill="currentColor" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>

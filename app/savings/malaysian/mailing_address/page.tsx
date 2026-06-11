@@ -323,7 +323,7 @@ export default function SavingsMalaysianMailingAddress() {
                   : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
               }`}
             >
-              {isSubmitting ? "Saving..." : "Continue"}
+              {isSubmitting ? "Loading..." : "Continue"}
             </button>
           </div>
         </div>
