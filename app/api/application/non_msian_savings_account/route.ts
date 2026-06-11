@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     const scorecardResult = Number(((passedChecks / totalChecks) * 100).toFixed(2));
-
+    const SCORECARD_PASS_THRESHOLD = 70;
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
     if (
@@ -105,6 +105,21 @@ export async function POST(req: Request) {
       );
     }
 
+<<<<<<< HEAD
+=======
+    if (scorecardResult < SCORECARD_PASS_THRESHOLD) {
+      return NextResponse.json(
+        {
+           error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
+           scorecardResult,
+           threshold: SCORECARD_PASS_THRESHOLD,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Combine Address 2 and City into one string separated by a comma
+>>>>>>> origin/jeru
     const homeAdd2Str = homeAddress.add_2 ? homeAddress.add_2.trim() : "";
     const homeCityStr = homeAddress.city ? homeAddress.city.trim() : "";
     const combinedHomeAdd2 = [homeAdd2Str, homeCityStr].filter(Boolean).join(", ");

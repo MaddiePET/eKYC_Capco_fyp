@@ -141,6 +141,19 @@ export async function POST(req: Request) {
         ((passedChecks / totalChecks) * 100).toFixed(2)
       );
 
+      const SCORECARD_PASS_THRESHOLD = 70;
+
+      if (scorecardResult < SCORECARD_PASS_THRESHOLD){
+        return NextResponse.json(
+          {
+            error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
+            scorecardResult,
+            threshold: SCORECARD_PASS_THRESHOLD,
+          },
+          { status: 403}
+        );
+      }
+
       console.log("DEBUG business scorecardResult:", scorecardResult);
     }
 
