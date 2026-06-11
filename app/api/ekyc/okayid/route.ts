@@ -4,6 +4,11 @@ export async function POST(req: Request) {
   try {
     const { journeyId, base64ImageString, imageFormat = "JPG" } = await req.json();
 
+    console.log(
+      "[OkayID] Request image size bytes:",
+      Buffer.byteLength(base64ImageString, "utf8")
+    );
+
     if (!journeyId || !base64ImageString) {
       return NextResponse.json({ error: "Missing journeyId or base64ImageString" }, { status: 400 });
     }
@@ -26,6 +31,11 @@ export async function POST(req: Request) {
     });
 
     const okayidText = await okayidResponse.text();
+    console.log(
+      "[OkayID] Response size bytes:",
+      Buffer.byteLength(okayidText, "utf8")
+    );
+
     let okayidResult: Record<string, unknown> = {};
 
     try {
@@ -34,7 +44,8 @@ export async function POST(req: Request) {
         ? (okayidResult as { status?: string }).status
         : undefined;
       console.log("OkayID result - status:", okayidStatus);
-      console.log("OkayID full response:", JSON.stringify(okayidResult, null, 2));
+      console.log("[OkayID] Response received successfully");
+      //console.log("OkayID full response:", JSON.stringify(okayidResult, null, 2));
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
       console.error("Failed to parse OkayID response:", message);
@@ -62,7 +73,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        ...okayidResult,
+        success: true,
         extracted: {
           passport_no: passportNo,
         },
