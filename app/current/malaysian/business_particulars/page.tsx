@@ -317,6 +317,14 @@ export default function CurrentMalaysianBusinessParticulars() {
     saveToStorage("businessParticulars", normalizedBusiness);
     saveToStorage("ssmCompanyData", biz);
     saveToStorage("businessAddress", businessAddressData);
+
+    localStorage.setItem(
+      "currentAccountExists",
+      businessAlreadyRegistered ? "true" : "false"
+    );
+
+    localStorage.setItem("existingAccountNo", existingAccountNo || "");
+
     saveToStorage("currentAccountExists", businessAlreadyRegistered);
     saveToStorage("existingAccountNo", existingAccountNo);
 
@@ -343,25 +351,14 @@ export default function CurrentMalaysianBusinessParticulars() {
       businessAddress: businessAddressData,
     });
 
-    if (businessAlreadyRegistered) {
-      router.push(
-        `${ACCOUNT_CREATION_PATH}?id_type=${encodeURIComponent(
-          idType
-        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-          journeyId
-        )}&mode=${encodeURIComponent(
-          mode
-        )}&existing_account_no=${encodeURIComponent(existingAccountNo)}`
-      );
-      return;
-    }
-
     router.push(
       `/current/malaysian/business_address?id_type=${encodeURIComponent(
         idType
       )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
         journeyId
-      )}&mode=${encodeURIComponent(mode)}`
+      )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
+        businessAlreadyRegistered ? "true" : "false"
+      )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
     );
   };
 

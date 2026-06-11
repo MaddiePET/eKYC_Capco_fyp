@@ -101,7 +101,6 @@ function getStoredMailingAddress(): Address {
 export default function CurrentMalaysianBusinessAddress() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const { formData, setFormData } = useFormData();
 
   const [step, setStep] = useState<number>(1);
@@ -123,10 +122,7 @@ export default function CurrentMalaysianBusinessAddress() {
     country: "Malaysia",
   });
 
-  const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<
-    boolean | null
-  >(null);
-
+  const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<boolean | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [userAddressLabel, setUserAddressLabel] = useState<string>("");
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -152,6 +148,18 @@ export default function CurrentMalaysianBusinessAddress() {
     (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
     "new_user";
 
+  const currentAccountExists =
+    searchParams.get("current_account_exists") === "true" ||
+    (typeof window !== "undefined" &&
+      localStorage.getItem("currentAccountExists") === "true");
+
+  const existingAccountNo =
+    searchParams.get("existing_account_no") ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("existingAccountNo")
+      : "") ||
+    "";
+
   useEffect(() => {
     setMounted(true);
 
@@ -162,6 +170,15 @@ export default function CurrentMalaysianBusinessAddress() {
     if (idNum) localStorage.setItem("id_num", idNum);
     if (mode) localStorage.setItem("mode", mode);
 
+    localStorage.setItem(
+      "currentAccountExists",
+      currentAccountExists ? "true" : "false"
+    );
+
+    if (existingAccountNo) {
+      localStorage.setItem("existingAccountNo", existingAccountNo);
+    }
+
     const storedBusinessAddress = getStoredBusinessAddress();
     const storedMailingAddress = getStoredMailingAddress();
     const storedFullBusinessAddress = loadFromStorage(
@@ -169,7 +186,7 @@ export default function CurrentMalaysianBusinessAddress() {
       null as any
     );
 
-    setBusinessAddress({
+    const resolvedBusinessAddress = {
       addressLine1:
         formData?.businessAddress?.businessAddress?.addressLine1 ||
         storedBusinessAddress.addressLine1 ||
@@ -190,9 +207,9 @@ export default function CurrentMalaysianBusinessAddress() {
         formData?.businessAddress?.businessAddress?.country ||
         storedBusinessAddress.country ||
         "Malaysia",
-    });
+    };
 
-    setMailingAddress({
+    const resolvedMailingAddress = {
       addressLine1:
         formData?.businessAddress?.mailingAddress?.addressLine1 ||
         storedMailingAddress.addressLine1 ||
@@ -213,7 +230,10 @@ export default function CurrentMalaysianBusinessAddress() {
         formData?.businessAddress?.mailingAddress?.country ||
         storedMailingAddress.country ||
         "Malaysia",
-    });
+    };
+
+    setBusinessAddress(resolvedBusinessAddress);
+    setMailingAddress(resolvedMailingAddress);
 
     setPreferredBranch(
       formData?.businessAddress?.preferredBranch ||
@@ -227,7 +247,20 @@ export default function CurrentMalaysianBusinessAddress() {
       null;
 
     setUseBusinessAsMailing(sameAddress);
-  }, [journeyId, idType, idNum, mode]);
+
+    if (currentAccountExists) {
+      setUseBusinessAsMailing(true);
+      setMailingAddress(resolvedBusinessAddress);
+      setStep(3);
+    }
+  }, [
+    journeyId,
+    idType,
+    idNum,
+    mode,
+    currentAccountExists,
+    existingAccountNo,
+  ]);
 
   const getDistance = (
     lat1: number,
@@ -283,6 +316,17 @@ export default function CurrentMalaysianBusinessAddress() {
   });
 
   const handleBack = (): void => {
+    if (currentAccountExists) {
+      router.push(
+        `/current/malaysian/business_particulars?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}&mode=${encodeURIComponent(mode)}`
+      );
+      return;
+    }
+
     if (step === 1) {
       router.push(
         `/current/malaysian/business_particulars?id_type=${encodeURIComponent(
@@ -303,38 +347,49 @@ export default function CurrentMalaysianBusinessAddress() {
   };
 
   const isAddressValid = (address: Address) => {
-    return (
-      address.addressLine1.trim() !== "" &&
-      address.addressLine2.trim() !== "" &&
-      address.postcode.trim() !== "" &&
-      address.state.trim() !== ""
-    );
-  };
+      return (
+        address.addressLine1.trim() !== "" &&
+        address.addressLine2.trim() !== "" &&
+        address.postcode.trim() !== "" &&
+        address.state.trim() !== ""
+      );
+    };
 
-  const handleStep1Submit = (): void => {
-    if (useBusinessAsMailing === null) return;
+    const handleStep1Submit = (): void => {
+      if (useBusinessAsMailing === null) return;
 
-    if (useBusinessAsMailing === true) {
-      setMailingAddress({ ...businessAddress });
+      if (useBusinessAsMailing === true) {
+        setMailingAddress({ ...businessAddress });
+        setStep(3);
+      } else {
+        setStep(2);
+      }
+    };
+
+    const handleStep2Submit = (): void => {
       setStep(3);
-    } else {
-      setStep(2);
-    }
-  };
+    };
 
-  const handleStep2Submit = (): void => {
-    setStep(3);
-  };
-
-  const handleFinalSubmit = (): void => {
+    const handleFinalSubmit = (): void => {
     const finalBusinessAddress = {
       businessAddress,
       mailingAddress: useBusinessAsMailing ? businessAddress : mailingAddress,
       isMailingSameAsBusiness: useBusinessAsMailing,
       preferredBranch,
+      currentAccountExists,
+      existingAccountNo,
     };
 
     saveToStorage("businessAddress", finalBusinessAddress);
+
+    localStorage.setItem(
+      "currentAccountExists",
+      currentAccountExists ? "true" : "false"
+    );
+
+    if (existingAccountNo) {
+      localStorage.setItem("existingAccountNo", existingAccountNo);
+    }
 
     setFormData({
       ...formData,
@@ -345,12 +400,27 @@ export default function CurrentMalaysianBusinessAddress() {
       businessAddress: finalBusinessAddress,
     });
 
+    if (mode === "existing_customer") {
+      router.push(
+        `/current/malaysian/account_creation?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
+          currentAccountExists ? "true" : "false"
+        )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
+      );
+      return;
+    }
+
     router.push(
       `/current/malaysian/business_otp?id_type=${encodeURIComponent(
         idType
       )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
         journeyId
-      )}&mode=${encodeURIComponent(mode)}`
+      )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
+        currentAccountExists ? "true" : "false"
+      )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
     );
   };
 
