@@ -141,6 +141,9 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error(okayidResult.message || "unrecognized");
       }
 
+      const compressedBase64 = await compressImage(base64String); 
+      localStorage.setItem("ekyc_id_image", compressedBase64);
+
       const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: {
@@ -150,8 +153,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
           journeyId,
           type: "passport",
           country: okayidResult.country || "OTHER",
-          halfSizeImage: base64String,
-          fullSizeImage: base64String,
+          image: compressedBase64,
         }),
       });
 
@@ -160,7 +162,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
       if (okaydocResult.status !== "success") {
         throw new Error("not meeting quality standards");
       }
-
+      
       const identityRes = await fetch(
         `/api/identity/lookup?id_type=passport&id_num=${encodeURIComponent(passportNo)}`
       );
@@ -171,8 +173,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error("Identity was not found in government records");
       }
 
-      const compressedBase64 = await compressImage(base64String); 
-      localStorage.setItem("ekyc_id_image", compressedBase64);
+     
       
       await fetch("/api/ekyc/status", {
         method: "POST",

@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { journeyId, type, isBack } = body;
-    const base64Image = body.halfSizeImage || body.base64ImageString || body.idImageBase64Image;
+    const base64Image = body.image || body.halfSizeImage;
 
     if (!journeyId || !type || !base64Image) {
       return NextResponse.json({ error: "Missing journeyId, type, or image data" }, { status: 400 });
