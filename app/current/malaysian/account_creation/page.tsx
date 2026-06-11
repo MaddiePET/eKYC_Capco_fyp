@@ -276,11 +276,45 @@ export default function CurrentMalaysianAccountCreation() {
   const handleBack = () => {
     if (step === "password") {
       setStep("profile");
-    } else if (step === "pending") {
-      setStep("password");
-    } else {
-      router.push("/current/malaysian/supporting_documents");
+      return;
     }
+
+    if (step === "pending") {
+      setStep("password");
+      return;
+    }
+
+    const journeyId = localStorage.getItem("journeyId") || "";
+    const idNum = localStorage.getItem("id_num") || "";
+    const idType = localStorage.getItem("id_type") || "ic";
+    const mode = localStorage.getItem("mode") || "new_user";
+
+    const currentAccountExists =
+      localStorage.getItem("currentAccountExists") === "true";
+
+    const existingAccountNo =
+      localStorage.getItem("existingAccountNo") || "";
+
+    if (currentAccountExists) {
+      router.push(
+        `/current/malaysian/business_address?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}&mode=${encodeURIComponent(mode)}&current_account_exists=true&existing_account_no=${encodeURIComponent(
+          existingAccountNo
+        )}`
+      );
+      return;
+    }
+
+    router.push(
+      `/current/malaysian/business_address?id_type=${encodeURIComponent(
+        idType
+      )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+        journeyId
+      )}&mode=${encodeURIComponent(mode)}&current_account_exists=false`
+    );
   };
 
   if (!mounted) return null;
