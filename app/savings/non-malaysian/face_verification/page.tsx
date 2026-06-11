@@ -19,7 +19,7 @@ export default function SavingsNonMalaysianFaceQRCode() {
   const [verificationError, setVerificationError] = useState("");
 
   const searchParams = useSearchParams();
-  const SCORECARD_PASS_THRESHOLD = 70; //To test change this value to 100
+  const SCORECARD_PASS_THRESHOLD = 70;
 
  const calculateScorecardResult = (scorecard: any) => {
    const scorecardLists = scorecard?.scorecardResultList || [];
