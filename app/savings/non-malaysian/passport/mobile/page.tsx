@@ -46,6 +46,28 @@ function SavingsNonMalaysianMobilePassportCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
+  const detectImageFormat = (base64: string): "PNG" | "JPG" => {
+    // Decode first 4 bytes to check magic numbers
+    const binaryStr = atob(base64.slice(0, 8));
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    
+    // PNG: starts with 89 50 4E 47
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+      return "PNG";
+    }
+    
+    // JPG: starts with FF D8 FF
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+      return "JPG";
+    }
+    
+    // Default to JPG if cannot detect
+    return "JPG";
+  };
+
   const compressImage = (base64: string, quality = 0.6): Promise<string> => {
     return new Promise((resolve) => {
       const img = new window.Image(); 
@@ -87,6 +109,8 @@ function SavingsNonMalaysianMobilePassportCapture() {
 
       const base64String = await base64Promise;
 
+      const detectedFormat = detectImageFormat(base64String);
+
       const okayidResponse = await fetch("/api/ekyc/okayid", {
         method: "POST",
         headers: {
@@ -95,7 +119,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
         body: JSON.stringify({
           journeyId,
           base64ImageString: base64String,
-          imageFormat: file.type.toUpperCase().includes("PNG") ? "PNG" : "JPG",
+          imageFormat: detectedFormat,
         }),
       });
 

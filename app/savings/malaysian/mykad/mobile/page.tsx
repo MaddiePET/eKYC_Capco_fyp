@@ -67,6 +67,28 @@ function SavingsMalaysianMobileMyKadCapture() {
     }
   }, [journeyId]);
 
+  const detectImageFormat = (base64: string): "PNG" | "JPG" => {
+    // Decode first 4 bytes to check magic numbers
+    const binaryStr = atob(base64.slice(0, 8));
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    
+    // PNG: starts with 89 50 4E 47
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+      return "PNG";
+    }
+    
+    // JPG: starts with FF D8 FF
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+      return "JPG";
+    }
+    
+    // Default to JPG if cannot detect
+    return "JPG";
+  };
+
   function extractMyKadNumber(okayIdResult: any) {
     const fields =
       okayIdResult?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
@@ -85,13 +107,16 @@ function SavingsMalaysianMobileMyKadCapture() {
     setErrorMessage(null);
 
     try {
+      const detectedFormat = detectImageFormat(fImg);
       const frontIdRes = await fetch("/api/ekyc/okayid", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json" 
         },
         body: JSON.stringify({ 
-          journeyId, base64ImageString: fImg 
+          journeyId, 
+          base64ImageString: fImg,
+          imageFormat: detectedFormat 
         }),
       });
       
