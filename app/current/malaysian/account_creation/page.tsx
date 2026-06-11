@@ -166,6 +166,7 @@ export default function CurrentMalaysianAccountCreation() {
       personalInfo: {
         id_num: formData.idNum || storedPersonalInfo.id_num || storedPersonalInfo.idNumber || "",
         full_name: storedPersonalInfo.full_name || storedPersonalInfo.fullName || "",
+        gender: formData.personalInfo?.gender || storedPersonalInfo.gender || "", 
         dob: storedPersonalInfo.dob || storedPersonalInfo.dateOfBirth || "",
         id_type: "IC",
         streetAddress: storedHomeAddress.add_1 || storedHomeAddress.streetAddress || "",
