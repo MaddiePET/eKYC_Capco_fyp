@@ -95,6 +95,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
         body: JSON.stringify({
           journeyId,
           base64ImageString: base64String,
+          imageFormat: file.type.toUpperCase().includes("PNG") ? "PNG" : "JPG",
         }),
       });
 

@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { journeyId, base64ImageString } = await req.json();
+    const { journeyId, base64ImageString, imageFormat = "JPG" } = await req.json();
 
     if (!journeyId || !base64ImageString) {
       return NextResponse.json({ error: "Missing journeyId or base64ImageString" }, { status: 400 });
     }
 
-    console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId);
+    console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId, "imageFormat:", imageFormat);
     const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
     const okayidBody = {
       journeyId,
       base64ImageString: base64ImageString,
-      imageFormat: "JPG",
+      imageFormat,
       imageEnabled: false,
       faceImageEnabled: false,
       cambodia: false,
