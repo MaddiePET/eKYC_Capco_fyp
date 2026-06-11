@@ -264,22 +264,23 @@ export default function LogIn() {
 
                   <div className="relative w-full">
                     <input
+                      placeholder="Enter your username"
+                      type="text"
+                      value={username}
+                      required
                       className={`w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 ${
                         isUsernameValid === true
                           ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
                           : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                       }`}
-                      placeholder="Enter your username"
-                      type="text"
-                      value={username}
                       onChange={(e) => {
                         const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
                         checkUsername(cleanedValue);
                       }}
-                      required
                     />
+                    
                     {isUsernameValid === true && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
                     )}

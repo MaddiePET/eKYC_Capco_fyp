@@ -83,7 +83,7 @@ const getSplitAddress = (profile: ProfileData) => {
   };
 };
 
-export default function Profile() {
+export default function DashboardProfile() {
   const {
     isOpen: isMetaModalOpen,
     openModal: openMetaModal,

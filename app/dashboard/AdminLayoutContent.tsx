@@ -104,7 +104,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
         email: loggedInUser.email,
         avatar: loggedInUser.avatar, 
         type: fallbackType,
-        isMalaysian: false,
+        isMalaysian: true,
         phone: ""
       };
     } 
@@ -818,62 +818,64 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClose={closeUserDropdown} 
                     className="absolute right-0 mt-[17px] flex w-[280px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
                   >
-                    <div className="mt-4 pb-4 border-b border-gray-200 dark:border-gray-800">
-                      <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                        Switch Account
-                      </p>
-
-                      {isProfilePage && 
-                        <p className="mb-3 text-xs text-error-500 dark:text-error-400">
-                          Account switching is disabled on this page.
+                    {activeAccount?.isMalaysian !== false && (
+                      <div className="mt-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+                        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Switch Account
                         </p>
-                      }
 
-                      <ul className="flex flex-col gap-1">
-                        {isLoadingAccounts ? (
-                          <p className="text-xs text-gray-400 p-3 text-center">Loading live profiles...</p>
-                        ) : accounts.length === 0 ? (
-                          <p className="text-xs text-gray-400 p-3 text-center">No database accounts found.</p>
-                        ) : (
-                          accounts
-                            .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
-                            .map((account) => {
-                              const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
+                        {isProfilePage && 
+                          <p className="mb-3 text-xs text-error-500 dark:text-error-400">
+                            Account switching is disabled on this page.
+                          </p>
+                        }
 
-                            return (
-                              <li key={account.id}>
-                                <button
-                                  onClick={() => switchAccount(account.name)}
-                                  disabled={isProfilePage}
-                                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-                                  type="button"
-                                  suppressHydrationWarning
-                                >
-                                  <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
-                                    <img 
-                                      className="w-full h-full object-cover" 
-                                      src={displayAvatar ?? undefined} 
-                                      alt={account.name} 
-                                      onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
-                                    />
-                                  </div>
+                        <ul className="flex flex-col gap-1">
+                          {isLoadingAccounts ? (
+                            <p className="text-xs text-gray-400 p-3 text-center">Loading live profiles...</p>
+                          ) : accounts.length === 0 ? (
+                            <p className="text-xs text-gray-400 p-3 text-center">No database accounts found.</p>
+                          ) : (
+                            accounts
+                              .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
+                              .map((account) => {
+                                const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
 
-                                  <div className="text-left">
-                                    <p className="text-xs font-medium">
-                                      {account.username} ({account.type})
-                                    </p>
+                              return (
+                                <li key={account.id}>
+                                  <button
+                                    onClick={() => switchAccount(account.name)}
+                                    disabled={isProfilePage}
+                                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+                                    type="button"
+                                    suppressHydrationWarning
+                                  >
+                                    <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
+                                      <img 
+                                        className="w-full h-full object-cover" 
+                                        src={displayAvatar ?? undefined} 
+                                        alt={account.name} 
+                                        onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
+                                      />
+                                    </div>
 
-                                    <p className="text-[11px] opacity-75">
-                                      {account.email}
-                                    </p>
-                                  </div>
-                                </button>
-                              </li>
-                            );
-                          })
-                        )}
-                      </ul>
-                    </div>
+                                    <div className="text-left">
+                                      <p className="text-xs font-medium">
+                                        {account.username} ({account.type})
+                                      </p>
+
+                                      <p className="text-[11px] opacity-75">
+                                        {account.email}
+                                      </p>
+                                    </div>
+                                  </button>
+                                </li>
+                              );
+                            })
+                          )}
+                        </ul>
+                      </div>
+                    )}
                     
                     <ul className="flex flex-col gap-1 py-3 border-b border-gray-200 dark:border-gray-800">
                       <li>

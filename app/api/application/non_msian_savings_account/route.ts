@@ -18,16 +18,6 @@ function enc(value: any) {
   return value ? encrypt(String(value), "banka") : null;
 }
 
-function mapGender(frontendGender: string) {
-  switch (frontendGender) {
-    case "M": return "M";
-    case "F": return "F";
-    case "Non-binary": return "NB";
-    case "Prefer not to say": return "NONE";
-    default: return "NONE";
-  }
-}
-
 export async function POST(req: Request) {
   const client = await pool.connect();
 
@@ -43,6 +33,8 @@ export async function POST(req: Request) {
       mailingAddress,
       user,
       savingsAccount,
+      nonMsianDetails,
+      supportingDocs,
     } = body;
 
     if (!customer || !homeAddress || !user || !savingsAccount) {
@@ -270,6 +262,52 @@ export async function POST(req: Request) {
         ]
       );
       custId = customerResult.rows[0].cust_id;
+    }
+
+    if (nonMsianDetails) {
+      await client.query(
+        `
+        INSERT INTO banka."Non_msian_details" (cust_id, pp_issue_office, pp_issue_date, pp_exp_date, home_add_id)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (cust_id) DO UPDATE SET
+          pp_issue_office = EXCLUDED.pp_issue_office,
+          pp_issue_date = EXCLUDED.pp_issue_date,
+          pp_exp_date = EXCLUDED.pp_exp_date,
+          home_add_id = EXCLUDED.home_add_id
+        `,
+        [
+          custId,
+          nonMsianDetails.pp_issue_office || null,
+          nonMsianDetails.pp_issue_date || null,
+          nonMsianDetails.pp_exp_date || null,
+          homeAddId
+        ]
+      );
+    }
+
+    if (supportingDocs && supportingDocs.length > 0) {
+      for (const doc of supportingDocs) {
+        let docBuffer = null;
+        
+        if (doc.doc_file) {
+          const base64Data = doc.doc_file.includes(',') 
+            ? doc.doc_file.split(',')[1] 
+            : doc.doc_file;
+          docBuffer = Buffer.from(base64Data, "base64");
+        }
+
+        await client.query(
+          `
+          INSERT INTO banka."Non_msian_supporting_docs" (cust_id, doc_name, doc_file)
+          VALUES ($1, $2, $3)
+          `,
+          [
+            custId,
+            doc.doc_name || 'Untitled Document',
+            docBuffer
+          ]
+        );
+      }
     }
 
     if (!cleanUser.password) throw new Error("Password is missing");

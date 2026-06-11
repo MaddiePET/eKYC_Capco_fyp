@@ -198,7 +198,7 @@ export default function ContactSupportPage() {
               disabled={isSubmitting}
               className="w-full inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:opacity-60"
             >
-              {isSubmitting ? 'Submitting Inquiry...' : 'Submit'}
+              {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
             </button>
           </div>
         </form>
