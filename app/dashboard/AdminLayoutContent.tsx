@@ -818,7 +818,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClose={closeUserDropdown} 
                     className="absolute right-0 mt-[17px] flex w-[280px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
                   >
-                    {activeAccount?.isMalaysian !== false && (
+                    {activeAccount?.isMalaysian !== false && accounts.length > 1 && (
                       <div className="mt-4 pb-4 border-b border-gray-200 dark:border-gray-800">
                         <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                           Switch Account
@@ -855,7 +855,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                                         className="w-full h-full object-cover" 
                                         src={displayAvatar ?? undefined} 
                                         alt={account.name} 
-                                        onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
+                                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
                                       />
                                     </div>
 

@@ -30,8 +30,8 @@ function mapGender(frontendGender: string) {
   switch (frontendGender) {
     case "M": return "M";
     case "F": return "F";
-    case "Non-binary": return "NB";
-    case "Prefer not to say": return "NONE";
+    case "NB": return "NB";
+    case "NONE": return "NONE";
     default: return "NONE";
   }
 }
