@@ -5,10 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
+import { saveToStorage } from "@/lib/storage";
+import { useFormData } from "@/context/FormContext";
 
 export default function SavingsMalaysianInfo() {
   const router = useRouter();
-
+  const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -31,13 +33,27 @@ export default function SavingsMalaysianInfo() {
   });
 
   const searchParams = useSearchParams();
+  
+  const custIdFromParams =
+    searchParams.get("cust_id") ||
+    (typeof window !== "undefined" 
+      ? (localStorage.getItem("currentCustId") || localStorage.getItem("savingsCustId") || localStorage.getItem("custId")) 
+      : "") ||
+    "";
 
-  const journeyId = searchParams.get("journeyId") || "";
-
+  // Force mode to "new_user" if a eKYC journeyId is present in the URL parameters
   const mode =
-  searchParams.get("mode") ||
-  (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
-  "new_user";
+    searchParams.get("mode") ||
+    (searchParams.get("journeyId") ? "new_user" : "") ||
+    (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
+    "new_user";
+
+  const idNumFromParams =
+    searchParams.get("id_num") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
+    "";
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
@@ -66,12 +82,22 @@ export default function SavingsMalaysianInfo() {
     return { day: "", month: "", year: "" };
   };
 
+  const normalizeGender = (raw: any) => {
+    if (!raw) return "";
+    const val = String(raw).trim().toUpperCase();
+    if (val === "M" || val === "MALE") return "M";
+    if (val === "F" || val === "FEMALE") return "F";
+    if (val === "NB" || val === "NON-BINARY" || val === "NON_BINARY") return "NB";
+    if (val === "NONE" || val === "PREFER NOT TO SAY" || val === "PREFER_NOT_TO_SAY") return "NONE";
+    return "";
+  };
+
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
 
     return {
-      gender: identity.gender || identity.sex || "",
+      gender: normalizeGender(identity.gender || identity.sex),
       fullName: identity.full_name || identity.name || identity.fullName || "",
       nric: identity.ic_number || identity.nric || identity.id_num || idNum,
       dobDay: day || "",
@@ -119,37 +145,79 @@ export default function SavingsMalaysianInfo() {
 
     if (typeof window === "undefined") return;
 
-    const currentJourneyId = searchParams.get("journeyId") || "";
+    // Safety check: Clear stale local storage parameters if journey transitions
     const savedJourneyId = localStorage.getItem("journeyId");
-
-    if (savedJourneyId && savedJourneyId !== currentJourneyId) {
+    if (savedJourneyId && journeyId && savedJourneyId !== journeyId) {
       localStorage.removeItem("personalInfo");
       localStorage.removeItem("homeAddress");
       localStorage.removeItem("mailingAddress");
       localStorage.removeItem("id_num");
       localStorage.removeItem("id_type");
+      localStorage.removeItem("currentCustId");
+      localStorage.removeItem("savingsCustId");
+      localStorage.removeItem("custId");
+      localStorage.removeItem("mode");
     }
 
-    if (currentJourneyId) {
-      localStorage.setItem("journeyId", currentJourneyId);
+    if (mode) localStorage.setItem("mode", mode);
+    if (journeyId) localStorage.setItem("journeyId", journeyId);
+    if (idNumFromParams) localStorage.setItem("id_num", idNumFromParams);
+    localStorage.setItem("id_type", "ic");
+
+    if (mode === "new_user") {
+      fetchIdentity("ic", idNumFromParams);
+    }
+  }, [mode, journeyId, idNumFromParams]);
+
+  useEffect(() => {
+    async function loadExistingCustomer() {
+      if (mode !== "existing_customer") return;
+
+      if (!custIdFromParams && !idNumFromParams) return;
+
+      try {
+        const lookupUrl = custIdFromParams
+          ? `/api/customer/lookup?cust_id=${encodeURIComponent(custIdFromParams)}`
+          : `/api/customer/lookup?id_num=${encodeURIComponent(idNumFromParams)}`;
+
+        const res = await fetch(lookupUrl);
+        const data = await res.json();
+
+        if (!data.success) {
+          alert("Unable to load your existing customer details. Please log in again.");
+          router.push("/login");
+          return;
+        }
+
+        const customer = data.customer;
+        const { day, month, year } = formatDateForFields(customer.dob);
+
+        setFormData((prev) => ({
+          ...prev,
+          gender: normalizeGender(customer.gender),
+          nric: customer.id_num || "",
+          fullName: customer.full_name || "",
+          dobDay: day || "",
+          dobMonth: month || "",
+          dobYear: year || "",
+          phoneNumber: (customer.ph_no || "").replace(/^\+?60/, ""),
+          add1: customer.add_1 || "",
+          add2: customer.add_2 || "",
+          postal: customer.postcode || "",
+          state: customer.state || "",
+          country: customer.country || "Malaysia",
+        }));
+      } catch (error) {
+        console.error("Existing customer load error:", error);
+        alert("Unable to load existing customer details.");
+      }
     }
 
-    const queryParams = new URLSearchParams(window.location.search);
-    const idType = queryParams.get("id_type") || localStorage.getItem("id_type") || "ic";
-    const idNum = queryParams.get("id_num") || localStorage.getItem("id_num") || "";
-
-    if (idNum) {
-      setFormData((prev) => ({
-        ...prev,
-        nric: idNum,
-      }));
-
-      fetchIdentity(idType, idNum);
-    }
-  }, []); 
+    loadExistingCustomer();
+  }, [mode, custIdFromParams, idNumFromParams]);
 
   const handleNext = async () => {
-   if (isSubmitting) return;
+    if (isSubmitting) return;
 
     try {
       setIsSubmitting(true);
@@ -173,41 +241,58 @@ export default function SavingsMalaysianInfo() {
       const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
       const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
-      localStorage.setItem(
-        "personalInfo",
-        JSON.stringify({
-          gender: formData.gender,
-          id_num: formData.nric,
-          full_name: formData.fullName,
-          id_type: "NRIC",
-          dob,
-          ph_no: fullPhone,
-          country: formData.country,
-        })
-      );
+      const personalInfo = {
+        gender: formData.gender,
+        id_num: formData.nric,
+        full_name: formData.fullName,
+        id_type: "NRIC",
+        dob,
+        ph_no: fullPhone,
+        country: formData.country,
+      };
 
-      localStorage.setItem(
-        "homeAddress",
-        JSON.stringify({
-          add_type: "Home",
-          add_1: formData.add1,
-          add_2: formData.add2,
-          postcode: formData.postal,
+      const homeAddress = {
+        add_type: "Home",
+        add_1: formData.add1,
+        add_2: formData.add2,
+        postcode: formData.postal,
+        state: formData.state,
+        country: formData.country,
+      };
+
+      saveToStorage("personalInfo", personalInfo);
+      saveToStorage("homeAddress", homeAddress);
+      saveToStorage("id_num", formData.nric);
+      saveToStorage("id_type", "ic");
+
+      setGlobalFormData({
+        ...globalFormData,
+        applicationMode: mode,
+        journeyId,
+        idType: "ic",
+        idNum: formData.nric,
+        personalInfo: {
+          ...personalInfo,
+          fullName: formData.fullName,
+          full_name: formData.fullName,
+          id_type: "IC",
+          add1: formData.add1,
+          add2: formData.add2,
+          postal: formData.postal,
           state: formData.state,
           country: formData.country,
-        })
-      );
-
-      localStorage.setItem("id_type", "ic");
-      localStorage.setItem("id_num", formData.nric);
-      localStorage.setItem("journeyId", searchParams.get("journeyId") || "");
+        },
+        homeAddress,
+      });
 
       router.push(
-        `/savings/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
+        `/savings/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(
+          formData.nric
+        )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
       );
-    } catch (error: any) {
-      console.error("Malaysian information error:", error);
-      setSubmitError(error.message || "Failed to save application data.");
+    } catch (error) {
+      console.error("Submission error:", error);
+      setSubmitError("Failed to save application data.");
     } finally {
       setIsSubmitting(false);
     }
@@ -272,7 +357,6 @@ export default function SavingsMalaysianInfo() {
             className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
           >
             <ChevronLeftIcon className="w-5 h-5" />
-            
             Back
           </button>
         ) : (
@@ -357,8 +441,8 @@ export default function SavingsMalaysianInfo() {
                         value={
                           formData.gender === "M" ? "M" :
                           formData.gender === "F" ? "F" :
-                          formData.gender === "NB" || formData.gender === "Non-binary" ? "Non-binary" :
-                          formData.gender === "NONE" || formData.gender === "Prefer not to say" ? "Prefer not to say" : formData.gender
+                          formData.gender === "NB" ? "Non-binary" :
+                          formData.gender === "NONE" ? "Prefer not to say" : formData.gender
                         }
                       />
                     </div>
@@ -372,8 +456,8 @@ export default function SavingsMalaysianInfo() {
                         <option value="" disabled>Select</option>
                         <option value="M">M</option>
                         <option value="F">F</option>
-                        <option value="Non-binary">Non-binary</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
+                        <option value="NB">Non-binary</option>
+                        <option value="NONE">Prefer not to say</option>
                       </select>
 
                       <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
