@@ -13,27 +13,46 @@ function initializeJIM() {
     const existingApp = admin.apps.find((app) => app?.name === appName);
 
     if (existingApp) {
+      console.log("[JIM] Reusing existing Firebase app");
       jimApp = existingApp;
     } else {
       let serviceAccount;
+      console.log("[JIM] initializeJIM called");
+      console.log("[JIM] Existing Firebase apps:", admin.apps.map(a => a.name));
 
-      // Try to read from environment variable first (for Vercel/production)
       if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64) {
+        console.log("[JIM] Using FIREBASE_JIM_SERVICE_ACCOUNT_B64");
+
         try {
-          const decoded = Buffer.from(process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
+          const decoded = Buffer
+            .from(process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64, "base64")
+            .toString("utf8");
+
+          console.log("[JIM] Decoded JSON length:", decoded.length);
+
           serviceAccount = JSON.parse(decoded);
+
+          console.log(
+            "[JIM] Parsed service account for project:",
+            serviceAccount.project_id
+          );
         } catch (err) {
-          console.error("Failed to parse FIREBASE_JIM_SERVICE_ACCOUNT_B64 env var:", err);
-          throw new Error("Invalid FIREBASE_JIM_SERVICE_ACCOUNT_B64");
+          console.error("[JIM] Failed parsing B64:", err);
+          throw err;
         }
       } else if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT) {
-        try {
-          serviceAccount = JSON.parse(process.env.FIREBASE_JIM_SERVICE_ACCOUNT);
-        } catch (err) {
-          console.error("Failed to parse FIREBASE_JIM_SERVICE_ACCOUNT env var:", err);
-          throw new Error("Invalid FIREBASE_JIM_SERVICE_ACCOUNT JSON");
-        }
+        console.log("[JIM] Using FIREBASE_JIM_SERVICE_ACCOUNT");
+
+        serviceAccount = JSON.parse(
+          process.env.FIREBASE_JIM_SERVICE_ACCOUNT
+        );
+
+        console.log(
+          "[JIM] Parsed service account for project:",
+          serviceAccount.project_id
+        );
       } else {
+        console.log("[JIM] Using local service account file");
         // Fall back to local file (for local development)
         const serviceAccountPath = path.join(
           process.cwd(),
@@ -47,19 +66,26 @@ function initializeJIM() {
       }
 
       try {
+        console.log("[JIM] Initializing Firebase Admin");
+
         jimApp = admin.initializeApp(
           {
             credential: admin.credential.cert(serviceAccount),
           },
           appName
         );
+
+        console.log("[JIM] Firebase Admin initialized");
       } catch (err) {
-        console.error("Failed to initialize Firebase JIM app:", err);
+        console.error("[JIM] Failed to initialize Firebase app:", err);
         throw err;
       }
-    }
 
     jimDb = jimApp.firestore();
+    console.log("[JIM] Firestore ready");
+    if (!jimDb) {
+      throw new Error("[JIM] Firestore initialization failed");
+    }
   }
 
   return jimDb;
@@ -122,18 +148,25 @@ async function lookupJIMIdentity(idNum: string) {
   if (!idNum) return null;
 
   console.log(`\n[JIM API]`);
-  console.log(`Plaintext Parameter Extracted: "${idNum}"`);
+  console.log("[JIM] Lookup requested");
 
   const normalizedPassport = idNum.trim();
   const lookupHash = hashLookup(normalizedPassport);
 
   console.log(`Generated Index Hash: ${lookupHash}`);
 
+  console.log("[JIM] Querying collection:", JIM_NONRESIDENTS_COLLECTION);
+
   const querySnapshot = await db
     .collection(JIM_NONRESIDENTS_COLLECTION)
     .where("lookup_hash", "==", lookupHash)
     .limit(1)
     .get();
+
+  console.log(
+    "[JIM] Query returned docs:",
+    querySnapshot.size
+  );
 
   if (querySnapshot.empty) {
     console.log(`[VERIFICATION FAILED] Record mismatch. No matching entry found for hash: ${lookupHash}`);
@@ -145,15 +178,16 @@ async function lookupJIMIdentity(idNum: string) {
   const encryptedData = querySnapshot.docs[0].data();
   const decryptedData = decryptJIMData(encryptedData);
 
-  console.log(`Full Name: ${decryptedData.full_name}`);
-  console.log(`Birth Date: ${decryptedData.date_of_birth}`);
-  console.log(`Sex: ${decryptedData.sex}`);
-  console.log(`Nationality: ${decryptedData.nationality}`);
-  console.log(`Country: ${decryptedData.country}`);
-  console.log(`Issue Date: ${decryptedData.issue_date}`);
-  console.log(`Expiry Date: ${decryptedData.exp_date}`);
-  console.log(`Issuing Office: ${decryptedData.issue_office}`);
-  console.log(`Visa Type: ${decryptedData.visa_type}\n`);
+  console.log("[JIM] Record found");
+  // console.log(`Full Name: ${decryptedData.full_name}`);
+  // console.log(`Birth Date: ${decryptedData.date_of_birth}`);
+  // console.log(`Sex: ${decryptedData.sex}`);
+  // console.log(`Nationality: ${decryptedData.nationality}`);
+  // console.log(`Country: ${decryptedData.country}`);
+  // console.log(`Issue Date: ${decryptedData.issue_date}`);
+  // console.log(`Expiry Date: ${decryptedData.exp_date}`);
+  // console.log(`Issuing Office: ${decryptedData.issue_office}`);
+  // console.log(`Visa Type: ${decryptedData.visa_type}\n`);
 
   return {
     source: "jim",
