@@ -18,7 +18,15 @@ function initializeJPN() {
       let serviceAccount;
 
       // Try to read from environment variable first (for Vercel/production)
-      if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
+      if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
+        try {
+          const decoded = Buffer.from(process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
+          serviceAccount = JSON.parse(decoded);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT_B64 env var:", err);
+          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT_B64");
+        }
+      } else if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
         try {
           serviceAccount = JSON.parse(process.env.FIREBASE_JPN_SERVICE_ACCOUNT);
         } catch (err) {
@@ -38,12 +46,17 @@ function initializeJPN() {
         );
       }
 
-      jpnApp = admin.initializeApp(
-        {
-          credential: admin.credential.cert(serviceAccount),
-        },
-        appName
-      );
+      try {
+        jpnApp = admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+          },
+          appName
+        );
+      } catch (err) {
+        console.error("Failed to initialize Firebase JPN app:", err);
+        throw err;
+      }
     }
 
     jpnDb = jpnApp.firestore();

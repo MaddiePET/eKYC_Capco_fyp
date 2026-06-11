@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { lookupJPNIdentity } from "../../../../jpn-db/jpn-api";
 import { lookupJIMIdentity } from "../../../../jim-db/jim-api";
 import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api";
