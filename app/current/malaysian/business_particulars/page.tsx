@@ -69,13 +69,6 @@ export default function CurrentMalaysianBusinessParticulars() {
 
   const [solePropBlockedMessage, setSolePropBlockedMessage] = useState("");
 
-  //UI for form
-  const inputClasses =
-  "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
-
-  const readOnlyClasses =
-    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
-
   const [formData, setFormData] = useState({
     businessName: "",
     brn: "",
@@ -437,7 +430,7 @@ export default function CurrentMalaysianBusinessParticulars() {
         </Link>
       </div>
 
-      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-4xl"}`}>
+      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-2xl"}`}>
         {step === 1 && (
           <div>
             <div className="mb-10 text-center">
@@ -559,13 +552,13 @@ export default function CurrentMalaysianBusinessParticulars() {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
+            <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                   {businessAlreadyRegistered && (
-                    <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
-                      This business already has a registered current account. Business address and
-                      contact verification will be skipped.
+                    <div className="md:col-span-2 rounded-xl text-center border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-500/40 dark:bg-green-900/20 dark:text-green-200">
+                      <p>An existing business current account has been registered for this business.</p>
+                      <p>Business address and contact verification are not required.</p>  
                     </div>
                   )}
 
@@ -577,7 +570,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                   <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      Business Name
+                      Business Name<span className="text-red-500">*</span>
                     </label>
 
                     <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -592,7 +585,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                   <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      Business Registration Number (BRN)
+                      Business Registration Number (BRN)<span className="text-red-500">*</span>
                     </label>
 
                     <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -606,10 +599,10 @@ export default function CurrentMalaysianBusinessParticulars() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                          MSIC Code                     
+                          MSIC Code<span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -624,7 +617,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                          MSIC Name                    
+                          MSIC Name<span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -675,7 +668,7 @@ export default function CurrentMalaysianBusinessParticulars() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                           Business Type<span className="text-red-500">*</span>
