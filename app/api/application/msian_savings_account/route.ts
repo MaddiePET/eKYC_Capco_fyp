@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 function generateAccountNumber() {
   let accountNo = "";
+
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
@@ -21,8 +22,8 @@ function mapGender(frontendGender: string) {
   switch (frontendGender) {
     case "M": return "M";
     case "F": return "F";
-    case "Non-binary": return "NB";
-    case "Prefer not to say": return "NONE";
+    case "NB": return "NB";
+    case "NONE": return "NONE";
     default: return "NONE";
   }
 }
@@ -106,9 +107,7 @@ export async function POST(req: Request) {
       const statusIdNum = statusData.id_num?.replace(/-/g, "").trim();
 
       if (
-        statusData.status !== "face_verified" ||
-        !["ic", "mykad", "nric"].includes(statusIdType) ||
-        statusIdNum !== normalizedIdNum
+        statusData.status !== "face_verified" || !["ic", "mykad", "nric"].includes(statusIdType) || statusIdNum !== normalizedIdNum
       ) {
         return NextResponse.json(
           { error: "eKYC session was not verified. Please restart MyKad verification." },
@@ -171,7 +170,6 @@ export async function POST(req: Request) {
       custId = existingCustomerResult.rows[0].cust_id;
       homeAddId = existingCustomerResult.rows[0].home_add;
 
-      // Verify if they already have a savings account
       const existingSavingsResult = await client.query(
         `
         SELECT s.account_no
@@ -194,7 +192,6 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      // Create home address with encrypted values
       const homeAddressResult = await client.query(
         `
         INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -221,7 +218,6 @@ export async function POST(req: Request) {
           country: mailingAddress.country || "Malaysia",
         };
 
-        // Create mailing address with encrypted values
         const mailingAddressResult = await client.query(
           `
           INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -240,7 +236,6 @@ export async function POST(req: Request) {
         mailingAddId = mailingAddressResult.rows[0].add_id;
       }
 
-      // Create new customer record
       const customerResult = await client.query(
         `
         INSERT INTO banka."Customer" (
@@ -290,6 +285,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(cleanUser.password);
 
     let profileBuffer: Buffer | null = null;
+    
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
@@ -298,7 +294,6 @@ export async function POST(req: Request) {
       profileBuffer = Buffer.alloc(0);
     }
 
-    // Push details straight to the user table linking to custId
     const userResult = await client.query(
       `
       INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
@@ -325,8 +320,13 @@ export async function POST(req: Request) {
         `SELECT account_no FROM banka."Savings_account" WHERE account_no = $1`,
         [accountNo]
       );
-      if (checkAccount.rows.length === 0) accountExists = false;
-      else accountNo = generateAccountNumber();
+
+      if (checkAccount.rows.length === 0) {
+        accountExists = false;
+      }
+      else {
+        accountNo = generateAccountNumber();
+      }
     }
 
     const savingsResult = await client.query(
@@ -346,8 +346,6 @@ export async function POST(req: Request) {
       ]
     );
 
-    // Save journey registration unconditionally using unique fallback keys with ON CONFLICT resolution
-    const finalJourneyId = journeyId || `BYPASS-${custId}-${Date.now()}`;
     await client.query(
       `
       INSERT INTO banka."Journey" (
@@ -361,7 +359,7 @@ export async function POST(req: Request) {
       ON CONFLICT (journey_id) DO NOTHING
       `,
       [
-        finalJourneyId,
+        journeyId,
         custId,
         scorecardResult,
       ]

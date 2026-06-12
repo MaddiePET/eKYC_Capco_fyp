@@ -10,6 +10,7 @@ export async function POST(req: Request) {
 
     console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId);
     const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
+
     const okayidBody = {
       journeyId,
       base64ImageString: base64ImageString,
@@ -33,11 +34,14 @@ export async function POST(req: Request) {
       const okayidStatus = typeof (okayidResult as { status?: unknown }).status === "string"
         ? (okayidResult as { status?: string }).status
         : undefined;
+
       console.log("OkayID result - status:", okayidStatus);
       console.log("OkayID full response:", JSON.stringify(okayidResult, null, 2));
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
+
       console.error("Failed to parse OkayID response:", message);
+
       return NextResponse.json({
         error: "OCR extraction failed",
         details: message,
@@ -46,6 +50,7 @@ export async function POST(req: Request) {
 
     if (!okayidResponse.ok) {
       console.error("OkayID error (status " + okayidResponse.status + "):", okayidResult);
+
       return NextResponse.json({
         error: "OCR extraction failed",
         okayidError: okayidResult,
@@ -71,7 +76,9 @@ export async function POST(req: Request) {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
+
     console.error("OkayID route error:", message, error instanceof Error ? error.stack : "");
+    
     return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

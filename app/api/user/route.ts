@@ -7,6 +7,7 @@ function parseAvatar(imgField: any): string {
 
   if (Buffer.isBuffer(imgField)) {
     const rawString = imgField.toString("utf-8").trim();
+
     if (
       rawString.startsWith("http://") ||
       rawString.startsWith("https://") ||
@@ -92,8 +93,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     
   } catch (error: any) {
     console.error("Error fetching user list details:", error);
+    
     return NextResponse.json(
-      { error: error.message || "Failed to fetch active banking accounts" },
+      { error: error.message || "Failed to fetch active accounts" },
       { status: 500 }
     );
   }

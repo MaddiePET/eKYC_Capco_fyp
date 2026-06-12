@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
 import { BRANCHES } from "@/data/branches";
+import { loadFromStorage, saveToStorage } from "@/lib/storage";
 
 interface Address {
   addressLine1: string;
@@ -21,38 +22,143 @@ interface UserLocation {
   lng: number;
 }
 
+function getStoredBusinessAddress(): Address {
+  if (typeof window === "undefined") {
+    return {
+      addressLine1: "",
+      addressLine2: "",
+      postcode: "",
+      state: "",
+      country: "Malaysia",
+    };
+  }
+
+  const storedBusinessAddress = loadFromStorage("businessAddress", null as any);
+  const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
+  const ssmCompanyData = loadFromStorage("ssmCompanyData", {} as any);
+  const businessParticulars = loadFromStorage("businessParticulars", {} as any);
+
+  return {
+    addressLine1:
+      storedBusinessAddress?.businessAddress?.addressLine1 ||
+      selectedBusiness?.address?.addressLine1 ||
+      ssmCompanyData?.address?.addressLine1 ||
+      businessParticulars?.bus_add1 ||
+      "",
+
+    addressLine2:
+      storedBusinessAddress?.businessAddress?.addressLine2 ||
+      selectedBusiness?.address?.addressLine2 ||
+      ssmCompanyData?.address?.addressLine2 ||
+      businessParticulars?.bus_addr2 ||
+      "",
+
+    postcode:
+      storedBusinessAddress?.businessAddress?.postcode ||
+      selectedBusiness?.address?.postcode ||
+      ssmCompanyData?.address?.postcode ||
+      businessParticulars?.bus_postcode ||
+      "",
+
+    state:
+      storedBusinessAddress?.businessAddress?.state ||
+      selectedBusiness?.address?.state ||
+      ssmCompanyData?.address?.state ||
+      businessParticulars?.bus_state ||
+      "",
+
+    country:
+      storedBusinessAddress?.businessAddress?.country ||
+      selectedBusiness?.address?.country ||
+      ssmCompanyData?.address?.country ||
+      businessParticulars?.country ||
+      "Malaysia",
+  };
+}
+
+function getStoredMailingAddress(): Address {
+  if (typeof window === "undefined") {
+    return {
+      addressLine1: "",
+      addressLine2: "",
+      postcode: "",
+      state: "",
+      country: "Malaysia",
+    };
+  }
+
+  const storedBusinessAddress = loadFromStorage("businessAddress", null as any);
+
+  return {
+    addressLine1: storedBusinessAddress?.mailingAddress?.addressLine1 || "",
+    addressLine2: storedBusinessAddress?.mailingAddress?.addressLine2 || "",
+    postcode: storedBusinessAddress?.mailingAddress?.postcode || "",
+    state: storedBusinessAddress?.mailingAddress?.state || "",
+    country: storedBusinessAddress?.mailingAddress?.country || "Malaysia",
+  };
+}
+
 export default function CurrentMalaysianBusinessAddress() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const { formData, setFormData } = useFormData();
 
   const [step, setStep] = useState<number>(1);
   const [mounted, setMounted] = useState<boolean>(false);
+
   const [businessAddress, setBusinessAddress] = useState<Address>({
-    addressLine1: formData?.businessAddress?.businessAddress?.addressLine1 || "",
-    addressLine2: formData?.businessAddress?.businessAddress?.addressLine2 || "",
-    postcode: formData?.businessAddress?.businessAddress?.postcode || "",
-    state: formData?.businessAddress?.businessAddress?.state || "",
+    addressLine1: "",
+    addressLine2: "",
+    postcode: "",
+    state: "",
     country: "Malaysia",
   });
+
   const [mailingAddress, setMailingAddress] = useState<Address>({
-    addressLine1: formData?.businessAddress?.mailingAddress?.addressLine1 || "",
-    addressLine2: formData?.businessAddress?.mailingAddress?.addressLine2 || "",
-    postcode: formData?.businessAddress?.mailingAddress?.postcode || "",
-    state: formData?.businessAddress?.mailingAddress?.state || "",
+    addressLine1: "",
+    addressLine2: "",
+    postcode: "",
+    state: "",
     country: "Malaysia",
   });
-  const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<boolean | null>(formData?.businessAddress?.isMailingSameAsBusiness ?? null);
+
+  const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<boolean | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [userAddressLabel, setUserAddressLabel] = useState<string>("");
   const [isLocating, setIsLocating] = useState<boolean>(false);
-  const [preferredBranch, setPreferredBranch] = useState<string>(formData?.businessAddress?.preferredBranch || "");
+  const [preferredBranch, setPreferredBranch] = useState<string>("");
 
-  const searchParams = useSearchParams();
+  const journeyId =
+    searchParams.get("journeyId") ||
+    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+    "";
 
-  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
-  const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
-  const idNum = searchParams.get("id_num") || (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") || "";
+  const idType =
+    searchParams.get("id_type") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") ||
+    "ic";
+
+  const idNum =
+    searchParams.get("id_num") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
+    "";
+
+  const mode =
+    searchParams.get("mode") ||
+    (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
+    "new_user";
+
+  const currentAccountExists =
+    searchParams.get("current_account_exists") === "true" ||
+    (typeof window !== "undefined" &&
+      localStorage.getItem("currentAccountExists") === "true");
+
+  const existingAccountNo =
+    searchParams.get("existing_account_no") ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("existingAccountNo")
+      : "") ||
+    "";
 
   useEffect(() => {
     setMounted(true);
@@ -62,41 +168,99 @@ export default function CurrentMalaysianBusinessAddress() {
     if (journeyId) localStorage.setItem("journeyId", journeyId);
     if (idType) localStorage.setItem("id_type", idType);
     if (idNum) localStorage.setItem("id_num", idNum);
-  }, [journeyId, idType, idNum]);
+    if (mode) localStorage.setItem("mode", mode);
 
-  useEffect(() => {
-    const savedBusinessAddress = formData?.businessAddress?.businessAddress;
+    localStorage.setItem(
+      "currentAccountExists",
+      currentAccountExists ? "true" : "false"
+    );
 
-    if (savedBusinessAddress) {
-      setBusinessAddress({
-        addressLine1: savedBusinessAddress.addressLine1 || "",
-        addressLine2: savedBusinessAddress.addressLine2 || "",
-        postcode: savedBusinessAddress.postcode || "",
-        state: savedBusinessAddress.state || "",
-        country: "Malaysia",
-      });
+    if (existingAccountNo) {
+      localStorage.setItem("existingAccountNo", existingAccountNo);
     }
 
-    const savedMailingAddress = formData?.businessAddress?.mailingAddress;
+    const storedBusinessAddress = getStoredBusinessAddress();
+    const storedMailingAddress = getStoredMailingAddress();
+    const storedFullBusinessAddress = loadFromStorage(
+      "businessAddress",
+      null as any
+    );
 
-    if (savedMailingAddress) {
-      setMailingAddress({
-        addressLine1: savedMailingAddress.addressLine1 || "",
-        addressLine2: savedMailingAddress.addressLine2 || "",
-        postcode: savedMailingAddress.postcode || "",
-        state: savedMailingAddress.state || "",
-        country: "Malaysia",
-      });
-    }
+    const resolvedBusinessAddress = {
+      addressLine1:
+        formData?.businessAddress?.businessAddress?.addressLine1 ||
+        storedBusinessAddress.addressLine1 ||
+        "",
+      addressLine2:
+        formData?.businessAddress?.businessAddress?.addressLine2 ||
+        storedBusinessAddress.addressLine2 ||
+        "",
+      postcode:
+        formData?.businessAddress?.businessAddress?.postcode ||
+        storedBusinessAddress.postcode ||
+        "",
+      state:
+        formData?.businessAddress?.businessAddress?.state ||
+        storedBusinessAddress.state ||
+        "",
+      country:
+        formData?.businessAddress?.businessAddress?.country ||
+        storedBusinessAddress.country ||
+        "Malaysia",
+    };
 
-    if (formData?.businessAddress?.preferredBranch) {
-      setPreferredBranch(formData.businessAddress.preferredBranch);
-    }
+    const resolvedMailingAddress = {
+      addressLine1:
+        formData?.businessAddress?.mailingAddress?.addressLine1 ||
+        storedMailingAddress.addressLine1 ||
+        "",
+      addressLine2:
+        formData?.businessAddress?.mailingAddress?.addressLine2 ||
+        storedMailingAddress.addressLine2 ||
+        "",
+      postcode:
+        formData?.businessAddress?.mailingAddress?.postcode ||
+        storedMailingAddress.postcode ||
+        "",
+      state:
+        formData?.businessAddress?.mailingAddress?.state ||
+        storedMailingAddress.state ||
+        "",
+      country:
+        formData?.businessAddress?.mailingAddress?.country ||
+        storedMailingAddress.country ||
+        "Malaysia",
+    };
 
-    if (formData?.businessAddress?.isMailingSameAsBusiness !== undefined) {
-      setUseBusinessAsMailing(formData.businessAddress.isMailingSameAsBusiness);
+    setBusinessAddress(resolvedBusinessAddress);
+    setMailingAddress(resolvedMailingAddress);
+
+    setPreferredBranch(
+      formData?.businessAddress?.preferredBranch ||
+        storedFullBusinessAddress?.preferredBranch ||
+        ""
+    );
+
+    const sameAddress =
+      formData?.businessAddress?.isMailingSameAsBusiness ??
+      storedFullBusinessAddress?.isMailingSameAsBusiness ??
+      null;
+
+    setUseBusinessAsMailing(sameAddress);
+
+    if (currentAccountExists) {
+      setUseBusinessAsMailing(true);
+      setMailingAddress(resolvedBusinessAddress);
+      setStep(3);
     }
-  }, [formData]);
+  }, [
+    journeyId,
+    idType,
+    idNum,
+    mode,
+    currentAccountExists,
+    existingAccountNo,
+  ]);
 
   const getDistance = (
     lat1: number,
@@ -126,7 +290,9 @@ export default function CurrentMalaysianBusinessAddress() {
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
-          setUserAddressLabel(data.display_name.split(",").slice(0, 3).join(","));
+          setUserAddressLabel(
+            data.display_name.split(",").slice(0, 3).join(",")
+          );
         } catch {
           setUserAddressLabel(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         }
@@ -150,13 +316,24 @@ export default function CurrentMalaysianBusinessAddress() {
   });
 
   const handleBack = (): void => {
+    if (currentAccountExists) {
+      router.push(
+        `/current/malaysian/business_particulars?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}&mode=${encodeURIComponent(mode)}`
+      );
+      return;
+    }
+
     if (step === 1) {
       router.push(
         `/current/malaysian/business_particulars?id_type=${encodeURIComponent(
           idType
         )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
           journeyId
-        )}`
+        )}&mode=${encodeURIComponent(mode)}`
       );
     } else if (step === 2) {
       setStep(1);
@@ -170,54 +347,89 @@ export default function CurrentMalaysianBusinessAddress() {
   };
 
   const isAddressValid = (address: Address) => {
-    return (
-      address.addressLine1.trim() !== "" &&
-      address.addressLine2.trim() !== "" &&
-      address.postcode.trim() !== "" &&
-      address.state.trim() !== ""
-    );
-  };
+      return (
+        address.addressLine1.trim() !== "" &&
+        address.addressLine2.trim() !== "" &&
+        address.postcode.trim() !== "" &&
+        address.state.trim() !== ""
+      );
+    };
 
-  const handleStep1Submit = (): void => {
-    if (useBusinessAsMailing === null) return;
+    const handleStep1Submit = (): void => {
+      if (useBusinessAsMailing === null) return;
 
-    if (useBusinessAsMailing === true) {
-      setMailingAddress({ ...businessAddress });
+      if (useBusinessAsMailing === true) {
+        setMailingAddress({ ...businessAddress });
+        setStep(3);
+      } else {
+        setStep(2);
+      }
+    };
+
+    const handleStep2Submit = (): void => {
       setStep(3);
-    } else {
-      setStep(2);
+    };
+
+    const handleFinalSubmit = (): void => {
+    const finalBusinessAddress = {
+      businessAddress,
+      mailingAddress: useBusinessAsMailing ? businessAddress : mailingAddress,
+      isMailingSameAsBusiness: useBusinessAsMailing,
+      preferredBranch,
+      currentAccountExists,
+      existingAccountNo,
+    };
+
+    saveToStorage("businessAddress", finalBusinessAddress);
+
+    localStorage.setItem(
+      "currentAccountExists",
+      currentAccountExists ? "true" : "false"
+    );
+
+    if (existingAccountNo) {
+      localStorage.setItem("existingAccountNo", existingAccountNo);
     }
-  };
 
-  const handleStep2Submit = (): void => {
-    setStep(3);
-  };
-
-  const handleFinalSubmit = (): void => {
     setFormData({
       ...formData,
       journeyId,
       idType,
       idNum,
-      businessAddress: {
-        businessAddress,
-        mailingAddress: useBusinessAsMailing ? businessAddress : mailingAddress,
-        isMailingSameAsBusiness: useBusinessAsMailing,
-        preferredBranch,
-      },
+      applicationMode: mode,
+      businessAddress: finalBusinessAddress,
     });
 
+    if (mode === "existing_customer") {
+      router.push(
+        `/current/malaysian/account_creation?id_type=${encodeURIComponent(
+          idType
+        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+          journeyId
+        )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
+          currentAccountExists ? "true" : "false"
+        )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
+      );
+      return;
+    }
+
     router.push(
-      `/current/malaysian/business_otp?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`
+      `/current/malaysian/business_otp?id_type=${encodeURIComponent(
+        idType
+      )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
+        journeyId
+      )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
+        currentAccountExists ? "true" : "false"
+      )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
     );
   };
 
   const registeredSSMAddress = [
-    formData?.businessAddress?.businessAddress?.addressLine1,
-    formData?.businessAddress?.businessAddress?.addressLine2,
-    formData?.businessAddress?.businessAddress?.postcode,
-    formData?.businessAddress?.businessAddress?.state,
-    formData?.businessAddress?.businessAddress?.country,
+    businessAddress.addressLine1,
+    businessAddress.addressLine2,
+    businessAddress.postcode,
+    businessAddress.state,
+    businessAddress.country,
   ]
     .filter(Boolean)
     .join(", ");
@@ -232,7 +444,9 @@ export default function CurrentMalaysianBusinessAddress() {
     .filter(Boolean)
     .join(", ");
 
-  const isStep1Valid = isAddressValid(businessAddress) && useBusinessAsMailing !== null;
+  const isStep1Valid =
+    isAddressValid(businessAddress) && useBusinessAsMailing !== null;
+
   const isStep2Valid = isAddressValid(mailingAddress);
 
   if (!mounted) return null;
@@ -282,16 +496,13 @@ export default function CurrentMalaysianBusinessAddress() {
           Back
         </button>
 
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
-          <Image 
-            src="/images/logo/logo-light.svg" 
-            alt="Logo" 
-            width={40} 
-            height={40} 
-            className="block dark:invert-0 invert" 
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/images/logo/logo-light.svg"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="block dark:invert-0 invert"
           />
 
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
@@ -313,12 +524,13 @@ export default function CurrentMalaysianBusinessAddress() {
               </h1>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-                If your business address is different from the registered business address below, please update it.
+                If your business address is different from the registered
+                business address below, please update it.
               </p>
 
               <div className="relative p-4 mb-8 rounded-2xl border-2 transition-all duration-300 text-center backdrop-blur-sm border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
-                  {registeredSSMAddress}
+                  {registeredSSMAddress || "Registered address not available"}
                 </p>
 
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -342,10 +554,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     setBusinessAddress({
                       ...businessAddress,
                       addressLine1: e.target.value
-                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                      .split(" ")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
+                        .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                        .split(" ")
+                        .map(
+                          (word) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" "),
                     })
                   }
                 />
@@ -365,10 +580,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     setBusinessAddress({
                       ...businessAddress,
                       addressLine2: e.target.value
-                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                      .split(" ")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
+                        .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                        .split(" ")
+                        .map(
+                          (word) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" "),
                     })
                   }
                 />
@@ -409,10 +627,13 @@ export default function CurrentMalaysianBusinessAddress() {
                       setBusinessAddress({
                         ...businessAddress,
                         state: e.target.value
-                        .replace(/[^a-zA-Z ]/g, "")
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" "),
+                          .replace(/[^a-zA-Z ]/g, "")
+                          .split(" ")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" "),
                       })
                     }
                   />
@@ -425,17 +646,17 @@ export default function CurrentMalaysianBusinessAddress() {
                 </label>
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Malaysia</span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    Malaysia
+                  </span>
                 </div>
               </div>
 
               <div className="pt-4 flex flex-col items-center">
                 <div className="w-full mb-8">
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90 text-center">
-                    Keep business address as mailing address? 
-                    <span className="text-red-500">
-                      *
-                    </span>
+                    Keep business address as mailing address?
+                    <span className="text-red-500">*</span>
                   </label>
 
                   <div className="flex justify-center gap-8 mt-2">
@@ -464,7 +685,8 @@ export default function CurrentMalaysianBusinessAddress() {
                 </div>
 
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
+                  By clicking continue, you confirm that the information provided
+                  is accurate and belongs to you.
                 </p>
 
                 <button
@@ -521,10 +743,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     setMailingAddress({
                       ...mailingAddress,
                       addressLine1: e.target.value
-                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                      .split(" ")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
+                        .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                        .split(" ")
+                        .map(
+                          (word) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" "),
                     })
                   }
                 />
@@ -544,10 +769,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     setMailingAddress({
                       ...mailingAddress,
                       addressLine2: e.target.value
-                      .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                      .split(" ")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
+                        .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+                        .split(" ")
+                        .map(
+                          (word) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" "),
                     })
                   }
                 />
@@ -588,10 +816,13 @@ export default function CurrentMalaysianBusinessAddress() {
                       setMailingAddress({
                         ...mailingAddress,
                         state: e.target.value
-                        .replace(/[^a-zA-Z ]/g, "")
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" "),
+                          .replace(/[^a-zA-Z ]/g, "")
+                          .split(" ")
+                          .map(
+                            (word) =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" "),
                       })
                     }
                   />
@@ -604,13 +835,16 @@ export default function CurrentMalaysianBusinessAddress() {
                 </label>
 
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Malaysia</span>
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    Malaysia
+                  </span>
                 </div>
               </div>
 
               <div className="pt-4 flex flex-col items-center">
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
+                  By clicking continue, you confirm that the information provided
+                  is accurate and belongs to you.
                 </p>
 
                 <button
@@ -795,7 +1029,8 @@ export default function CurrentMalaysianBusinessAddress() {
 
             <div className="pt-10 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                By clicking continue, you confirm that the information provided is accurate and belongs to you.
+                By clicking continue, you confirm that the information provided
+                is accurate and belongs to you.
               </p>
 
               <button

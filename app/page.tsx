@@ -17,8 +17,13 @@ export default function Home() {
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | string>("");
 
   const words = ["Intelligent Automation", "Instant Verification", "Effortless Compliance"];
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
@@ -182,7 +187,10 @@ export default function Home() {
         </div>
       )}
 
-      <section id="section_1" className="relative pt-32 pb-32 lg:pt-36 lg:pb-48 bg-[#3D405B] dark:bg-[#3D405B] overflow-hidden text-white transition-colors duration-500">
+      <section 
+        id="section_1" 
+        className="relative pt-32 pb-32 lg:pt-36 lg:pb-48 bg-[#3D405B] dark:bg-[#3D405B] overflow-hidden text-white transition-colors duration-500"
+      >
         <svg className="absolute top-0 left-0 w-full h-24 sm:h-32 md:h-48 lg:h-64 pointer-events-none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <path className="text-white/5 dark:text-black/10" fill="currentColor" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
           <path className="text-white/10 dark:text-black/20" fill="currentColor" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
@@ -225,7 +233,15 @@ export default function Home() {
             </div>
             <div className="lg:w-1/2 w-full group">
               <div className="relative w-full pb-[56.25%] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#81B29A]/20 transition-transform duration-500 group-hover:scale-[1.01] ring-4 ring-black/20">
-                <iframe className="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/MGNgbNGOzh8" title="Video" allowFullScreen></iframe>
+                <video 
+                  className="absolute top-0 left-0 w-full h-full object-cover rounded-xl" 
+                  controls 
+                  muted
+                  preload="auto"
+                >
+                  <source src="/video/demo.mov" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>
@@ -276,17 +292,19 @@ export default function Home() {
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                  <input 
+                <input 
                   type="email" 
                   className="w-full pl-12 pr-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 placeholder:text-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                   placeholder="Enter your email address" 
                   required 
+                  suppressHydrationWarning
                 />
               </div>
             </div>
             <button 
               type="submit" 
               className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition rounded-xl bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-0.5"
+              suppressHydrationWarning
             >
               Subscribe
             </button>
@@ -401,6 +419,7 @@ export default function Home() {
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       required 
+                      suppressHydrationWarning
                     />
                   </div>
                   <div>
@@ -414,6 +433,7 @@ export default function Home() {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       required 
+                      suppressHydrationWarning
                     />
                   </div>
                 </div>
@@ -427,6 +447,7 @@ export default function Home() {
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
                     required
+                    suppressHydrationWarning
                   ></textarea>
                 </div>
                 {formStatus && (
@@ -438,6 +459,7 @@ export default function Home() {
                   type="submit" 
                   disabled={isSubmitting}
                   className="inline-flex items-center justify-center w-full px-6 py-2.5 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] shadow-lg hover:bg-[#2c2f42] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d]"
+                  suppressHydrationWarning
                 >
                   {isSubmitting ? 'Sending...' : 'Submit Form'}
                 </button>
@@ -469,8 +491,8 @@ export default function Home() {
           <path fill="currentColor" d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L0,320Z" />
         </svg>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="relative mt-8 text-xs font-medium text-[#2c3d35]">
-            &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
+          <p className="relative mt-8 text-xs font-medium text-[#2c3d35]" suppressHydrationWarning>
+            &copy; {currentYear || "2025"} DTCOB Banking Services. All rights reserved.
           </p>
         </div>
       </footer>

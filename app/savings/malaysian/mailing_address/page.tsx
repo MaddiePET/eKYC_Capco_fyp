@@ -18,6 +18,7 @@ export default function SavingsMalaysianMailingAddress() {
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
   const idNum = searchParams.get("id_num") || (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") || "";
+  const mode = searchParams.get("mode") || (typeof window !== "undefined" ? localStorage.getItem("mode") : "") || "new_user";
 
   const [mailingData, setMailingData] = useState({
     permanentAddress: "",
@@ -154,7 +155,7 @@ export default function SavingsMalaysianMailingAddress() {
           type="button"
           onClick={() =>
             router.push(
-              `/savings/malaysian/info?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}`
+              `/savings/malaysian/info?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
             )
           }
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
@@ -323,7 +324,7 @@ export default function SavingsMalaysianMailingAddress() {
                   : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
               }`}
             >
-              {isSubmitting ? "Saving..." : "Continue"}
+              {isSubmitting ? "Loading..." : "Continue"}
             </button>
           </div>
         </div>

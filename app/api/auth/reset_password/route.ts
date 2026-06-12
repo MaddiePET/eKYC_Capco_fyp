@@ -134,6 +134,7 @@ export async function POST(req: Request) {
       if (!username) {
         return NextResponse.json({ error: "Username is required." }, { status: 400 });
       }
+
       if (!email) {
         return NextResponse.json({ error: "Email is required." }, { status: 400 });
       }
@@ -191,6 +192,7 @@ export async function POST(req: Request) {
       if (!username) {
         return NextResponse.json({ error: "Username is required." }, { status: 400 });
       }
+
       if (!newPassword) {
         return NextResponse.json({ error: "New password is required." }, { status: 400 });
       }
@@ -209,9 +211,12 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ error: "Invalid action." }, { status: 400 });
+
   } catch (error: any) {
     await client.query("ROLLBACK");
+
     console.error("Password reset error:", error);
+    
     return NextResponse.json(
       { error: "An internal server error occurred." },
       { status: 500 }
