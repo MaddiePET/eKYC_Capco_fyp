@@ -105,8 +105,6 @@ export async function POST(req: Request) {
       );
     }
 
-<<<<<<< HEAD
-=======
     if (scorecardResult < SCORECARD_PASS_THRESHOLD) {
       return NextResponse.json(
         {
@@ -118,8 +116,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Combine Address 2 and City into one string separated by a comma
->>>>>>> origin/jeru
     const homeAdd2Str = homeAddress.add_2 ? homeAddress.add_2.trim() : "";
     const homeCityStr = homeAddress.city ? homeAddress.city.trim() : "";
     const combinedHomeAdd2 = [homeAdd2Str, homeCityStr].filter(Boolean).join(", ");
