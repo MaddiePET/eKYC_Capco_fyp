@@ -225,7 +225,15 @@ export default function Home() {
             </div>
             <div className="lg:w-1/2 w-full group">
               <div className="relative w-full pb-[56.25%] rounded-2xl overflow-hidden shadow-2xl border-4 border-[#81B29A]/20 transition-transform duration-500 group-hover:scale-[1.01] ring-4 ring-black/20">
-                <iframe className="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/MGNgbNGOzh8" title="Video" allowFullScreen></iframe>
+                <video 
+                  className="absolute top-0 left-0 w-full h-full object-cover rounded-xl" 
+                  controls 
+                  muted
+                  preload="auto"
+                >
+                  <source src="/video/demo.mov" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>
