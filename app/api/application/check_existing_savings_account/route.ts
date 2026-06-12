@@ -19,10 +19,10 @@ export async function POST(req: Request) {
     }
 
     const normalizedIdNum = String(idNum)
-      .replace(/-/g, "")
-      .replace(/\s/g, "")
-      .toUpperCase()
-      .trim();
+    .replace(/-/g, "")
+    .replace(/\s/g, "")
+    .toUpperCase()
+    .trim();
 
     const idNumHash = hashLookup(normalizedIdNum);
 

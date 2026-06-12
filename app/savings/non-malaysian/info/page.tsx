@@ -303,8 +303,8 @@ export default function SavingsNonMalaysianInfo() {
                       <option value="" disabled>Select</option>
                       <option value="M">M</option>
                       <option value="F">F</option>
-                      <option value="Non-binary">Non-binary</option>
-                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="NB">Non-binary</option>
+                      <option value="NONE">Prefer not to say</option>
                     </select>
 
                     <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">

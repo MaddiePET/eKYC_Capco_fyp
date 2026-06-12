@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 function generateAccountNumber() {
   let accountNo = "";
+
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
@@ -15,16 +16,6 @@ function generateAccountNumber() {
 
 function enc(value: any) {
   return value ? encrypt(String(value), "banka") : null;
-}
-
-function mapGender(frontendGender: string) {
-  switch (frontendGender) {
-    case "M": return "M";
-    case "F": return "F";
-    case "Non-binary": return "NB";
-    case "Prefer not to say": return "NONE";
-    default: return "NONE";
-  }
 }
 
 export async function POST(req: Request) {
@@ -42,6 +33,8 @@ export async function POST(req: Request) {
       mailingAddress,
       user,
       savingsAccount,
+      nonMsianDetails,
+      supportingDocs,
     } = body;
 
     if (!customer || !homeAddress || !user || !savingsAccount) {
@@ -98,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     const scorecardResult = Number(((passedChecks / totalChecks) * 100).toFixed(2));
-
+    const SCORECARD_PASS_THRESHOLD = 70;
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
     if (
@@ -112,20 +105,32 @@ export async function POST(req: Request) {
       );
     }
 
+<<<<<<< HEAD
+=======
+    if (scorecardResult < SCORECARD_PASS_THRESHOLD) {
+      return NextResponse.json(
+        {
+           error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
+           scorecardResult,
+           threshold: SCORECARD_PASS_THRESHOLD,
+        },
+        { status: 403 }
+      );
+    }
+
     // Combine Address 2 and City into one string separated by a comma
+>>>>>>> origin/jeru
     const homeAdd2Str = homeAddress.add_2 ? homeAddress.add_2.trim() : "";
     const homeCityStr = homeAddress.city ? homeAddress.city.trim() : "";
     const combinedHomeAdd2 = [homeAdd2Str, homeCityStr].filter(Boolean).join(", ");
 
     const cleanHomeAddress = {
       add_1: homeAddress.add_1 || "",
-      add_2: combinedHomeAdd2, // Saves "Street Name, City" to the database
+      add_2: combinedHomeAdd2,
       postcode: homeAddress.postcode || "",
       state: homeAddress.state || "",
       country: homeAddress.country || "",
     };
-
-    const rawGender = customer.gender || customer.non_msian_details?.gender || "";
 
     const cleanCustomer = {
       id_num: normalizedPassportNum,
@@ -134,7 +139,7 @@ export async function POST(req: Request) {
       dob: customer.dob,
       ph_no: customer.ph_no || "",
       email: customer.email || "",
-      gender: mapGender(rawGender),
+      gender: customer.gender,
     };
 
     const idNumHash = hashLookup(cleanCustomer.id_num);
@@ -156,7 +161,6 @@ export async function POST(req: Request) {
 
     await client.query("BEGIN");
 
-    // Create home address with encrypted values
     const homeAddressResult = await client.query(
       `
       INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -182,13 +186,12 @@ export async function POST(req: Request) {
 
       const cleanMailingAddress = {
         add_1: mailingAddress.add_1 || "",
-        add_2: combinedMailAdd2, // Saves "Street Name, City" to the database
+        add_2: combinedMailAdd2,
         postcode: mailingAddress.postcode || "",
         state: mailingAddress.state || "",
         country: mailingAddress.country || "",
       };
 
-      // Create mailing address with encrypted values
       const mailingAddressResult = await client.query(
         `
         INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -276,6 +279,52 @@ export async function POST(req: Request) {
       custId = customerResult.rows[0].cust_id;
     }
 
+    if (nonMsianDetails) {
+      await client.query(
+        `
+        INSERT INTO banka."Non_msian_details" (cust_id, pp_issue_office, pp_issue_date, pp_exp_date, home_add_id)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (cust_id) DO UPDATE SET
+          pp_issue_office = EXCLUDED.pp_issue_office,
+          pp_issue_date = EXCLUDED.pp_issue_date,
+          pp_exp_date = EXCLUDED.pp_exp_date,
+          home_add_id = EXCLUDED.home_add_id
+        `,
+        [
+          custId,
+          nonMsianDetails.pp_issue_office || null,
+          nonMsianDetails.pp_issue_date || null,
+          nonMsianDetails.pp_exp_date || null,
+          homeAddId
+        ]
+      );
+    }
+
+    if (supportingDocs && supportingDocs.length > 0) {
+      for (const doc of supportingDocs) {
+        let docBuffer = null;
+        
+        if (doc.doc_file) {
+          const base64Data = doc.doc_file.includes(',') 
+            ? doc.doc_file.split(',')[1] 
+            : doc.doc_file;
+          docBuffer = Buffer.from(base64Data, "base64");
+        }
+
+        await client.query(
+          `
+          INSERT INTO banka."Non_msian_supporting_docs" (cust_id, doc_name, doc_file)
+          VALUES ($1, $2, $3)
+          `,
+          [
+            custId,
+            doc.doc_name || 'Untitled Document',
+            docBuffer
+          ]
+        );
+      }
+    }
+
     if (!cleanUser.password) throw new Error("Password is missing");
 
     const usernameCheck = await client.query(
@@ -293,6 +342,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(cleanUser.password);
 
     let profileBuffer: Buffer | null = null;
+    
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
@@ -347,9 +397,7 @@ export async function POST(req: Request) {
         cleanSavings.is18,
       ]
     );
-    
-    // Save journey registration unconditionally using unique fallback keys with ON CONFLICT resolution
-    const finalJourneyId = journeyId || `BYPASS-${custId}-${Date.now()}`;
+        
     await client.query(
        `
        INSERT INTO banka."Journey" (
@@ -363,7 +411,7 @@ export async function POST(req: Request) {
       ON CONFLICT (journey_id) DO NOTHING
       `,
       [
-        finalJourneyId,
+        journeyId,
         custId,
         scorecardResult,
       ]
@@ -398,7 +446,7 @@ export async function POST(req: Request) {
     await client.query("ROLLBACK");
     console.error("Non-Malaysian savings account error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create account application" },
+      { error: error.message || "Failed to create Non-Malaysian savings account application" },
       { status: 500 }
     );
   } finally {

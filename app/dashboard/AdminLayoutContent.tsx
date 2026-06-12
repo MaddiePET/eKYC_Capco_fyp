@@ -104,7 +104,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
         email: loggedInUser.email,
         avatar: loggedInUser.avatar, 
         type: fallbackType,
-        isMalaysian: false,
+        isMalaysian: true,
         phone: ""
       };
     } 
@@ -129,7 +129,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
     });
   }, [activeAccount, accounts, isLoadingAccounts]);
 
-  const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : "";
+  const safeAvatar = typeof activeAccount?.avatar === "string" && activeAccount.avatar.trim() !== "" ? activeAccount.avatar : null;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
@@ -530,6 +530,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button
                   type="button"
                   className={`menu-item group w-full cursor-pointer ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+                  suppressHydrationWarning
                 >
                   <span>{nav.icon}</span>
                   {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">{nav.name}</span>}
@@ -543,6 +544,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClick={handleOpenAccountModal} 
                     className="w-full text-left"
                     type="button"
+                    suppressHydrationWarning
                   >
                     <div className="menu-item group cursor-pointer menu-item-inactive">
                       <span className="menu-item-icon-inactive">{nav.icon}</span>
@@ -647,16 +649,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
         </aside>
       )}
 
-      {isMobileOpen && (
-        <button
-          onClick={toggleMobileSidebar}
-          className="lg:hidden text-white/80 hover:text-white"
-          type="button"
-        >
-          ✕
-        </button>
-      )}
-
       <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
         <header 
           className="sticky top-0 flex w-full border-gray-200 z-[99999] dark:border-gray-800 lg:border-b"
@@ -669,6 +661,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 className="items-center justify-center w-10 h-10 text-white rounded-lg z-[99999] lg:flex lg:h-11 lg:w-11 lg:border border-white/20"
                 onClick={handleHeaderToggle}
                 type="button"
+                suppressHydrationWarning
               >
                 <NavigationIcon
                   className={`w-7 h-7 transition-transform duration-300 ${
@@ -697,6 +690,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 onClick={() => setApplicationMenuOpen(!isApplicationMenuOpen)}
                 className="lg:hidden flex items-center justify-center w-10 h-10 text-white rounded-lg hover:bg-white/10 transition-all"
                 type="button"
+                suppressHydrationWarning
               >
                 <MoreDotIcon className="w-6 h-6" />
               </button>
@@ -723,13 +717,15 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     <input
                       ref={inputRef}
                       type="text"
-                      placeholder="Search or type command..."
+                      placeholder="Search..."
                       className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
+                      suppressHydrationWarning
                     />
 
                     <button 
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
                       type="button"
+                      suppressHydrationWarning
                     >
                       <span>⌘</span>
                       <span>K</span>
@@ -773,15 +769,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         ref={inputRef}
                         type="text"
                         placeholder="Search..."
-                        className="w-full py-3 pl-12 pr-4 text-sm bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20"
+                        className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
+                        suppressHydrationWarning
                       />
-                      <button 
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
-                        type="button"
-                      >
-                        <span>⌘</span>
-                        <span>K</span>
-                      </button>
                     </div>
                   </form>
                 </div>
@@ -791,13 +781,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClick={toggleUserDropdown} 
                     className="flex items-center text-white dropdown-toggle"
                     type="button"
+                    suppressHydrationWarning
                   >
                     <div className="mr-3 overflow-hidden rounded-full h-11 w-11 shrink-0 border border-white/20 bg-gray-700">
                       <img 
                         className="w-full h-full object-cover" 
-                        src={safeAvatar}
+                        src={safeAvatar ?? undefined}
                         alt="User" 
-                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
+                        onError={(e) => {(e.target as HTMLImageElement).src = "/images/user/user-07.jpg";}}
                       />
                     </div>
                     
@@ -827,60 +818,64 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClose={closeUserDropdown} 
                     className="absolute right-0 mt-[17px] flex w-[280px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
                   >
-                    <div className="mt-4 pb-4 border-b border-gray-200 dark:border-gray-800">
-                      <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                        Switch Account
-                      </p>
-
-                      {isProfilePage && 
-                        <p className="mb-3 text-xs text-error-500 dark:text-error-400">
-                          Account switching is disabled on this page.
+                    {activeAccount?.isMalaysian !== false && accounts.length > 1 && (
+                      <div className="mt-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+                        <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          Switch Account
                         </p>
-                      }
 
-                      <ul className="flex flex-col gap-1">
-                        {isLoadingAccounts ? (
-                          <p className="text-xs text-gray-400 p-3 text-center">Loading live profiles...</p>
-                        ) : accounts.length === 0 ? (
-                          <p className="text-xs text-gray-400 p-3 text-center">No database accounts found.</p>
-                        ) : (
-                          accounts
-                            .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
-                            .map((account) => {const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : "";
+                        {isProfilePage && 
+                          <p className="mb-3 text-xs text-error-500 dark:text-error-400">
+                            Account switching is disabled on this page.
+                          </p>
+                        }
 
-                            return (
-                              <li key={account.id}>
-                                <button
-                                  onClick={() => switchAccount(account.name)}
-                                  disabled={isProfilePage}
-                                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-                                  type="button"
-                                >
-                                  <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
-                                    <img 
-                                      className="w-full h-full object-cover" 
-                                      src={displayAvatar} 
-                                      alt={account.name} 
-                                      onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
-                                    />
-                                  </div>
+                        <ul className="flex flex-col gap-1">
+                          {isLoadingAccounts ? (
+                            <p className="text-xs text-gray-400 p-3 text-center">Loading live profiles...</p>
+                          ) : accounts.length === 0 ? (
+                            <p className="text-xs text-gray-400 p-3 text-center">No database accounts found.</p>
+                          ) : (
+                            accounts
+                              .filter((account) => account.name.toLowerCase() !== currentUsername.toLowerCase())
+                              .map((account) => {
+                                const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
 
-                                  <div className="text-left">
-                                    <p className="text-xs font-medium">
-                                      {account.username} ({account.type})
-                                    </p>
+                              return (
+                                <li key={account.id}>
+                                  <button
+                                    onClick={() => switchAccount(account.name)}
+                                    disabled={isProfilePage}
+                                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+                                    type="button"
+                                    suppressHydrationWarning
+                                  >
+                                    <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
+                                      <img 
+                                        className="w-full h-full object-cover" 
+                                        src={displayAvatar ?? undefined} 
+                                        alt={account.name} 
+                                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
+                                      />
+                                    </div>
 
-                                    <p className="text-[11px] opacity-75">
-                                      {account.email}
-                                    </p>
-                                  </div>
-                                </button>
-                              </li>
-                            );
-                          })
-                        )}
-                      </ul>
-                    </div>
+                                    <div className="text-left">
+                                      <p className="text-xs font-medium">
+                                        {account.username} ({account.type})
+                                      </p>
+
+                                      <p className="text-[11px] opacity-75">
+                                        {account.email}
+                                      </p>
+                                    </div>
+                                  </button>
+                                </li>
+                              );
+                            })
+                          )}
+                        </ul>
+                      </div>
+                    )}
                     
                     <ul className="flex flex-col gap-1 py-3 border-b border-gray-200 dark:border-gray-800">
                       <li>
@@ -907,7 +902,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         <DropdownItem 
                           onItemClick={closeUserDropdown} 
                           tag="a" 
-                          href="/dashboard/profile" 
+                          href="/contact_support" 
                           className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
                         >
                           <svg 
@@ -1071,6 +1066,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
                   type="button"
+                  suppressHydrationWarning
                 >
                   {isSendingOtp ? "Loading..." : "Continue"}
                 </button>
@@ -1103,6 +1099,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={() => setModalStep(1)} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   type="button"
+                  suppressHydrationWarning
                 >
                   No, go back
                 </button>
@@ -1111,6 +1108,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={handleConfirmCreation} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                   type="button"
+                  suppressHydrationWarning
                 >
                   Yes, continue
                 </button>
@@ -1246,8 +1244,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
+                  type="button"
+                  suppressHydrationWarning
                 >
-                  {isSendingOtp ? "Sending Code..." : "Continue"}
+                  {isSendingOtp ? "Sending Code..." : "Send Code"}
                 </button>
               </div>
             </>
@@ -1281,6 +1281,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onChange={(e) => handleOtpInputChange(e.target.value, index)} 
                     onKeyDown={(e) => handleOtpKeyDown(e as React.KeyboardEvent<HTMLInputElement>, index)} 
                     className="w-12 h-14 text-center text-xl font-bold transition-all border-2 rounded-xl outline-none border-gray-200 bg-white focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
+                    suppressHydrationWarning
                   />
                 ))}
               </div>
@@ -1288,16 +1289,14 @@ export default function AdminLayoutContent({ children }: { children: React.React
               <div className="flex justify-center mb-6">
                 {otpTimer > 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Resend code in{" "}
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {otpTimer}s
-                    </span>
+                    Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{otpTimer}s</span>
                   </p>
                 ) : (
                   <button
                     type="button"
                     onClick={handleResendOtp}
                     className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
+                    suppressHydrationWarning
                   >
                     Resend Code
                   </button>
@@ -1309,6 +1308,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={() => { setOtpStep(1); setOtpCode(''); setOtpDigits(new Array(6).fill('')); }} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   type="button"
+                  suppressHydrationWarning
                 >
                   No, go back
                 </button>
@@ -1322,6 +1322,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
                   type="button"
+                  suppressHydrationWarning
                 >
                   Verify
                 </button>

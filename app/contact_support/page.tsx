@@ -126,9 +126,20 @@ export default function ContactSupportPage() {
           </h1>
 
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Send us a message and we'll get back to you shortly.
+            Send us a message and we&apos;ll get back to you shortly.
           </p>
         </div>
+
+        {formStatus && (
+          <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+            formStatus.type === "success" 
+              ? "bg-green-50 border-green-200 text-green-600" 
+              : "bg-red-50 border-red-200 text-red-600"
+            }`}
+          >
+            {formStatus.message}
+          </div>
+        )}
 
         <form 
           onSubmit={(e) => {
@@ -181,21 +192,13 @@ export default function ContactSupportPage() {
             />
           </div>
 
-          {formStatus && (
-            <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-              formStatus.type === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
-            }`}>
-              {formStatus.message}
-            </div>
-          )}
-
           <div className="pt-2">
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full inline-flex items-center justify-center px-6 py-3 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:opacity-60"
             >
-              {isSubmitting ? 'Submitting Inquiry...' : 'Submit'}
+              {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
             </button>
           </div>
         </form>

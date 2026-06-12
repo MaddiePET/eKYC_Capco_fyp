@@ -92,6 +92,8 @@ export default function SavingsNonMalaysianAccountCreation() {
       
       const nonMsianApplication = JSON.parse(localStorage.getItem("nonMsianApplication") || "{}");
       const savings_account = nonMsianApplication.savings_account || {};
+
+      const supportingDocs = nonMsianApplication.non_msian_supporting_docs || [];
       
       const homeAddress = {
         add_type: "Home",
@@ -147,6 +149,13 @@ export default function SavingsNonMalaysianAccountCreation() {
           sec_phrase: securityPhrase,
           branch: nonMsianApplication.preferredBranch || "International Branch",
         },
+
+        nonMsianDetails: {
+          pp_issue_office: personalInfo.non_msian_details?.pp_issue_office || "",
+          pp_issue_date: personalInfo.non_msian_details?.pp_issue_date || null,
+          pp_exp_date: personalInfo.non_msian_details?.pp_exp_date || null,
+        },
+        supportingDocs: supportingDocs
       };
 
       console.log("Sending Non-Malaysian savings account application payload verification:", JSON.stringify(payload, null, 2));
@@ -584,7 +593,8 @@ export default function SavingsNonMalaysianAccountCreation() {
         {step !== "pending" && (
            <div className="mt-5 text-center">
              <p className="text-sm font-normal">
-               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+              
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

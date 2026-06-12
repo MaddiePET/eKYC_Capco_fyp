@@ -5,10 +5,8 @@ import { decrypt, hashLookup } from "@/lib/cryptoSecurity";
 function safeDecrypt(value: string | null | undefined) {
   if (!value) return "";
 
-  // AES-GCM encrypted format should be: iv:authTag:encryptedText
   const parts = String(value).split(":");
 
-  // If it does not look encrypted, return it as plain text
   if (parts.length !== 3) {
     return value;
   }

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         type: "passport",
         country: "OTHER",
         halfSizeImage: base64Image,
-        fullSizeImage: body.fullSizeImage || ""
+        fullSizeImage: body.fullSizeImage || null
       };
 
       console.log("OkayDoc passport verification - journeyId:", journeyId);
@@ -69,14 +69,19 @@ export async function POST(req: Request) {
 
     try {
       okaydocResult = okaydocText ? JSON.parse(okaydocText) : {};
+
       const okaydocStatus = typeof (okaydocResult as { status?: unknown }).status === "string"
         ? (okaydocResult as { status?: string }).status
         : undefined;
+
       console.log("OkayDoc result - status:", okaydocStatus);
       console.log("OkayDoc full response:", JSON.stringify(okaydocResult, null, 2));
+
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
+
       console.error("Failed to parse OkayDoc response:", message);
+
       return NextResponse.json({
         error: "Authentication verification failed",
         details: message,
@@ -85,6 +90,7 @@ export async function POST(req: Request) {
 
     if (!okaydocResponse.ok) {
       console.error("OkayDoc error (status " + okaydocResponse.status + "):", okaydocResult);
+
       return NextResponse.json({
         error: "Authentication verification failed",
         authError: okaydocResult,
@@ -94,7 +100,9 @@ export async function POST(req: Request) {
     return NextResponse.json(okaydocResult, { status: 200 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
+
     console.error("OkayDoc route error:", message, error instanceof Error ? error.stack : "");
+
     return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

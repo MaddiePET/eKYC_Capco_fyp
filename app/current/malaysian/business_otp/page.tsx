@@ -42,7 +42,6 @@ export default function CurrentMalaysianBusinessOTP() {
   useEffect(() => {
     if (!mounted) return;
     
-    // Add local storage fallback
     const savedBusinessContact = JSON.parse(localStorage.getItem("businessContact") || "{}");
     const savedContactInfo = JSON.parse(localStorage.getItem("contactInfo") || "{}");
     

@@ -26,14 +26,14 @@ function hash(value: any) {
     : null;
 }
 
-function mapGender(frontendGender: any) {
-  if (!frontendGender) return "NONE";
-  const normalized = String(frontendGender).trim().toUpperCase();
-  if (normalized === "M" || normalized === "MALE") return "M";
-  if (normalized === "F" || normalized === "FEMALE") return "F";
-  if (normalized === "NB" || normalized === "NON-BINARY" || normalized === "NON_BINARY") return "NB";
-  if (normalized === "NONE" || normalized === "PREFER NOT TO SAY" || normalized === "PREFER_NOT_TO_SAY") return "NONE";
-  return "NONE";
+function mapGender(frontendGender: string) {
+  switch (frontendGender) {
+    case "M": return "M";
+    case "F": return "F";
+    case "NB": return "NB";
+    case "NONE": return "NONE";
+    default: return "NONE";
+  }
 }
 
 export async function POST(req: Request) {
@@ -44,16 +44,8 @@ export async function POST(req: Request) {
 
     const journeyId = data.journeyId || "";
 
-    const applicationMode =
-      data.applicationMode ||
-      data.mode ||
-      data.application_mode ||
-      data.flow ||
-      "new_user";
-
-    const isAddAccountFlow =
-      applicationMode === "existing_customer" ||
-      applicationMode === "add_account";
+    const applicationMode = data.applicationMode || data.mode || data.application_mode || data.flow || "new_user";
+    const isAddAccountFlow = applicationMode === "existing_customer" || applicationMode === "add_account";
 
     console.log("DEBUG applicationMode:", applicationMode);
     console.log("DEBUG isAddAccountFlow:", isAddAccountFlow);
@@ -84,10 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const cleanIdNum = String(customerIdNum)
-      .replace(/-/g, "")
-      .trim()
-      .toUpperCase();
+    const cleanIdNum = String(customerIdNum).replace(/-/g, "").trim().toUpperCase();
 
     let scorecardResult: number | null = null;
 
@@ -110,15 +99,10 @@ export async function POST(req: Request) {
       console.log("DEBUG business statusData:", statusData);
 
       const statusIdType = statusData.id_type?.toLowerCase();
-      const statusIdNum = statusData.id_num
-        ?.replace(/-/g, "")
-        .trim()
-        .toUpperCase();
+      const statusIdNum = statusData.id_num?.replace(/-/g, "").trim().toUpperCase();
 
       if (
-        statusData.status !== "face_verified" ||
-        !["ic", "mykad", "nric"].includes(statusIdType) ||
-        statusIdNum !== cleanIdNum
+        statusData.status !== "face_verified" || !["ic", "mykad", "nric"].includes(statusIdType) || statusIdNum !== cleanIdNum
       ) {
         return NextResponse.json(
           {
@@ -156,6 +140,19 @@ export async function POST(req: Request) {
       scorecardResult = Number(
         ((passedChecks / totalChecks) * 100).toFixed(2)
       );
+
+      const SCORECARD_PASS_THRESHOLD = 70;
+
+      if (scorecardResult < SCORECARD_PASS_THRESHOLD){
+        return NextResponse.json(
+          {
+            error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
+            scorecardResult,
+            threshold: SCORECARD_PASS_THRESHOLD,
+          },
+          { status: 403}
+        );
+      }
 
       console.log("DEBUG business scorecardResult:", scorecardResult);
     }
@@ -207,7 +204,7 @@ export async function POST(req: Request) {
           personalInfo.dob,
           enc(customerPhone),
           enc(customerEmail),
-          customerGender,
+          personalInfo.gender,
           custId,
         ]
       );
@@ -312,8 +309,7 @@ export async function POST(req: Request) {
       if (usernameCheck.rows.length > 0) {
         return NextResponse.json(
           {
-            error:
-              "This user profile identifier username is already registered.",
+            error: "This user profile identifier username is already registered.",
           },
           { status: 400 }
         );
@@ -402,12 +398,6 @@ export async function POST(req: Request) {
       data.existing_account_no ||
       null;
 
-    const currentAccountExistsFromPayload =
-      businessParticulars.current_account_exists ||
-      businessParticulars.currentAccountExists ||
-      data.currentAccountExists ||
-      false;
-
     const regNoRaw =
       businessParticulars.registration_number ||
       businessParticulars.reg_no ||
@@ -419,15 +409,11 @@ export async function POST(req: Request) {
       throw new Error("Business registration number is missing.");
     }
 
-    const businessType =
-      businessParticulars.business_type ||
-      businessParticulars.bus_type ||
-      "";
+    const businessType = businessParticulars.business_type || businessParticulars.bus_type || "";
 
     const normalizedBusinessType = businessType.toLowerCase();
 
-    const isSoleProprietorship =
-      normalizedBusinessType.includes("sole proprietorship");
+    const isSoleProprietorship = normalizedBusinessType.includes("sole proprietorship");
 
     const existingCurrentAccountRes = await client.query(
       `
@@ -484,8 +470,7 @@ export async function POST(req: Request) {
       businessAddId = businessAddressRes.rows[0].add_id;
       mailingAddId = businessAddId;
 
-      const isMailingSameAsBusiness =
-        businessAddressData.isMailingSameAsBusiness ?? true;
+      const isMailingSameAsBusiness = businessAddressData.isMailingSameAsBusiness ?? true;
 
       if (!isMailingSameAsBusiness && businessAddressData.mailingAddress) {
         const mailingAddress = {
@@ -493,8 +478,7 @@ export async function POST(req: Request) {
           add_2: businessAddressData.mailingAddress.addressLine2 || "",
           postcode: businessAddressData.mailingAddress.postcode || "",
           state: businessAddressData.mailingAddress.state || "",
-          country:
-            businessAddressData.mailingAddress.country || "Malaysia",
+          country:businessAddressData.mailingAddress.country || "Malaysia",
         };
 
         const mailingAddressRes = await client.query(
@@ -566,10 +550,7 @@ export async function POST(req: Request) {
           userId,
           regNoHash,
           enc(regNoRaw),
-          enc(
-            businessParticulars.business_name ||
-              businessParticulars.bus_name
-          ),
+          enc(businessParticulars.business_name || businessParticulars.bus_name),
           enc(businessContact.bus_ph_no || businessContact.phoneNumber),
           enc(businessContact.bus_email || businessContact.email),
           businessParticulars.start_date || null,
@@ -583,9 +564,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const currentAccountRole =
-      businessParticulars.role ||
-      (isSoleProprietorship ? "Owner" : "Partner");
+    const currentAccountRole = businessParticulars.role || (isSoleProprietorship ? "Owner" : "Partner");
 
     const existingCurrentAccountUserRes = await client.query(
       `
@@ -653,8 +632,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message:
-          "Malaysian business current account application created successfully",
+        message: "Malaysian business current account application created successfully",
         cust_id: custId,
         user_id: userId,
         account_no: accountNo,
@@ -671,9 +649,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        error:
-          error.message ||
-          "Failed to create Malaysian business current account application",
+        error: error.message || "Failed to create Malaysian business current account application",
       },
       { status: 500 }
     );

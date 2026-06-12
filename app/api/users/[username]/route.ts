@@ -38,6 +38,7 @@ export async function GET(
     if (user.img) {
       if (Buffer.isBuffer(user.img)) {
         const content = user.img.toString();
+        
         avatarString = content.startsWith("http")
           ? content
           : `data:image/jpeg;base64,${user.img.toString("base64")}`;
@@ -58,6 +59,7 @@ export async function GET(
     });
   } catch (err) {
     console.error(err);
+
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
