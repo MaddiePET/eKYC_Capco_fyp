@@ -53,7 +53,6 @@ const AddressSection = ({
         <h2 className="block text-md font-bold text-[#3D405B] dark:text-white">
           {title}
         </h2>
-
         {headerRight && <div>{headerRight}</div>}
       </div>
 
@@ -62,7 +61,6 @@ const AddressSection = ({
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
             Address 1 <span className="text-red-500">*</span>
           </label>
-
           <input
             type="text"
             className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -84,7 +82,6 @@ const AddressSection = ({
           <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
             Address 2 <span className="text-red-500">*</span>
           </label>
-
           <input
             type="text"
             className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -106,7 +103,6 @@ const AddressSection = ({
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
               Postal Code <span className="text-red-500">*</span>
             </label>
-
             <input
               type="text"
               maxLength={5}
@@ -124,7 +120,6 @@ const AddressSection = ({
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
               City <span className="text-red-500">*</span>
             </label>
-
             <input
               type="text"
               className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -148,7 +143,6 @@ const AddressSection = ({
             <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
               State <span className="text-red-500">*</span>
             </label>
-
             <input
               type="text"
               className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -338,7 +332,6 @@ export default function SavingsNonMalaysianAddress() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -372,10 +365,8 @@ export default function SavingsNonMalaysianAddress() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -387,7 +378,6 @@ export default function SavingsNonMalaysianAddress() {
             height={40}
             className="block dark:invert-0 invert"
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -399,7 +389,6 @@ export default function SavingsNonMalaysianAddress() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Enter Your Address Details
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please provide your current and permanent residential addresses to proceed with the registration.
           </p>
@@ -426,7 +415,6 @@ export default function SavingsNonMalaysianAddress() {
           <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
             By clicking continue, you confirm that the information provided is accurate and belongs to you.
           </p>
-
           <button
             onClick={handleNext}
             disabled={!isFormValid}
@@ -442,7 +430,6 @@ export default function SavingsNonMalaysianAddress() {
           <div className="mt-5 text-center">
             <p className="text-sm">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link
                 href="/contact_support"
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

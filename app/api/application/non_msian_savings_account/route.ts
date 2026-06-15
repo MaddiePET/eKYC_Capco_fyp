@@ -94,6 +94,7 @@ export async function POST(req: Request) {
     const SCORECARD_PASS_THRESHOLD = 70;
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
+
     if (
       statusData.status !== "face_verified" ||
       !["passport", "international_passport"].includes(statusIdType) ||
@@ -190,7 +191,13 @@ export async function POST(req: Request) {
 
       const mailingAddressResult = await client.query(
         `
-        INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
+        INSERT INTO banka."Address" (
+          add_1, 
+          add_2, 
+          postcode, 
+          state, 
+          country
+        )
         VALUES ($1, $2, $3, $4, $5)
         RETURNING add_id
         `,
@@ -278,7 +285,13 @@ export async function POST(req: Request) {
     if (nonMsianDetails) {
       await client.query(
         `
-        INSERT INTO banka."Non_msian_details" (cust_id, pp_issue_office, pp_issue_date, pp_exp_date, home_add_id)
+        INSERT INTO banka."Non_msian_details" (
+          cust_id, 
+          pp_issue_office, 
+          pp_issue_date, 
+          pp_exp_date, 
+          home_add_id
+        )
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (cust_id) DO UPDATE SET
           pp_issue_office = EXCLUDED.pp_issue_office,
@@ -309,7 +322,11 @@ export async function POST(req: Request) {
 
         await client.query(
           `
-          INSERT INTO banka."Non_msian_supporting_docs" (cust_id, doc_name, doc_file)
+          INSERT INTO banka."Non_msian_supporting_docs" (
+            cust_id, 
+            doc_name, 
+            doc_file
+          )
           VALUES ($1, $2, $3)
           `,
           [
@@ -349,7 +366,14 @@ export async function POST(req: Request) {
 
     const userResult = await client.query(
       `
-      INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
+      INSERT INTO banka."User" (
+        cust_id, 
+        username, 
+        password, 
+        img, 
+        sec_phrase, 
+        branch
+      )
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING user_id
       `,
@@ -379,7 +403,15 @@ export async function POST(req: Request) {
 
     const savingsResult = await client.query(
       `
-      INSERT INTO banka."Savings_account" (account_no, user_id, occupation, monthly_income, income_source, employment_type, is18)
+      INSERT INTO banka."Savings_account" (
+        account_no, 
+        user_id, 
+        occupation, 
+        monthly_income, 
+        income_source, 
+        employment_type, 
+        is18
+      )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING account_no
       `,
@@ -395,13 +427,13 @@ export async function POST(req: Request) {
     );
         
     await client.query(
-       `
-       INSERT INTO banka."Journey" (
-         journey_id,
-         cust_id,
-         application_date,
-         approval_date,
-         scorecard_result
+      `
+      INSERT INTO banka."Journey" (
+        journey_id,
+        cust_id,
+        application_date,
+        approval_date,
+        scorecard_result
       )
       VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
       ON CONFLICT (journey_id) DO NOTHING

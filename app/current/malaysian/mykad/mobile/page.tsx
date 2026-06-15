@@ -12,6 +12,8 @@ function CurrentMalaysianMobileMyKadCapture() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [duplicateMessage, setDuplicateMessage] = useState("");
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [backImage, setBackImage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,6 +36,9 @@ function CurrentMalaysianMobileMyKadCapture() {
         if (data.status === "failed") {
           setFailCount(MAX_ATTEMPTS);
           setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
+        } else if (data.status === "duplicate") {
+          setIsDuplicate(true);
+          setDuplicateMessage("You already have an existing current account with this MyKad.");
         } else if (data.status === "verified") {
           setSuccess(true);
         }
@@ -153,6 +158,35 @@ function CurrentMalaysianMobileMyKadCapture() {
         );
       }
 
+      const accountCheckRes = await fetch("/api/application/check_existing_current_account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_num: icNo }),
+      });
+
+      if (accountCheckRes.status === 409) {
+        const checkData = await accountCheckRes.json();
+        
+        setIsDuplicate(true);
+        setDuplicateMessage(checkData.error || "You already have an existing current account with this MyKad.");
+
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            status: "duplicate",
+            id_type: "ic",
+            id_num: icNo,
+          }),
+        });
+
+        setIsLoading(false);
+        return;
+      } else if (!accountCheckRes.ok) {
+        throw new Error("Failed to verify existing account status");
+      }
+
       const compressedBase64 = await compressImage(fImg);
       localStorage.setItem("ekyc_id_image", compressedBase64);
 
@@ -209,10 +243,10 @@ function CurrentMalaysianMobileMyKadCapture() {
   }, [journeyId, failCount, isLoading]);
 
   useEffect(() => {
-    if (frontImage && backImage && !isLoading && !success && failCount < MAX_ATTEMPTS) {
+    if (frontImage && backImage && !isLoading && !success && !isDuplicate && failCount < MAX_ATTEMPTS) {
       handleVerification(frontImage, backImage);
     }
-  }, [frontImage, backImage, handleVerification, isLoading, success, failCount]);
+  }, [frontImage, backImage, handleVerification, isLoading, success, isDuplicate, failCount]);
 
   const handleCapture = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -245,7 +279,6 @@ function CurrentMalaysianMobileMyKadCapture() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-          
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -274,15 +307,35 @@ function CurrentMalaysianMobileMyKadCapture() {
           width={40} 
           height={40} 
           className="block dark:invert-0 invert" 
-        />
-          
+        />     
         <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
           DTCOB
         </h1>
       </header>
 
       <main className="relative w-full max-w-2xl z-10 flex flex-col items-center">
-        {success ? (
+        {isDuplicate ? (
+          <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 mb-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-4xl font-bold">!</span>
+            </div>
+
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Account Already Exists
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {duplicateMessage}
+              </p>
+            </div>
+
+            <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
+              <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
+                You may now close this window and proceed to your desktop screen to log in.
+              </p>
+            </div>
+          </div>
+        ) : success ? (
           <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
               <svg 
@@ -304,12 +357,10 @@ function CurrentMalaysianMobileMyKadCapture() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Scan Successful!
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Your MyKad has been securely verified.
               </p>
             </div>
-
             <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
               <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
                 You may now close this window and return to your desktop screen to continue.
@@ -322,7 +373,6 @@ function CurrentMalaysianMobileMyKadCapture() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your MyKad
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please take clear photos of your MyKad (front and back) for verification.
               </p>
@@ -334,51 +384,42 @@ function CurrentMalaysianMobileMyKadCapture() {
               </div>
             )}
 
-            <input type="file" accept="image/*" capture="environment" ref={frontInputRef} onChange={(e) => handleCapture(e, 'front')} className="hidden" />
-            <input type="file" accept="image/*" capture="environment" ref={backInputRef} onChange={(e) => handleCapture(e, 'back')} className="hidden" />
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              ref={frontInputRef} 
+              onChange={(e) => handleCapture(e, 'front')} 
+              className="hidden" 
+            />
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              ref={backInputRef} 
+              onChange={(e) => handleCapture(e, 'back')} 
+              className="hidden" 
+            />
 
             <div className="w-full space-y-4 max-w-xs">
               <button
                 onClick={() => frontInputRef.current?.click()}
                 disabled={isLoading || failCount >= MAX_ATTEMPTS}
-                className={`w-full py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 hover:bg-white hover:border-gray-400 
-                  ${frontImage ? 'border-green-500 ring-1 ring-green-500 shadow-sm' : 'border-gray-300 dark:border-gray-600'}
-                  ${(isLoading || failCount >= MAX_ATTEMPTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600 
+                  ${frontImage ? 'ring-1 shadow-sm' : 'border-gray-300 dark:border-gray-600'}
+                  ${isLoading || failCount >= MAX_ATTEMPTS
+                  ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
+                  : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
+                }`}
               >
                 <span className="font-semibold text-sm">
                   {isLoading && frontImage && backImage ? "Verifying..." : (failCount > 0 && failCount < MAX_ATTEMPTS && !frontImage ? "Try Again (Front)" : "Capture Front")}
                 </span>
-
-                {isLoading && frontImage && backImage ? (
-                  <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
-                ) : (
-                  <svg className={`w-6 h-6 ${frontImage ? 'text-green-500' : 'text-[#3D405B] dark:text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                )}
-              </button>
-
-              <button
-                onClick={() => backInputRef.current?.click()}
-                disabled={isLoading || failCount >= MAX_ATTEMPTS}
-                className={`w-full py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 hover:bg-white hover:border-gray-400
-                  ${backImage ? 'border-green-500 ring-1 ring-green-500 shadow-sm' : 'border-gray-300 dark:border-gray-600'}
-                  ${(isLoading || failCount >= MAX_ATTEMPTS) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <span className="font-semibold text-sm">
-                  {isLoading && frontImage && backImage ? "Verifying..." : (failCount > 0 && failCount < MAX_ATTEMPTS && !backImage ? "Try Again (Back)" : "Capture Back")}
-                </span>
-
                 {isLoading && frontImage && backImage ? (
                   <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
                 ) : (
                   <svg 
-                    className={`w-6 h-6 ${
-                      backImage 
-                        ? 'text-green-500' 
-                        : 'text-[#3D405B] dark:text-gray-300'
-                    }`}
+                    className={`w-6 h-6 ${frontImage ? 'text-[#3D405B]' : 'text-[#3D405B] dark:text-gray-300'}`} 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -389,7 +430,44 @@ function CurrentMalaysianMobileMyKadCapture() {
                       strokeWidth="1.5" 
                       d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
                     />
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="1.5" 
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
+                    />
+                  </svg>
+                )}
+              </button>
 
+              <button
+                onClick={() => backInputRef.current?.click()}
+                disabled={isLoading || failCount >= MAX_ATTEMPTS}
+                className={`w-full py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600
+                  ${backImage ? 'ring-1 shadow-sm' : 'border-gray-300 dark:border-gray-600'}
+                  ${isLoading || failCount >= MAX_ATTEMPTS
+                  ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
+                  : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
+                }`}
+              >
+                <span className="font-semibold text-sm">
+                  {isLoading && frontImage && backImage ? "Verifying..." : (failCount > 0 && failCount < MAX_ATTEMPTS && !backImage ? "Try Again (Back)" : "Capture Back")}
+                </span>
+                {isLoading && frontImage && backImage ? (
+                  <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
+                ) : (
+                  <svg 
+                    className={`w-6 h-6 ${frontImage ? 'text-[#3D405B]' : 'text-[#3D405B] dark:text-gray-300'}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="1.5" 
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
+                    />
                     <path 
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
@@ -407,7 +485,6 @@ function CurrentMalaysianMobileMyKadCapture() {
           <div className="text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -437,7 +514,6 @@ function CurrentMalaysianMobileMyKadCapture() {
                 <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">
                   Important Notice:
                 </p>
-
                 <ul className="list-disc ml-4 space-y-1">
                   <li>Ensure mobile and desktop tabs are open.</li>
                   <li>Ensure your internet connection is fast and stable.</li>

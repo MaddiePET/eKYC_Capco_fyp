@@ -33,12 +33,10 @@ export async function POST(req: Request) {
       <div style="margin:0; padding:0; background-color:#f5f7fb; font-family:Arial, Helvetica, sans-serif;">
         <div style="max-width:560px; margin:0 auto; padding:40px 16px;">
           <div style="background-color:#ffffff; border-radius:18px; overflow:hidden; border:1px solid #d9dce8;">
-        
             <div style="background-color:#2c2f42; padding:30px 32px; text-align:center;">
               <h1 style="margin:0; color:#ffffff; font-size:22px; font-weight:800; letter-spacing:0.4px;">
                 DTCOB Banking Services
               </h1>
-
               <p style="margin:8px 0 0; color:#c7d2fe; font-size:13px; font-weight:600; letter-spacing:0.4px;">
                 Email Verification
               </p>
@@ -48,7 +46,6 @@ export async function POST(req: Request) {
               <p style="margin:0 0 12px; color:#2c2f42; font-size:22px; font-weight:800; text-align:center; letter-spacing:0.2px;">
                 Verify your email address
               </p>
-
               <p style="margin:0 auto 28px; max-width:420px; color:#374151; font-size:14px; line-height:1.7; text-align:center;">
                 Please enter the verification code below to continue your account registration.
               </p>
@@ -58,7 +55,6 @@ export async function POST(req: Request) {
                   <p style="margin:0 0 8px; color:#4b5563; font-size:13px; font-weight:700; letter-spacing:0.4px;">
                     VERIFICATION CODE
                   </p>
-                  
                   <p style="margin:0; color:#2c2f42; font-size:32px; font-weight:800; letter-spacing:6px;">
                     ${otp}
                   </p>
@@ -68,7 +64,6 @@ export async function POST(req: Request) {
               <p style="margin:0 0 8px; color:#2c2f42; font-size:14px; line-height:1.6; text-align:center;">
                 This code will expire in <strong>5 minutes</strong>.
               </p>
-
               <p style="margin:0 auto; max-width:420px; color:#4b5563; font-size:13px; line-height:1.6; text-align:center;">
                 Please keep this email for your reference. If you did not submit this application, please contact Bank A support immediately.
               </p>

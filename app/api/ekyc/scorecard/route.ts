@@ -62,8 +62,7 @@ export async function GET(req: Request) {
         JSON.stringify(scorecardResult, null, 2)
       );
     } catch (parseError: unknown) {
-      const message =
-        parseError instanceof Error ? parseError.message : String(parseError);
+      const message = parseError instanceof Error ? parseError.message : String(parseError);
 
       console.error("Scorecard parse failed:", message);
       console.error("Scorecard raw response:", scorecardText);

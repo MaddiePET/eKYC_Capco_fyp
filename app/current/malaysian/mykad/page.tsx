@@ -15,6 +15,36 @@ export default function CurrentMalaysianMyKadQRCode() {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
+  const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
+
+  const checkExistingCurrentAccount = async (idNum: string) => {
+    const response = await fetch("/api/application/check_existing_current_account", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id_num: idNum,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (response.status === 409) {
+      setDuplicateAccountMessage(
+        result.error || "You already have an account with us. Please log in to continue."
+      );
+      setDuplicateAccountPopup(true);
+      return true;
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to check existing current account.");
+    }
+
+    return false;
+  };
 
   useEffect(() => {
     const jId = localStorage.getItem("journeyId") || "";
@@ -47,7 +77,29 @@ export default function CurrentMalaysianMyKadQRCode() {
         const data = await res.json();
 
         if (data.status === "verified") {
+          const detectedIdNum = data.id_num;
+
+          if (!detectedIdNum) {
+            console.error("MyKad number missing from verified eKYC status.");
+            setIsFailed(true);
+            clearInterval(checkStatus);
+            return;
+          }
+
+          const hasExistingAccount = await checkExistingCurrentAccount(detectedIdNum);
+
+          if (hasExistingAccount) {
+            clearInterval(checkStatus);
+            return;
+          }
+
           setIsVerified(true);
+          clearInterval(checkStatus);
+        } else if (data.status === "duplicate") {
+          const detectedIdNum = data.id_num;
+          if (detectedIdNum) {
+            await checkExistingCurrentAccount(detectedIdNum);
+          }
           clearInterval(checkStatus);
         } else if (data.status === "failed") {
           setIsFailed(true);
@@ -71,6 +123,30 @@ export default function CurrentMalaysianMyKadQRCode() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {duplicateAccountPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              !
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Account Already Exists         
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              {duplicateAccountMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/login")}
+              className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      )}
+
       {isFailed && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">
@@ -93,11 +169,9 @@ export default function CurrentMalaysianMyKadQRCode() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Too Many Attempts
             </h2>
-
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Verification failed after multiple attempts. Please return to the home page to restart.
             </p>
-
             <button
               onClick={() => router.push("/")}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
@@ -119,14 +193,13 @@ export default function CurrentMalaysianMyKadQRCode() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-          
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-
+      
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
@@ -147,11 +220,9 @@ export default function CurrentMalaysianMyKadQRCode() {
           onClick={() => router.push("/current/user_verification")}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
-          <ChevronLeftIcon className="w-5 h-5" />
-          
+          <ChevronLeftIcon className="w-5 h-5" /> 
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -163,7 +234,6 @@ export default function CurrentMalaysianMyKadQRCode() {
             height={40}
             className="block dark:invert-0 invert"
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -175,7 +245,6 @@ export default function CurrentMalaysianMyKadQRCode() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Scan Your MyKad
           </h1>
-          
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Open your mobile phone camera and scan the QR code below to securely capture your MyKad.
           </p>
@@ -203,7 +272,7 @@ export default function CurrentMalaysianMyKadQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed
+                      isVerified || isFailed || duplicateAccountPopup
                         ? "opacity-30 blur-sm"
                         : "opacity-100"
                     }`}
@@ -236,13 +305,12 @@ export default function CurrentMalaysianMyKadQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && (
+            {!isVerified && !isFailed && !duplicateAccountPopup && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
                 </span>
-
                 Waiting for MyKad scan...
               </div>
             )}
@@ -265,7 +333,6 @@ export default function CurrentMalaysianMyKadQRCode() {
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link
                 href="/contact_support"
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -288,7 +355,6 @@ export default function CurrentMalaysianMyKadQRCode() {
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 />
               </svg>
-
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                 Your data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
               </p>

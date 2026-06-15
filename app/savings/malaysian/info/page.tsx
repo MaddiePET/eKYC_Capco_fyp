@@ -56,7 +56,6 @@ export default function SavingsMalaysianInfo() {
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
-
     const date = new Date(String(value));
 
     if (!Number.isNaN(date.getTime())) {
@@ -69,6 +68,7 @@ export default function SavingsMalaysianInfo() {
     }
 
     const isoMatch = String(value).match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    
     if (isoMatch) {
       const year = isoMatch[1];
       const month = Number(isoMatch[2]);
@@ -146,7 +146,6 @@ export default function SavingsMalaysianInfo() {
     setMounted(true);
 
     if (typeof window === "undefined") return;
-
     const savedJourneyId = localStorage.getItem("journeyId");
     
     if (savedJourneyId && journeyId && savedJourneyId !== journeyId) {
@@ -174,7 +173,6 @@ export default function SavingsMalaysianInfo() {
   useEffect(() => {
     async function loadExistingCustomer() {
       if (mode !== "existing_customer") return;
-
       if (!custIdFromParams && !idNumFromParams) return;
 
       try {
@@ -325,7 +323,6 @@ export default function SavingsMalaysianInfo() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -376,7 +373,6 @@ export default function SavingsMalaysianInfo() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -388,7 +384,6 @@ export default function SavingsMalaysianInfo() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Verify Your Personal Information
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please make sure all information match your official documents.
           </p>
@@ -396,8 +391,7 @@ export default function SavingsMalaysianInfo() {
 
         <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-6">
-              
+            <div className="space-y-6">  
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Full Name<span className="text-red-500">*</span>
@@ -529,7 +523,6 @@ export default function SavingsMalaysianInfo() {
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
                     />
-
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
@@ -598,13 +591,13 @@ export default function SavingsMalaysianInfo() {
                   </label>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                    value={formData.state}
-                  />
-                </div>
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.state}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -622,8 +615,7 @@ export default function SavingsMalaysianInfo() {
             <div className="md:col-span-2 pt-4 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that the information provided is accurate and belongs to you.
-              </p>
-              
+              </p> 
               <button 
                 onClick={handleNext} 
                 disabled={!isFormValid}
@@ -639,7 +631,6 @@ export default function SavingsMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

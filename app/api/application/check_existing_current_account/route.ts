@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     if (!idNum) {
       return NextResponse.json(
-        { error: "Missing MyKad or Passport number." },
+        { error: "Missing MyKad number." },
         { status: 400 }
       );
     }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     if (existingCustomerResult.rows.length === 0) {
       return NextResponse.json({
         exists: false,
-        hasSavingsAccount: false,
+        hasCurrentAccount: false,
       });
     }
 
@@ -47,32 +47,32 @@ export async function POST(req: Request) {
     const existingAccountsResult = await client.query(
       `
       SELECT 
-        EXISTS(SELECT 1 FROM banka."Savings_account" s JOIN banka."User" u ON s.user_id = u.user_id WHERE u.cust_id = $1) as has_savings,
-        EXISTS(SELECT 1 FROM banka."Current_account" c JOIN banka."User" u ON c.user_id = u.user_id WHERE u.cust_id = $1) as has_current
+        EXISTS(SELECT 1 FROM banka."Current_account" c JOIN banka."User" u ON c.user_id = u.user_id WHERE u.cust_id = $1) as has_current,
+        EXISTS(SELECT 1 FROM banka."Savings_account" s JOIN banka."User" u ON s.user_id = u.user_id WHERE u.cust_id = $1) as has_savings
       `,
       [custId]
     );
 
-    const { has_savings, has_current } = existingAccountsResult.rows[0];
-
-    if (has_savings) {
-      return NextResponse.json(
-        {
-          exists: true,
-          hasSavingsAccount: true,
-          error: "This MyKad/Passport number is already registered for a savings account. Please log in to continue.",
-          redirectTo: "/login",
-        },
-        { status: 409 }
-      );
-    }
+    const { has_current, has_savings } = existingAccountsResult.rows[0];
 
     if (has_current) {
       return NextResponse.json(
         {
           exists: true,
           hasCurrentAccount: true,
-          error: "You already have an existing current account. Please log in to your dashboard to add a savings account.",
+          error: "This MyKad number is already registered for a current account. Please log in to continue.",
+          redirectTo: "/login",
+        },
+        { status: 409 }
+      );
+    }
+
+    if (has_savings) {
+      return NextResponse.json(
+        {
+          exists: true,
+          hasSavingsAccount: true,
+          error: "You already have an existing savings account. Please log in to your dashboard to add a current account.",
           redirectTo: "/login",
         },
         { status: 409 }
@@ -81,13 +81,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       exists: true,
-      hasSavingsAccount: false,
+      hasCurrentAccount: false,
     });
   } catch (error: any) {
-    console.error("Existing savings check error:", error);
+    console.error("Existing current account check error:", error);
 
     return NextResponse.json(
-      { error: error.message || "Failed to check existing savings account." },
+      { error: error.message || "Failed to check existing current account." },
       { status: 500 }
     );
   } finally {

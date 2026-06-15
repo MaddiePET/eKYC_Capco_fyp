@@ -380,7 +380,6 @@ export default function CurrentMalaysianBusinessParticulars() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -411,7 +410,6 @@ export default function CurrentMalaysianBusinessParticulars() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -423,7 +421,6 @@ export default function CurrentMalaysianBusinessParticulars() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -437,7 +434,6 @@ export default function CurrentMalaysianBusinessParticulars() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Your Registered Business
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Which of the following business would you like to register an account for?
               </p>
@@ -449,19 +445,16 @@ export default function CurrentMalaysianBusinessParticulars() {
                   Loading linked businesses...
                 </p>
               )}
-
               {businessError && (
                 <p className="text-sm text-center text-red-500">
                   {businessError}
                 </p>
               )}
-
               {!loadingBusinesses && !businessError && linkedBusinesses.length === 0 && (
                 <p className="text-sm text-center text-gray-500 dark:text-gray-400">
                   No registered business linked with your MyKad number.
                 </p>
               )}
-
               {linkedBusinesses.map((business) => {
                 const isSelected = selectedBusinessId === business.id;
                 return (
@@ -488,7 +481,6 @@ export default function CurrentMalaysianBusinessParticulars() {
                       <h3 className="text-sm font-bold text-gray-800 dark:text-white">
                         {business.name}
                       </h3>
-
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">
                         BRN: {business.brn}
                       </p>
@@ -527,7 +519,6 @@ export default function CurrentMalaysianBusinessParticulars() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link
                     href="/contact_support"
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -546,7 +537,6 @@ export default function CurrentMalaysianBusinessParticulars() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Business Particulars
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 The below is the registered business particulars with SSM.
               </p>
@@ -703,7 +693,6 @@ export default function CurrentMalaysianBusinessParticulars() {
                             >
                               Select Role
                             </option>
-
                             {["Checker", "Maker", "Both"].map((role) => (
                               <option key={role} value={role}>
                                 {role}
@@ -755,7 +744,6 @@ export default function CurrentMalaysianBusinessParticulars() {
                   <div className="mt-5 text-center">
                     <p className="text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                       <Link
                         href="/contact_support"
                         className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

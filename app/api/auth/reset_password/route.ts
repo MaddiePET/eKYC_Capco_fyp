@@ -74,7 +74,6 @@ async function sendPasswordResetOtpEmail({ to, otp }: { to: string; otp: string 
             <h1 style="margin:0; color:#ffffff; font-size:22px; font-weight:800; letter-spacing:0.4px;">
               DTCOB Banking Services
             </h1>
-
             <p style="margin:8px 0 0; color:#c7d2fe; font-size:13px; font-weight:600; letter-spacing:0.4px;">
               Password Reset Request
             </p>
@@ -84,7 +83,6 @@ async function sendPasswordResetOtpEmail({ to, otp }: { to: string; otp: string 
             <p style="margin:0 0 12px; color:#2c2f42; font-size:22px; font-weight:800; text-align:center; letter-spacing:0.2px;">
               Verify your email address
             </p>
-
             <p style="margin:0 auto 24px; max-width:420px; color:#374151; font-size:14px; line-height:1.7; text-align:center;">
               You have requested to reset your password. Please enter the verification code below to continue with your password reset.
             </p>
@@ -94,7 +92,6 @@ async function sendPasswordResetOtpEmail({ to, otp }: { to: string; otp: string 
                 <p style="margin:0 0 8px; color:#4b5563; font-size:13px; font-weight:700; letter-spacing:0.4px;">
                   VERIFICATION CODE
                 </p>
-                
                 <p style="margin:0; color:#2c2f42; font-size:32px; font-weight:800; letter-spacing:6px;">
                   ${otp}
                 </p>
@@ -104,7 +101,6 @@ async function sendPasswordResetOtpEmail({ to, otp }: { to: string; otp: string 
             <p style="margin:0 0 8px; color:#2c2f42; font-size:14px; line-height:1.6; text-align:center;">
               This code will expire in <strong>5 minutes</strong>.
             </p>
-
             <p style="margin:0 auto; max-width:420px; color:#4b5563; font-size:13px; line-height:1.6; text-align:center;">
               Please keep this email for your reference. If you did not submit this application, please contact Bank A support immediately.
             </p>

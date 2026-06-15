@@ -33,7 +33,6 @@ export default function SavingsNationalitySelection() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -61,11 +60,9 @@ export default function SavingsNationalitySelection() {
           onClick={() => router.push("/savings/user_verification")}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
-          <ChevronLeftIcon className="w-5 h-5" />
-          
+          <ChevronLeftIcon className="w-5 h-5" />  
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -77,7 +74,6 @@ export default function SavingsNationalitySelection() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -88,8 +84,7 @@ export default function SavingsNationalitySelection() {
         <div className="mb-10 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Choose Your Nationality
-          </h1>
-          
+          </h1> 
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please select your nationality to proceed with the registration.
           </p>
@@ -148,7 +143,6 @@ export default function SavingsNationalitySelection() {
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link
                 href="/contact_support"
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -171,7 +165,6 @@ export default function SavingsNationalitySelection() {
                   clipRule="evenodd"
                 />
               </svg>
-
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                 Malaysian citizens are required to have their <span className="font-bold text-blue-700 dark:text-blue-300">MyKad</span> ready for e-KYC verification. Non-Malaysians must provide a valid <span className="font-bold text-blue-700 dark:text-blue-300">Passport</span>.
               </p>

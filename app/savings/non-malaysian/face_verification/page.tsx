@@ -147,11 +147,9 @@ export default function SavingsNonMalaysianFaceQRCode() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Verification Not Approved
             </h2>
-
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               {verificationError || "Face verification failed after multiple attempts. Please return to the home page to restart."}            
             </p>
-
             <button
               onClick={() => router.push("/savings/non-malaysian/passport")}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
@@ -173,7 +171,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -202,7 +199,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-
           Back
         </button>
 
@@ -217,7 +213,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -229,7 +224,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Scan Your Face
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Open your mobile phone camera and scan the QR code below to securely capture a selfie.
           </p>
@@ -292,7 +286,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
                 </span>
-                
                 Waiting for Face scan...
               </div>
             )}
@@ -315,7 +308,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-              
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -338,7 +330,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
                   clipRule="evenodd" 
                 />
               </svg>
-              
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                 Your biometric data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
               </p>
