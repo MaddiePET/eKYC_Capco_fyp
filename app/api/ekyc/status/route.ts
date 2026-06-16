@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     // 2. Fallback: Read active mid-flow mobile updates from the staging session space
     const stagingResult = await client.query(
       `SELECT status, step, id_type, id_num, scorecard, scorecard_result 
-       FROM banka."Ekyc_Staging_Session" 
+       FROM banka."Ekyc_status" 
        WHERE journey_id = $1`,
       [journeyId]
     );
@@ -101,15 +101,15 @@ export async function POST(req: Request) {
     }
 
     const result = await client.query(
-      `INSERT INTO banka."Ekyc_Staging_Session" 
+      `INSERT INTO banka."Ekyc_status" 
          (journey_id, status, step, id_type, id_num, scorecard, scorecard_result, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
        ON CONFLICT (journey_id) DO UPDATE SET
          status           = EXCLUDED.status,
-         step             = COALESCE(EXCLUDED.step, banka."Ekyc_Staging_Session".step),
-         id_type          = COALESCE(EXCLUDED.id_type, banka."Ekyc_Staging_Session".id_type),
-         id_num           = COALESCE(EXCLUDED.id_num, banka."Ekyc_Staging_Session".id_num),
-         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Ekyc_Staging_Session".scorecard),
+         step             = COALESCE(EXCLUDED.step, banka."Ekyc_status".step),
+         id_type          = COALESCE(EXCLUDED.id_type, banka."Ekyc_status".id_type),
+         id_num           = COALESCE(EXCLUDED.id_num, banka."Ekyc_status".id_num),
+         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
          scorecard_result = EXCLUDED.scorecard_result,
          updated_at       = NOW()
        RETURNING *`,

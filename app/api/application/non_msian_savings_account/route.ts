@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     const normalizedPassportNum = customerPassportNum.replace(/\s/g, "").toUpperCase().trim();
 
-    // ─── OPTIMIZED FIX 1: Fetch session metrics from Ekyc_Staging_Session ───
+    // ─── OPTIMIZED FIX 1: Fetch session metrics from Ekyc_status ───
     const baseUrl = getBaseUrl(req);
     const statusUrl = `${baseUrl}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`;
     console.log("[non_msian_savings_account] Fetching eKYC status from:", statusUrl);
