@@ -74,7 +74,18 @@ export default function CurrentMalaysianMyKadQRCode() {
     const checkStatus = setInterval(async () => {
       try {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
-        const data = await res.json();
+        
+        // 1. Get the response as raw text first instead of parsing JSON blindly
+        const rawText = await res.text();
+
+        // 2. Safely catch empty or incomplete responses during data writes
+        if (!rawText || rawText.trim() === "") {
+          console.log("Status check received empty text content, skipping interval turn...");
+          return;
+        }
+
+        // 3. Securely parse the verified JSON data string
+        const data = JSON.parse(rawText);
 
         if (data.status === "verified") {
           const detectedIdNum = data.id_num;
@@ -106,7 +117,8 @@ export default function CurrentMalaysianMyKadQRCode() {
           clearInterval(checkStatus);
         }
       } catch (error) {
-        console.error("Error checking verification status:", error);
+        // 4. Mute noisy network disconnect blips so they don't crash your browser state
+        console.warn("Verification status polling skipped a turn due to a temporary network collision.");
       }
     }, 3000);
 

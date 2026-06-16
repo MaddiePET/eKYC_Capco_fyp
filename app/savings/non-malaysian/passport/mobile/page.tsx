@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function SavingsNonMalaysianMobilePassportCapture() {
@@ -14,6 +15,8 @@ function SavingsNonMalaysianMobilePassportCapture() {
   const [success, setSuccess] = useState(false);
   const [isDuplicate, setIsDuplicate] = useState(false);
   const [duplicateMessage, setDuplicateMessage] = useState("");
+  const [passportImage, setPassportImage] = useState<string | null>(null);
+  const [isUploadingPassport, setIsUploadingPassport] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failCount, setFailCount] = useState(0);
 
@@ -48,59 +51,50 @@ function SavingsNonMalaysianMobilePassportCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image(); 
-      img.src = `data:image/jpeg;base64,${base64}`;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const scale = Math.min(800 / img.width, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
-      };
-    });
-  };
-
-  const handleCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const file = event.target.files?.[0];
-
     if (!file || !journeyId) return;
 
+    setIsUploadingPassport(true);
     setIsLoading(true);
     setErrorMessage(null);
+    let uploadedUrlForCleanup: string | null = null;
 
     try {
-      const reader = new FileReader();
+      console.log("Step 1: Uploading passport binary directly to Supabase storage...");
+      const fileExtension = file.name.split(".").pop();
+      const fileName = `passport_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `passports/${fileName}`;
 
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onloadend = () => {
-          resolve((reader.result as string).split(",")[1]);
-        };
-      });
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
 
-      reader.readAsDataURL(file);
+      if (uploadError) throw uploadError;
 
-      const base64String = await base64Promise;
+      const { data: { publicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
 
+      uploadedUrlForCleanup = publicUrl;
+      setPassportImage(publicUrl);
+      console.log("Step 2: Forwarding small public URL string to Vercel OCR parser...");
       const okayidResponse = await fetch("/api/ekyc/okayid", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
-          base64ImageString: base64String,
+          supabaseImageUrl: publicUrl, // Handed down cleanly to server handlers
         }),
       });
 
       const okayidResult = await okayidResponse.json();
+      console.log("Okayid full response:", JSON.stringify(okayidResult, null, 2));
 
       const passportNo =
         okayidResult?.extracted?.passport_no ||
@@ -118,21 +112,21 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error(okayidResult.message || "unrecognized");
       }
 
+      // Forwarding to quality validation engine
       const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           type: "passport",
           country: okayidResult.country || "OTHER",
-          halfSizeImage: base64String,
-          fullSizeImage: base64String,
+          imageUrl: publicUrl,
+          fullSizeImageUrl: publicUrl
         }),
       });
 
       const okaydocResult = await okaydocResponse.json();
+      console.log("Okaydoc full response:", JSON.stringify(okaydocResult, null, 2));
 
       if (okaydocResult.status !== "success") {
         throw new Error("not meeting quality standards");
@@ -141,7 +135,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
       const identityRes = await fetch(
         `/api/identity/lookup?id_type=passport&id_num=${encodeURIComponent(passportNo)}`
       );
-
       const identityData = await identityRes.json();
 
       if (!identityRes.ok || !identityData.success) {
@@ -177,14 +170,12 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error("Failed to verify existing account status");
       }
 
-      const compressedBase64 = await compressImage(base64String); 
-      localStorage.setItem("ekyc_id_image", compressedBase64);
+      // Store the public reference path locally for subsequent facial matching stage
+      localStorage.setItem("ekyc_id_image_url", publicUrl);
       
       await fetch("/api/ekyc/status", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           status: "verified",
@@ -196,11 +187,8 @@ function SavingsNonMalaysianMobilePassportCapture() {
       setSuccess(true);
     } catch (error: any) {
       const newFailCount = failCount + 1;
-
       setFailCount(newFailCount);
-
       const remaining = MAX_ATTEMPTS - newFailCount;
-
       const reason = error.message.toLowerCase();
 
       if (remaining > 0) {
@@ -208,15 +196,11 @@ function SavingsNonMalaysianMobilePassportCapture() {
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
       } else {
-        setErrorMessage(
-          "Too many failed attempts. Please refer to your desktop screen."
-        );
+        setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             journeyId,
             status: "failed",
@@ -228,6 +212,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
         fileInputRef.current.value = "";
       }
     } finally {
+      setIsUploadingPassport(false);
       setIsLoading(false);
     }
   };
@@ -369,8 +354,10 @@ function SavingsNonMalaysianMobilePassportCapture() {
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading
-                  ? "Verifying..."
+                {isUploadingPassport
+                  ? "Uploading passport photo..."
+                  : passportImage
+                  ? "Passport photo uploaded"
                   : failCount > 0
                   ? "Try Again"
                   : "Open Camera"}
@@ -399,6 +386,13 @@ function SavingsNonMalaysianMobilePassportCapture() {
                 </svg>
               )}
             </button>
+
+            {passportImage && !success && !errorMessage && (
+              <div className="mt-4 w-full max-w-xs rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm">
+                <p className="text-sm font-semibold">Passport photo uploaded successfully.</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800">We are verifying the image now. Please wait a moment while your Passport is analyzed.</p>
+              </div>
+            )}
           </div>
         )}
 

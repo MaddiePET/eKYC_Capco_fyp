@@ -3,10 +3,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function SavingsNonMalaysianMobileFaceCapture() {
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS = 10;
 
   const router = useRouter();
 
@@ -64,31 +65,16 @@ function SavingsNonMalaysianMobileFaceCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const base64ToBlob = (base64: string, mimeType = 'image/jpeg') => {
-    const byteCharacters = atob(base64);
-    const byteArrays = [];
-
-    for (let i = 0; i < byteCharacters.length; i += 512) {
-      const slice = byteCharacters.slice(i, i + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let j = 0; j < slice.length; j++) {
-        byteNumbers[j] = slice.charCodeAt(j);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-    return new Blob(byteArrays, { type: mimeType });
-  };
-
   const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const selfieFile = event.target.files?.[0];
     if (!selfieFile || !journeyId) return;
 
-    const idCardBase64 = localStorage.getItem("ekyc_id_image");
-    if (!idCardBase64) {
-      setErrorMessage("ID Document not found. Please rescan your Passport first.");
+    // Grab the stored Supabase link from the passport scanning segment
+    const idCardUrl = localStorage.getItem("ekyc_id_image_url");
+    if (!idCardUrl) {
+      setErrorMessage("ID Document reference not found. Please rescan your Passport first.");
       return;
     }
 
@@ -96,24 +82,49 @@ function SavingsNonMalaysianMobileFaceCapture() {
     setErrorMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("journeyId", journeyId);
-      formData.append("selfie", selfieFile);
-      formData.append("idCard", base64ToBlob(idCardBase64), "idcard.jpg");
+      console.log("Step 1: Uploading live selfie directly to Supabase storage...");
+      const fileExtension = selfieFile.name.split(".").pop();
+      const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `selfies/${fileName}`;
 
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, selfieFile, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Extract selfie token path
+      const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
+
+      console.log("Step 2: Triggering lightweight text URL parameters to verification engine...");
       const faceApiRes = await fetch("/api/ekyc/okayface", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          selfieUrl: selfiePublicUrl,
+          idCardUrl: idCardUrl,
+        }),
       });
 
       const faceResult = await faceApiRes.json();
-
       console.log("OkayFace output:", faceResult);
 
       if (faceResult.status === "success") {
+        // Triggering liveness evaluations downstream matching original rules
         const liveApiRes = await fetch("/api/ekyc/okaylive", {
           method: "POST",
-          body: formData, 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            selfieUrl: selfiePublicUrl,
+            idCardUrl,
+          }), 
         });
 
         const liveResult = await liveApiRes.json();
@@ -125,18 +136,16 @@ function SavingsNonMalaysianMobileFaceCapture() {
         const scorecardRes = await fetch(
           `/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`
         );
-
         const scorecardResult = await scorecardRes.json();
-
         console.log("Scorecard result:", scorecardResult);
 
-        if(!scorecardRes.ok || scorecardResult.status !=="success") {
+        if (!scorecardRes.ok || scorecardResult.status !== "success") {
           throw new Error(scorecardResult.error || "Scorecard check failed");
         }
 
-        const scorecardList = scorecardResult.scorecardResultList as any [] | undefined;
+        const scorecardList = scorecardResult.scorecardResultList as any[] | undefined;
 
-        const hasFailedFacialVerification = scorecardList?.some((item)=>
+        const hasFailedFacialVerification = scorecardList?.some((item) =>
           item.checkResultList?.some(
             (check: any) =>
               check.checkType === "facialVerification" &&
@@ -152,9 +161,7 @@ function SavingsNonMalaysianMobileFaceCapture() {
 
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             journeyId, 
             status: "face_verified",
@@ -165,15 +172,24 @@ function SavingsNonMalaysianMobileFaceCapture() {
         if (score === null || score < SCORECARD_PASS_THRESHOLD) {
           setThresholdMessage(
             score === null 
-            ? "No scorecard checks were found. Please proceed to the desktop page." 
-            : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
+              ? "No scorecard checks were found. Please proceed to the desktop page." 
+              : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
           );
           setThresholdFailed(true);
           return;
         }
+
+        const cleanupRes = await fetch("/api/ekyc/purge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selfieUrl: selfiePublicUrl, idCardUrl }),
+        });
+
+        if (!cleanupRes.ok) {
+          console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
+        }
         
         setSuccess(true);
-
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
@@ -188,19 +204,12 @@ function SavingsNonMalaysianMobileFaceCapture() {
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
       } else {
-        setErrorMessage(
-          "Too many failed attempts. Please refer to your desktop screen."
-        );
+        setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({ 
-              journeyId, 
-              status: "face_failed" 
-            }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "face_failed" }),
         });
       }
 
