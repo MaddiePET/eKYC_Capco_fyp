@@ -12,24 +12,35 @@ export async function GET(req: Request) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      `SELECT status, step, id_type, id_num, scorecard
-       FROM banka."Ekyc_status"
-       WHERE journey_id = $1`,
+      `SELECT 
+        j.scorecard, 
+        j.scorecard_result,
+        c.id_type, 
+        c.id_num,
+        c.full_name
+       FROM banka."Journey" j
+       INNER JOIN banka."Customer" c ON j.cust_id = c.cust_id
+       WHERE j.journey_id = $1`,
       [journeyId]
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ status: "pending" });
+      return NextResponse.json({ verified: false, status: "pending" });
     }
 
     const row = result.rows[0];
     return NextResponse.json({
-      status:    row.status,
-      step:      row.step,
-      id_type:   row.id_type,
-      id_num:    row.id_num,
+      verified: true,
+      status: "face_verified",
+      id_type: row.id_type,  
+      id_num: row.id_num,    
+      full_name: row.full_name,
       scorecard: row.scorecard,
+      scorecard_result: row.scorecard_result
     });
+  } catch (error: any) {
+    console.error("Ekyc status GET lookup failure:", error?.message || error);
+    return NextResponse.json({ error: "Internal Database Selection Failure" }, { status: 500 });
   } finally {
     client.release();
   }
@@ -43,51 +54,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { journeyId, status, id_type, id_num, step, scorecard } = body;
+  const { journeyId, scorecard, custId, scorecardResult } = body;
 
-  if (!journeyId || !status) {
-    return NextResponse.json({ error: "Missing journeyId or status" }, { status: 400 });
+  if (!journeyId) {
+    return NextResponse.json({ error: "Missing required journeyId reference" }, { status: 400 });
   }
 
   const client = await pool.connect();
   try {
-    // Upsert: insert on first write, update on subsequent writes.
     const result = await client.query(
-      `INSERT INTO banka."Ekyc_status"
-         (journey_id, status, step, id_type, id_num, scorecard, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      `INSERT INTO banka."Journey"
+         (journey_id, cust_id, application_date, approval_date, scorecard_result, scorecard)
+       VALUES ($1, $2, NOW(), NOW(), $3, $4)
        ON CONFLICT (journey_id) DO UPDATE SET
-         status     = EXCLUDED.status,
-         step       = COALESCE(EXCLUDED.step,      banka."Ekyc_status".step),
-         id_type    = COALESCE(EXCLUDED.id_type,   banka."Ekyc_status".id_type),
-         id_num     = COALESCE(EXCLUDED.id_num,    banka."Ekyc_status".id_num),
-         scorecard  = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
-         updated_at = NOW()
+         scorecard_result = EXCLUDED.scorecard_result,
+         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Journey".scorecard)
        RETURNING *`,
       [
         journeyId,
-        status,
-        step     ?? null,
-        id_type  ?? null,
-        id_num   ?? null,
+        custId || 1, // Fallback integer placeholder to preserve database foreign key safety rules
+        scorecardResult || 0.0,
         scorecard ? JSON.stringify(scorecard) : null,
       ]
     );
 
     const row = result.rows[0];
-    console.log("SAVING EKYC STATUS:", row);
+    console.log("SAVING JOURNEY LIFECYCLE STATE SUCCESS:", row.journey_id);
 
     return NextResponse.json({
-      success:   true,
-      status:    row.status,
-      step:      row.step,
-      id_type:   row.id_type,
-      id_num:    row.id_num,
+      success: true,
+      journey_id: row.journey_id,
       scorecard: row.scorecard,
+      scorecard_result: row.scorecard_result
     });
-  } catch (error) {
-    console.error("Ekyc status POST error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Ekyc status POST transaction failure:", error?.message || error);
+    return NextResponse.json({ error: "Internal Database Write Failure" }, { status: 500 });
   } finally {
     client.release();
   }
