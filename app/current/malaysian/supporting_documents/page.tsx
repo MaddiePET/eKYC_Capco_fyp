@@ -100,7 +100,6 @@ export default function CurrentMalaysianSupportingDocuments() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-          
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -127,11 +126,9 @@ export default function CurrentMalaysianSupportingDocuments() {
           onClick={() => router.push("/current/malaysian/business_otp")}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
-          <ChevronLeftIcon className="w-5 h-5" /> 
-          
+          <ChevronLeftIcon className="w-5 h-5" />   
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -143,7 +140,6 @@ export default function CurrentMalaysianSupportingDocuments() {
             height={40}
             className="block dark:invert-0 invert"
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -155,7 +151,6 @@ export default function CurrentMalaysianSupportingDocuments() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Upload Your Supporting Documents
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please upload your supporting documents for verification.
           </p>
@@ -173,20 +168,19 @@ export default function CurrentMalaysianSupportingDocuments() {
                 </h3>
 
                 {documents.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setDocuments((prev) => prev.filter((d) => d.id !== doc.id))}
-                    className="text-xs text-red-500 font-bold hover:underline"
-                  >
-                    Remove
-                  </button>)}
+                <button
+                  type="button"
+                  onClick={() => setDocuments((prev) => prev.filter((d) => d.id !== doc.id))}
+                  className="text-xs text-red-500 font-bold hover:underline"
+                >
+                  Remove
+                </button>)}
               </div>
 
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Name of Document<span className="text-red-500">*</span>
                 </label>
-
                 <input
                   type="text"
                   placeholder="e.g. SSM Certificate"
@@ -240,7 +234,6 @@ export default function CurrentMalaysianSupportingDocuments() {
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
                         />
                       </svg>
-
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[250px]">{doc.preview}</span>
                     </div>
 
@@ -265,7 +258,6 @@ export default function CurrentMalaysianSupportingDocuments() {
                         d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
                       />
                     </svg>
-
                     <span className={`text-sm font-medium ${
                         draggingId === doc.id 
                           ? 'text-[#3D405B] dark:text-[#F0CA8E]' 
@@ -304,12 +296,11 @@ export default function CurrentMalaysianSupportingDocuments() {
             <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
               By clicking continue, you confirm that the documents uploaded are valid and belong to you.
             </p>
-
             <button
               type="button"
               onClick={handleNext}
               disabled={documents.some((d) => !d.name || !d.fileBase64)}
-                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-lg"
+              className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-lg"
             >
               Continue
             </button>
@@ -317,7 +308,6 @@ export default function CurrentMalaysianSupportingDocuments() {
             <div className="mt-5 text-center">
               <p className="text-sm">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                 <Link 
                   href="/contact_support" 
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

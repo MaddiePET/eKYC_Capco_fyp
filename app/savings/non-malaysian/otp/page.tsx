@@ -37,6 +37,7 @@ export default function SavingsNonMalaysianOTP() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
     if (timer > 0) {
       interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     }
@@ -114,7 +115,6 @@ export default function SavingsNonMalaysianOTP() {
     try {
       const statusRes = await fetch(`/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`);
       const statusData = await statusRes.json();
-      
       const passportNo = statusData?.id_num || statusData?.data?.id_num || statusData?.identity?.id_num || "";
 
       if (!passportNo) {
@@ -206,7 +206,6 @@ export default function SavingsNonMalaysianOTP() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -237,7 +236,6 @@ export default function SavingsNonMalaysianOTP() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -249,7 +247,6 @@ export default function SavingsNonMalaysianOTP() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -263,7 +260,6 @@ export default function SavingsNonMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Verification Method
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 To proceed with the registration securely, please select your preferred method for OTP verification.
               </p>
@@ -298,7 +294,6 @@ export default function SavingsNonMalaysianOTP() {
                 <h3 className={`text-lg font-bold mb-2 ${method === "Email" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
                   Via Email
                 </h3>
-
                 <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                   Receive code at your personal email address.
                 </p>
@@ -337,7 +332,6 @@ export default function SavingsNonMalaysianOTP() {
                 >
                   Via Phone Number
                 </h3>
-
                 <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                   Receive code via SMS to your mobile number.
                 </p>
@@ -361,8 +355,7 @@ export default function SavingsNonMalaysianOTP() {
 
               <div className="mt-5 text-center">
                 <p className="text-sm font-normal">
-                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                  
+                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span> 
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -384,7 +377,6 @@ export default function SavingsNonMalaysianOTP() {
                     clipRule="evenodd"
                   />
                 </svg>
-
                 <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                   Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
                 </p>
@@ -399,7 +391,6 @@ export default function SavingsNonMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Enter Your {method === "Email" ? "Email" : "Phone Number"}
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your {method === "Email" ? "email address" : "mobile number"} to proceed with the registration.
               </p>
@@ -414,7 +405,6 @@ export default function SavingsNonMalaysianOTP() {
                   <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Email Address<span className="text-red-500">*</span>
                   </Label>
-
                   <input 
                     type="email" 
                     required 
@@ -437,7 +427,6 @@ export default function SavingsNonMalaysianOTP() {
                         alt="MY" 
                         className="w-5 h-auto rounded-sm shadow-sm" 
                       />
-
                       <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
                     </div>
 
@@ -470,7 +459,6 @@ export default function SavingsNonMalaysianOTP() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                
                 <Link 
                   href="/contact_support" 
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -492,7 +480,6 @@ export default function SavingsNonMalaysianOTP() {
                   clipRule="evenodd"
                 />
               </svg>
-
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                 Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
               </p>
@@ -506,7 +493,6 @@ export default function SavingsNonMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your {method === "Email" ? "Email" : "Phone Number"}
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{method === "Email" ? email : `+60 ${phoneNumber}`}</span>. Please provide the code to proceed.
               </p>
@@ -569,8 +555,7 @@ export default function SavingsNonMalaysianOTP() {
 
             <div className="mt-4 text-center">
               <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                
+                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>  
                 <Link 
                   href="/contact_support" 
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -592,7 +577,6 @@ export default function SavingsNonMalaysianOTP() {
                   clipRule="evenodd"
                 />
               </svg>
-
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
                 Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
               </p>

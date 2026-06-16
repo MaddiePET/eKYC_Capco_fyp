@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       ...(scorecard !== undefined && { scorecard }),
 
     };
+    
     console.log("SAVING STATUS:", updatedData);
 
     statusStore.set(journeyId, updatedData);

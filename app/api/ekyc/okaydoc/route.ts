@@ -3,23 +3,39 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { journeyId, type, isBack } = body;
-    const base64Image = body.image || body.halfSizeImage;
+    const { journeyId, type, isBack, imageUrl, fullSizeImageUrl } = body;
 
-    if (!journeyId || !type || !base64Image) {
-      return NextResponse.json({ error: "Missing journeyId, type, or image data" }, { status: 400 });
+    if (!journeyId || !type || !imageUrl) {
+      return NextResponse.json({ error: "Missing journeyId, type, or imageUrl" }, { status: 400 });
     }
+
+    console.log("Downloading image from Supabase for OkayDoc authentication...");
+    const supabaseResponse = await fetch(imageUrl);
+    if (!supabaseResponse.ok) {
+      return NextResponse.json({ error: "Failed to download main target image from supabase" }, { status: 400 });
+    }
+    const arrayBuffer = await supabaseResponse.arrayBuffer();
+    const base64Image = Buffer.from(arrayBuffer).toString("base64");
 
     const okaydocUrl = `${process.env.INNOVA8TIF_API_URL}/okaydoc`;
     let okaydocBody: Record<string, unknown>;
 
     if (type === "passport") {
+      let finalFullSizeBase64 = "";
+      if (fullSizeImageUrl) {
+        const fullSizeRes = await fetch(fullSizeImageUrl);
+        if (fullSizeRes.ok) {
+          const fullSizeBuf = await fullSizeRes.arrayBuffer();
+          finalFullSizeBase64 = Buffer.from(fullSizeBuf).toString("base64");
+        }
+      }
+
       okaydocBody = {
         journeyId: journeyId,
         type: "passport",
         country: "OTHER",
         halfSizeImage: base64Image,
-        fullSizeImage: body.fullSizeImage || ""
+        fullSizeImage: finalFullSizeBase64
       };
 
       console.log("OkayDoc passport verification - journeyId:", journeyId);
@@ -50,8 +66,8 @@ export async function POST(req: Request) {
         screenDetection: "true",
         ghostPhotoColorDetection: "true",
         idBlurDetection: "true",
-        islamFieldTamperingDetection:"true",
-        qualityCheckDetection:"true"
+        islamFieldTamperingDetection: "true",
+        qualityCheckDetection: "true"
       };
       
       console.log("OkayDoc MyKad verification - journeyId:", journeyId);
@@ -73,7 +89,6 @@ export async function POST(req: Request) {
         ? (okaydocResult as { status?: string }).status
         : undefined;
       console.log("OkayDoc result - status:", okaydocStatus);
-      console.log("OkayDoc full response:", JSON.stringify(okaydocResult, null, 2));
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
       console.error("Failed to parse OkayDoc response:", message);
@@ -94,7 +109,7 @@ export async function POST(req: Request) {
     return NextResponse.json(okaydocResult, { status: 200 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("OkayDoc route error:", message, error instanceof Error ? error.stack : "");
+    console.error("OkayDoc route error:", message);
     return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

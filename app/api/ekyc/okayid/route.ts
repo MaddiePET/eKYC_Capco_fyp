@@ -2,16 +2,28 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { journeyId, base64ImageString, imageFormat = "JPG" } = await req.json();
+    const { journeyId, supabaseImageUrl, imageFormat = "JPG" } = await req.json();
+
+    if (!journeyId || !supabaseImageUrl) {
+      return NextResponse.json({ error: "Missing journeyId or supabaseImageUrl" }, { status: 400 });
+    }
+
+    console.log("Downloading image from Supabase for OkayID... Url:", supabaseImageUrl);
+    
+    // 1. Fetch image from supabase Storage
+    const supabaseResponse = await fetch(supabaseImageUrl);
+    if (!supabaseResponse.ok) {
+      return NextResponse.json({ error: "Failed to download image from supabase storage" }, { status: 400 });
+    }
+    
+    const arrayBuffer = await supabaseResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64ImageString = buffer.toString("base64");
 
     console.log(
-      "[OkayID] Request image size bytes:",
-      Buffer.byteLength(base64ImageString, "utf8")
+      "[OkayID] Downloaded image size from supabase (bytes):",
+      buffer.length
     );
-
-    if (!journeyId || !base64ImageString) {
-      return NextResponse.json({ error: "Missing journeyId or base64ImageString" }, { status: 400 });
-    }
 
     console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId, "imageFormat:", imageFormat);
     const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
@@ -31,10 +43,7 @@ export async function POST(req: Request) {
     });
 
     const okayidText = await okayidResponse.text();
-    console.log(
-      "[OkayID] Response size bytes:",
-      Buffer.byteLength(okayidText, "utf8")
-    );
+    console.log("[OkayID] Response size bytes:", Buffer.byteLength(okayidText, "utf8"));
 
     let okayidResult: Record<string, unknown> = {};
 
@@ -45,7 +54,6 @@ export async function POST(req: Request) {
         : undefined;
       console.log("OkayID result - status:", okayidStatus);
       console.log("[OkayID] Response received successfully");
-      //console.log("OkayID full response:", JSON.stringify(okayidResult, null, 2));
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
       console.error("Failed to parse OkayID response:", message);
@@ -63,8 +71,7 @@ export async function POST(req: Request) {
       }, { status: okayidResponse.status });
     }
 
-    const fieldMaps =
-      (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+    const fieldMaps = (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
 
     const passportNo =
       fieldMaps.find((field: any) => field.FieldType === 2)?.Field_Visual ||
@@ -77,12 +84,13 @@ export async function POST(req: Request) {
         extracted: {
           passport_no: passportNo,
         },
+        result: okayidResult,
       },
       { status: 200 }
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("OkayID route error:", message, error instanceof Error ? error.stack : "");
+    console.error("OkayID route error:", message);
     return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

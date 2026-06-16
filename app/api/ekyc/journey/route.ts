@@ -12,6 +12,7 @@ export async function POST() {
     });
     
     const data = await res.json();
+    
     if (data.status === "success") {
       return NextResponse.json({ journeyId: data.journeyId });
     } else {

@@ -52,7 +52,7 @@ export default function LogIn() {
   }, [cooldown, attempts]);
 
   const checkUsername = async (val: string) => {
-    if (val.length < 3) { 
+    if (val.length < 5) { 
       setIsUsernameValid(null); 
       return; 
     }
@@ -185,7 +185,6 @@ export default function LogIn() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -214,7 +213,6 @@ export default function LogIn() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-
           {step === "username" ? "Home" : "Back"}
         </button>
 
@@ -229,7 +227,6 @@ export default function LogIn() {
             height={40} 
             className="block dark:invert-0 invert" 
           />          
-          
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -243,7 +240,6 @@ export default function LogIn() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Log In
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please enter your username to log in.
               </p>
@@ -264,21 +260,21 @@ export default function LogIn() {
 
                   <div className="relative w-full">
                     <input
+                      placeholder="Enter your username"
+                      type="text"
+                      value={username}
+                      required
                       className={`w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 ${
                         isUsernameValid === true
                           ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
                           : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                       }`}
-                      placeholder="Enter your username"
-                      type="text"
-                      value={username}
                       onChange={(e) => {
                         const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
                         checkUsername(cleanedValue);
                       }}
-                      required
                     />
                     {isUsernameValid === true && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
@@ -327,7 +323,6 @@ export default function LogIn() {
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">
                     {currentUser.name}
                   </h2>
-
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {currentUser.email}
                   </p>
@@ -349,7 +344,6 @@ export default function LogIn() {
               >
                 Yes, that's me
               </button>
-
               <button 
                 type="button" 
                 onClick={handleBack} 
@@ -395,11 +389,7 @@ export default function LogIn() {
             {passwordError && (
               <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 {passwordError}
-                {cooldown > 0 && (
-                  <span>
-                    Please retry in {cooldown}s.
-                  </span>
-                )}
+                {cooldown > 0 && (<span>Please retry in {cooldown}s.</span>)}
               </div>
             )}
             
@@ -423,7 +413,6 @@ export default function LogIn() {
                       }}
                       required
                     />
-
                     <span 
                       onClick={() => setShowPassword(!showPassword)} 
                       className="absolute z-30 cursor-pointer -translate-y-1/2 right-4 top-1/2"

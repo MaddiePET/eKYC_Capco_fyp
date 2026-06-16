@@ -273,7 +273,6 @@ export default function SavingsNonMalaysianApplication() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-          
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -301,10 +300,8 @@ export default function SavingsNonMalaysianApplication() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" /> 
-          
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -316,7 +313,6 @@ export default function SavingsNonMalaysianApplication() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -330,7 +326,6 @@ export default function SavingsNonMalaysianApplication() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Savings Account Non-Malaysian Application
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your employment details to proceed with the registration.
               </p>
@@ -348,7 +343,6 @@ export default function SavingsNonMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, occupation: e.target.value})}
                   options={non_malaysian_occupations}
                 />
-
                 <CustomSelect 
                   label="Monthly Income Range" 
                   required 
@@ -356,7 +350,6 @@ export default function SavingsNonMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, incomeRange: e.target.value})}
                   options={income_range}
                 />
-
                 <CustomSelect 
                   label="Employment Type" 
                   required 
@@ -364,7 +357,6 @@ export default function SavingsNonMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
                   options={non_malaysian_employment_types}
                 />
-
                 <CustomSelect 
                   label="Source of Income" 
                   required 
@@ -394,7 +386,6 @@ export default function SavingsNonMalaysianApplication() {
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
                       />
                     </svg>
-
                     Verified: {formData.userAge} years old
                   </div>
                 ) : formData.isOfAge === false ? (
@@ -412,7 +403,6 @@ export default function SavingsNonMalaysianApplication() {
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
                       />
                     </svg>
-
                     You are {formData.userAge} years old. You must be at least 18 to apply.
                   </div>
                 ) : (
@@ -436,7 +426,6 @@ export default function SavingsNonMalaysianApplication() {
                   >
                     Cancel
                   </button>
-
                   <button 
                     type="submit" 
                     disabled={!isFormValid} 
@@ -449,7 +438,6 @@ export default function SavingsNonMalaysianApplication() {
                 <div className="mt-5 text-center">
                   <p className="text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                     <Link 
                       href="/contact_support" 
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -469,7 +457,6 @@ export default function SavingsNonMalaysianApplication() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Upload Your Supporting Documents
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please upload your supporting documents for verification.
               </p>
@@ -485,7 +472,6 @@ export default function SavingsNonMalaysianApplication() {
                     <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
                       Document {index + 1}
                     </h3>
-
                     {documents.length > 1 && 
                     <button 
                       onClick={() => setDocuments(documents.filter(d => d.id !== doc.id))} 
@@ -499,7 +485,6 @@ export default function SavingsNonMalaysianApplication() {
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                       Name of Document<span className="text-red-500">*</span>
                     </label>
-
                     <input 
                       type="text" 
                       placeholder="e.g. Working Permit, Visa, Letter of Confirmation" 
@@ -536,7 +521,6 @@ export default function SavingsNonMalaysianApplication() {
                       accept=".pdf,.doc,.docx" 
                       onChange={(e) => handleFile(doc.id, e.target.files?.[0])} 
                     />
-
                     {doc.preview ? (
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-3">
@@ -553,7 +537,6 @@ export default function SavingsNonMalaysianApplication() {
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
                             />
                           </svg>
-
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[250px]">{doc.preview}</span>
                         </div>
 
@@ -578,7 +561,6 @@ export default function SavingsNonMalaysianApplication() {
                             d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
                           />
                         </svg>
-
                         <span className={`text-sm font-medium ${
                             draggingId === doc.id 
                               ? 'text-[#3D405B] dark:text-[#F0CA8E]' 
@@ -604,7 +586,6 @@ export default function SavingsNonMalaysianApplication() {
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                   By clicking continue, you confirm that the documents uploaded are valid and belong to you.
                 </p>
-
                 <button 
                   onClick={() => setStep(3)} 
                   disabled={documents.some(d => !d.preview || !d.name)} 
@@ -616,7 +597,6 @@ export default function SavingsNonMalaysianApplication() {
                 <div className="mt-5 text-center">
                   <p className="text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                     <Link 
                       href="/contact_support" 
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -636,7 +616,6 @@ export default function SavingsNonMalaysianApplication() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Your Preferred Branch
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Select a branch based on your current location.
               </p>
@@ -658,7 +637,6 @@ export default function SavingsNonMalaysianApplication() {
                         strokeWidth="2" 
                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                       />
-                      
                       <path 
                         strokeLinecap="round" 
                         strokeLinejoin="round" 
@@ -670,11 +648,9 @@ export default function SavingsNonMalaysianApplication() {
                   <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">
                     Enable Location Services
                   </h3>
-
                   <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
                     To suggest the nearest branches to you.
                   </p>
-
                   <button 
                     onClick={handleRequestLocation} 
                     disabled={isLocating} 
@@ -705,7 +681,6 @@ export default function SavingsNonMalaysianApplication() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Current Location
                     </p>
-
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                       {userAddress}
                     </p>
@@ -725,7 +700,6 @@ export default function SavingsNonMalaysianApplication() {
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                 Available Branches<span className="text-red-500">*</span>
               </label>
-
               {sortedBranches.map((branch) => {
                 const distance = userLocation ? getDistance(userLocation.lat, userLocation.lng, branch.lat, branch.lng).toFixed(1) : null;
                 const isSelected = preferredBranch === branch.name;
@@ -760,7 +734,6 @@ export default function SavingsNonMalaysianApplication() {
                       <h4 className="text-sm font-bold text-gray-800 dark:text-white">
                         {branch.name}
                       </h4>
-
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {branch.address}
                       </p>
@@ -778,7 +751,6 @@ export default function SavingsNonMalaysianApplication() {
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that all selected information is correct.
               </p>
-              
               <button 
                 onClick={handleNext}
                 disabled={!preferredBranch} 
@@ -790,7 +762,6 @@ export default function SavingsNonMalaysianApplication() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

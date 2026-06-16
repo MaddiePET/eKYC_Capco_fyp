@@ -8,6 +8,7 @@ interface PersonalInfo {
   fullName?: string;
   id_type?: string;
   dob?: string;
+  gender?: string;
   ph_no_1?: string;
   email?: string;
   country?: string;

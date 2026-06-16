@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { hashPassword } from "@/scripts/hashpw";
 import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
+
 export const runtime = "nodejs";
 
 function generateAccountNumber() {
@@ -21,8 +22,8 @@ function mapGender(frontendGender: string) {
   switch (frontendGender) {
     case "M": return "M";
     case "F": return "F";
-    case "Non-binary": return "NB";
-    case "Prefer not to say": return "NONE";
+    case "NB": return "NB";
+    case "NONE": return "NONE";
     default: return "NONE";
   }
 }
@@ -35,13 +36,15 @@ export async function POST(req: Request) {
 
     const {
       journeyId,
-      isExistingCustomer, 
       customer,
       homeAddress,
       mailingAddress,
       user,
       savingsAccount,
     } = body;
+
+    const applicationMode = body.applicationMode || body.mode || body.application_mode || "new_user";
+    const isExisting = applicationMode === "existing_customer" || applicationMode === "add_account" || body.isExistingCustomer === true;
 
     if (!customer || !homeAddress || !user || !savingsAccount) {
       return NextResponse.json(
@@ -59,8 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const normalizedIdNum = customerIdNum.replace(/-/g, "").trim();
-    const isExisting = isExistingCustomer === true;
+    const normalizedIdNum = customerIdNum.replace(/-/g, "").trim().toUpperCase();
 
     if (!isExisting && !journeyId) {
       return NextResponse.json(
@@ -69,7 +71,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let scorecardResult = 100.00;
+    let scorecardResult: number | null = null;
 
     if (!isExisting) {
       const statusRes = await fetch(
@@ -103,12 +105,10 @@ export async function POST(req: Request) {
       scorecardResult = Number(((passedChecks / totalChecks) * 100).toFixed(2));
 
       const statusIdType = statusData.id_type?.toLowerCase();
-      const statusIdNum = statusData.id_num?.replace(/-/g, "").trim();
+      const statusIdNum = statusData.id_num?.replace(/-/g, "").trim().toUpperCase();
 
       if (
-        statusData.status !== "face_verified" ||
-        !["ic", "mykad", "nric"].includes(statusIdType) ||
-        statusIdNum !== normalizedIdNum
+        statusData.status !== "face_verified" || !["ic", "mykad", "nric"].includes(statusIdType) || statusIdNum !== normalizedIdNum
       ) {
         return NextResponse.json(
           { error: "eKYC session was not verified. Please restart MyKad verification." },
@@ -171,7 +171,6 @@ export async function POST(req: Request) {
       custId = existingCustomerResult.rows[0].cust_id;
       homeAddId = existingCustomerResult.rows[0].home_add;
 
-      // Verify if they already have a savings account
       const existingSavingsResult = await client.query(
         `
         SELECT s.account_no
@@ -187,14 +186,36 @@ export async function POST(req: Request) {
         await client.query("ROLLBACK");
         return NextResponse.json(
           {
-            error: "You already have a savings account with us. Please log in to continue.",
+            error: "This MyKad number is already registered for a savings account. Please log in to continue.",
             redirectTo: "/login",
           },
           { status: 409 }
         );
       }
+
+      await client.query(
+        `
+        UPDATE banka."Customer"
+        SET
+          full_name = $1,
+          id_type = $2,
+          dob = $3,
+          ph_no = $4,
+          email = $5,
+          gender = $6
+        WHERE cust_id = $7
+        `,
+        [
+          enc(cleanCustomer.full_name),
+          cleanCustomer.id_type,
+          cleanCustomer.dob,
+          enc(cleanCustomer.ph_no),
+          enc(cleanCustomer.email),
+          cleanCustomer.gender,
+          custId,
+        ]
+      );
     } else {
-      // Create home address with encrypted values
       const homeAddressResult = await client.query(
         `
         INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -221,7 +242,6 @@ export async function POST(req: Request) {
           country: mailingAddress.country || "Malaysia",
         };
 
-        // Create mailing address with encrypted values
         const mailingAddressResult = await client.query(
           `
           INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
@@ -240,7 +260,6 @@ export async function POST(req: Request) {
         mailingAddId = mailingAddressResult.rows[0].add_id;
       }
 
-      // Create new customer record
       const customerResult = await client.query(
         `
         INSERT INTO banka."Customer" (
@@ -259,12 +278,12 @@ export async function POST(req: Request) {
         `,
         [
           idNumHash,
-          encrypt(cleanCustomer.id_num, "banka"),
-          encrypt(cleanCustomer.full_name, "banka"),
+          enc(cleanCustomer.id_num),
+          enc(cleanCustomer.full_name),
           cleanCustomer.id_type,
           cleanCustomer.dob,
-          encrypt(cleanCustomer.ph_no, "banka"),
-          encrypt(cleanCustomer.email, "banka"),
+          enc(cleanCustomer.ph_no),
+          enc(cleanCustomer.email),
           homeAddId,
           cleanCustomer.gender,
         ]
@@ -272,50 +291,54 @@ export async function POST(req: Request) {
       custId = customerResult.rows[0].cust_id;
     }
 
-    if (!cleanUser.password) throw new Error("Password is missing");
+    let userId = body.userId || body.user_id || null;
 
-    const usernameCheck = await client.query(
-      `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
-      [cleanUser.username.trim()]
-    );
+    if (!userId) {
+      if (!cleanUser.password) throw new Error("Password is missing");
 
-    if (usernameCheck.rows.length > 0) {
-      await client.query("ROLLBACK");
-      return NextResponse.json(
-        { error: "This username is already taken. Please choose another." },
-        { status: 400 }
+      const usernameCheck = await client.query(
+        `SELECT user_id FROM banka."User" WHERE LOWER(username) = LOWER($1)`,
+        [cleanUser.username.trim()]
       );
+
+      if (usernameCheck.rows.length > 0) {
+        await client.query("ROLLBACK");
+        return NextResponse.json(
+          { error: "This username is already taken. Please choose another." },
+          { status: 400 }
+        );
+      }
+
+      const hashedPassword = await hashPassword(cleanUser.password);
+
+      let profileBuffer: Buffer | null = null;
+      
+      if (user.img) {
+        profileBuffer = user.img.startsWith("data:image")
+          ? Buffer.from(user.img.split(",")[1], "base64")
+          : Buffer.from(user.img);
+      } else {
+        profileBuffer = Buffer.alloc(0);
+      }
+
+      const userResult = await client.query(
+        `
+        INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING user_id
+        `,
+        [
+          custId,
+          cleanUser.username,
+          hashedPassword,
+          profileBuffer,
+          cleanUser.sec_phrase,
+          cleanUser.branch,
+        ]
+      );
+
+      userId = userResult.rows[0].user_id;
     }
-
-    const hashedPassword = await hashPassword(cleanUser.password);
-
-    let profileBuffer: Buffer | null = null;
-    if (user.img) {
-      profileBuffer = user.img.startsWith("data:image")
-        ? Buffer.from(user.img.split(",")[1], "base64")
-        : Buffer.from(user.img);
-    } else {
-      profileBuffer = Buffer.alloc(0);
-    }
-
-    // Push details straight to the user table linking to custId
-    const userResult = await client.query(
-      `
-      INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING user_id
-      `,
-      [
-        custId,
-        cleanUser.username,
-        hashedPassword,
-        profileBuffer,
-        cleanUser.sec_phrase,
-        cleanUser.branch,
-      ]
-    );
-
-    const userId = userResult.rows[0].user_id;
 
     let accountNo = generateAccountNumber();
     let accountExists = true;
@@ -325,8 +348,12 @@ export async function POST(req: Request) {
         `SELECT account_no FROM banka."Savings_account" WHERE account_no = $1`,
         [accountNo]
       );
-      if (checkAccount.rows.length === 0) accountExists = false;
-      else accountNo = generateAccountNumber();
+
+      if (checkAccount.rows.length === 0) {
+        accountExists = false;
+      } else {
+        accountNo = generateAccountNumber();
+      }
     }
 
     const savingsResult = await client.query(
@@ -346,26 +373,26 @@ export async function POST(req: Request) {
       ]
     );
 
-    // Save journey registration unconditionally using unique fallback keys with ON CONFLICT resolution
-    const finalJourneyId = journeyId || `BYPASS-${custId}-${Date.now()}`;
-    await client.query(
-      `
-      INSERT INTO banka."Journey" (
-        journey_id,
-        cust_id,
-        application_date,
-        approval_date,
-        scorecard_result
-      )
-      VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
-      ON CONFLICT (journey_id) DO NOTHING
-      `,
-      [
-        finalJourneyId,
-        custId,
-        scorecardResult,
-      ]
-    );
+    if (!isExisting && journeyId && scorecardResult !== null) {
+      await client.query(
+        `
+        INSERT INTO banka."Journey" (
+          journey_id,
+          cust_id,
+          application_date,
+          approval_date,
+          scorecard_result
+        )
+        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
+        ON CONFLICT (journey_id) DO NOTHING
+        `,
+        [
+          journeyId,
+          custId,
+          scorecardResult,
+        ]
+      );
+    }
 
     await client.query("COMMIT");
 

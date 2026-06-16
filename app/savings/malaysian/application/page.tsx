@@ -50,7 +50,6 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
         >
           Please Select
         </option>
-
         {options.map((opt) => (
           <option key={opt.value} value={opt.value} className="text-gray-800 dark:text-white">
             {opt.label}
@@ -108,13 +107,13 @@ export default function SavingsMalaysianApplication() {
 
     try {
       const personalInfoStr = localStorage.getItem("personalInfo");
+      
       if (personalInfoStr) {
         const personalInfo = JSON.parse(personalInfoStr);
 
         if (personalInfo.dob) {
           const dobDate = new Date(personalInfo.dob);
           const today = new Date();
-
           let age = today.getFullYear() - dobDate.getFullYear();
           const m = today.getMonth() - dobDate.getMonth();
           
@@ -262,10 +261,8 @@ export default function SavingsMalaysianApplication() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -277,7 +274,6 @@ export default function SavingsMalaysianApplication() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -291,7 +287,6 @@ export default function SavingsMalaysianApplication() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Savings Account Malaysian Application
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your employment details to proceed with the registration.
               </p>
@@ -309,7 +304,6 @@ export default function SavingsMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, occupation: e.target.value})}
                   options={malaysian_occupations}
                 />
-
                 <CustomSelect 
                   label="Monthly Income Range" 
                   required 
@@ -317,7 +311,6 @@ export default function SavingsMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, incomeRange: e.target.value})}
                   options={income_range}
                 />
-
                 <CustomSelect 
                   label="Employment Type" 
                   required 
@@ -325,7 +318,6 @@ export default function SavingsMalaysianApplication() {
                   onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
                   options={malaysian_employment_types}
                 />
-
                 <CustomSelect 
                   label="Source of Income" 
                   required 
@@ -339,7 +331,7 @@ export default function SavingsMalaysianApplication() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Are you 18 years or older?<span className="text-red-500">*</span>
                 </label>
-
+                
                 {formData.isOfAge === true ? (
                   <div className="flex justify-center items-center gap-2 mt-2 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 py-2.5 px-4 rounded-lg inline-flex border border-green-200 dark:border-green-800/50">
                     <svg 
@@ -355,7 +347,6 @@ export default function SavingsMalaysianApplication() {
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
                       />
                     </svg>
-
                     Verified: {formData.userAge} years old
                   </div>
                 ) : formData.isOfAge === false ? (
@@ -373,7 +364,6 @@ export default function SavingsMalaysianApplication() {
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
                       />
                     </svg>
-
                     You are {formData.userAge} years old. You must be at least 18 to apply.
                   </div>
                 ) : (
@@ -397,7 +387,6 @@ export default function SavingsMalaysianApplication() {
                   >
                     Cancel
                   </button>
-
                   <button 
                     type="submit" 
                     disabled={!isFormValid} 
@@ -410,7 +399,6 @@ export default function SavingsMalaysianApplication() {
                 <div className="mt-5 text-center">
                   <p className="text-sm">
                     <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                    
                     <Link 
                       href="/contact_support" 
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -430,7 +418,6 @@ export default function SavingsMalaysianApplication() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Your Preferred Branch
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Select a branch based on your current location.
               </p>
@@ -452,7 +439,6 @@ export default function SavingsMalaysianApplication() {
                         strokeWidth="2" 
                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                       />
-
                       <path 
                         strokeLinecap="round" 
                         strokeLinejoin="round" 
@@ -465,11 +451,9 @@ export default function SavingsMalaysianApplication() {
                   <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">
                     Enable Location Services
                   </h3>
-
                   <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
                     To suggest the nearest branches to you.
                   </p>
-
                   <button 
                     onClick={handleRequestLocation} 
                     disabled={isLocating} 
@@ -500,7 +484,6 @@ export default function SavingsMalaysianApplication() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Current Location
                     </p>
-
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                       {userAddress}
                     </p>
@@ -520,7 +503,6 @@ export default function SavingsMalaysianApplication() {
               <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                 Available Branches<span className="text-red-500">*</span>
               </label>
-
               {sortedBranches.map((branch) => {
                 const distance = userLocation ? getDistance(userLocation.lat, userLocation.lng, branch.lat, branch.lng).toFixed(1) : null;
                 const isSelected = preferredBranch === branch.id;
@@ -555,7 +537,6 @@ export default function SavingsMalaysianApplication() {
                       <h4 className="text-sm font-bold text-gray-800 dark:text-white">
                         {branch.name}
                       </h4>
-
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {branch.address}
                       </p>
@@ -573,7 +554,6 @@ export default function SavingsMalaysianApplication() {
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that all selected information is correct.
               </p>
-
               <button 
                 onClick={handleFinalSubmit} 
                 disabled={!preferredBranch} 
@@ -585,7 +565,6 @@ export default function SavingsMalaysianApplication() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                  
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

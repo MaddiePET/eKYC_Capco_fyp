@@ -5,10 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
+import { saveToStorage } from "@/lib/storage";
+import { useFormData } from "@/context/FormContext";
 
 export default function SavingsMalaysianInfo() {
   const router = useRouter();
-
+  const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -31,17 +33,31 @@ export default function SavingsMalaysianInfo() {
   });
 
   const searchParams = useSearchParams();
-
-  const journeyId = searchParams.get("journeyId") || "";
+  
+  const custIdFromParams =
+    searchParams.get("cust_id") ||
+    (typeof window !== "undefined" 
+      ? (localStorage.getItem("currentCustId") || localStorage.getItem("savingsCustId") || localStorage.getItem("custId")) 
+      : "") ||
+    "";
 
   const mode =
-  searchParams.get("mode") ||
-  (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
-  "new_user";
+    searchParams.get("mode") ||
+    (searchParams.get("journeyId") ? "new_user" : "") ||
+    (typeof window !== "undefined" ? localStorage.getItem("mode") : "") ||
+    "new_user";
+
+  const idNumFromParams =
+    searchParams.get("id_num") ||
+    (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
+    "";
+
+  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
+
     if (!Number.isNaN(date.getTime())) {
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",];
       return {
@@ -52,10 +68,12 @@ export default function SavingsMalaysianInfo() {
     }
 
     const isoMatch = String(value).match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    
     if (isoMatch) {
       const year = isoMatch[1];
       const month = Number(isoMatch[2]);
       const day = Number(isoMatch[3]);
+
       return {
         day: day.toString().padStart(2, "0"),
         month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",][month - 1] || "",
@@ -66,12 +84,22 @@ export default function SavingsMalaysianInfo() {
     return { day: "", month: "", year: "" };
   };
 
+  const normalizeGender = (raw: any) => {
+    if (!raw) return "";
+    const val = String(raw).trim().toUpperCase();
+    if (val === "M" || val === "MALE") return "M";
+    if (val === "F" || val === "FEMALE") return "F";
+    if (val === "NB" || val === "NON-BINARY" || val === "NON_BINARY") return "NB";
+    if (val === "NONE" || val === "PREFER NOT TO SAY" || val === "PREFER_NOT_TO_SAY") return "NONE";
+    return "";
+  };
+
   const normalizeIdentity = (identity: any, idType: string, idNum: string) => {
     const dob = identity.dob || identity.birth_date || identity.date_of_birth || identity.dob_date || identity.dobDate || "";
     const { day, month, year } = formatDateForFields(dob);
 
     return {
-      gender: identity.gender || identity.sex || "",
+      gender: normalizeGender(identity.gender || identity.sex),
       fullName: identity.full_name || identity.name || identity.fullName || "",
       nric: identity.ic_number || identity.nric || identity.id_num || idNum,
       dobDay: day || "",
@@ -118,38 +146,78 @@ export default function SavingsMalaysianInfo() {
     setMounted(true);
 
     if (typeof window === "undefined") return;
-
-    const currentJourneyId = searchParams.get("journeyId") || "";
     const savedJourneyId = localStorage.getItem("journeyId");
-
-    if (savedJourneyId && savedJourneyId !== currentJourneyId) {
+    
+    if (savedJourneyId && journeyId && savedJourneyId !== journeyId) {
       localStorage.removeItem("personalInfo");
       localStorage.removeItem("homeAddress");
       localStorage.removeItem("mailingAddress");
       localStorage.removeItem("id_num");
       localStorage.removeItem("id_type");
+      localStorage.removeItem("currentCustId");
+      localStorage.removeItem("savingsCustId");
+      localStorage.removeItem("custId");
+      localStorage.removeItem("mode");
     }
 
-    if (currentJourneyId) {
-      localStorage.setItem("journeyId", currentJourneyId);
+    if (mode) localStorage.setItem("mode", mode);
+    if (journeyId) localStorage.setItem("journeyId", journeyId);
+    if (idNumFromParams) localStorage.setItem("id_num", idNumFromParams);
+    localStorage.setItem("id_type", "ic");
+
+    if (mode === "new_user") {
+      fetchIdentity("ic", idNumFromParams);
+    }
+  }, [mode, journeyId, idNumFromParams]);
+
+  useEffect(() => {
+    async function loadExistingCustomer() {
+      if (mode !== "existing_customer") return;
+      if (!custIdFromParams && !idNumFromParams) return;
+
+      try {
+        const lookupUrl = custIdFromParams
+          ? `/api/customer/lookup?cust_id=${encodeURIComponent(custIdFromParams)}`
+          : `/api/customer/lookup?id_num=${encodeURIComponent(idNumFromParams)}`;
+
+        const res = await fetch(lookupUrl);
+        const data = await res.json();
+
+        if (!data.success) {
+          alert("Unable to load your existing customer details. Please log in again.");
+          router.push("/login");
+          return;
+        }
+
+        const customer = data.customer;
+        const { day, month, year } = formatDateForFields(customer.dob);
+
+        setFormData((prev) => ({
+          ...prev,
+          gender: normalizeGender(customer.gender),
+          nric: customer.id_num || "",
+          fullName: customer.full_name || "",
+          dobDay: day || "",
+          dobMonth: month || "",
+          dobYear: year || "",
+          phoneNumber: (customer.ph_no || "").replace(/^\+?60/, ""),
+          add1: customer.add_1 || "",
+          add2: customer.add_2 || "",
+          postal: customer.postcode || "",
+          state: customer.state || "",
+          country: customer.country || "Malaysia",
+        }));
+      } catch (error) {
+        console.error("Existing customer load error:", error);
+        alert("Unable to load existing customer details.");
+      }
     }
 
-    const queryParams = new URLSearchParams(window.location.search);
-    const idType = queryParams.get("id_type") || localStorage.getItem("id_type") || "ic";
-    const idNum = queryParams.get("id_num") || localStorage.getItem("id_num") || "";
-
-    if (idNum) {
-      setFormData((prev) => ({
-        ...prev,
-        nric: idNum,
-      }));
-
-      fetchIdentity(idType, idNum);
-    }
-  }, []); 
+    loadExistingCustomer();
+  }, [mode, custIdFromParams, idNumFromParams]);
 
   const handleNext = async () => {
-   if (isSubmitting) return;
+    if (isSubmitting) return;
 
     try {
       setIsSubmitting(true);
@@ -173,41 +241,58 @@ export default function SavingsMalaysianInfo() {
       const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
       const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
-      localStorage.setItem(
-        "personalInfo",
-        JSON.stringify({
-          gender: formData.gender,
-          id_num: formData.nric,
-          full_name: formData.fullName,
-          id_type: "NRIC",
-          dob,
-          ph_no: fullPhone,
-          country: formData.country,
-        })
-      );
+      const personalInfo = {
+        gender: formData.gender,
+        id_num: formData.nric,
+        full_name: formData.fullName,
+        id_type: "NRIC",
+        dob,
+        ph_no: fullPhone,
+        country: formData.country,
+      };
 
-      localStorage.setItem(
-        "homeAddress",
-        JSON.stringify({
-          add_type: "Home",
-          add_1: formData.add1,
-          add_2: formData.add2,
-          postcode: formData.postal,
+      const homeAddress = {
+        add_type: "Home",
+        add_1: formData.add1,
+        add_2: formData.add2,
+        postcode: formData.postal,
+        state: formData.state,
+        country: formData.country,
+      };
+
+      saveToStorage("personalInfo", personalInfo);
+      saveToStorage("homeAddress", homeAddress);
+      saveToStorage("id_num", formData.nric);
+      saveToStorage("id_type", "ic");
+
+      setGlobalFormData({
+        ...globalFormData,
+        applicationMode: mode,
+        journeyId,
+        idType: "ic",
+        idNum: formData.nric,
+        personalInfo: {
+          ...personalInfo,
+          fullName: formData.fullName,
+          full_name: formData.fullName,
+          id_type: "IC",
+          add1: formData.add1,
+          add2: formData.add2,
+          postal: formData.postal,
           state: formData.state,
           country: formData.country,
-        })
-      );
-
-      localStorage.setItem("id_type", "ic");
-      localStorage.setItem("id_num", formData.nric);
-      localStorage.setItem("journeyId", searchParams.get("journeyId") || "");
+        },
+        homeAddress,
+      });
 
       router.push(
-        `/savings/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(formData.nric)}&journeyId=${encodeURIComponent(searchParams.get("journeyId") || "")}`
+        `/savings/malaysian/mailing_address?id_type=ic&id_num=${encodeURIComponent(
+          formData.nric
+        )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
       );
-    } catch (error: any) {
-      console.error("Malaysian information error:", error);
-      setSubmitError(error.message || "Failed to save application data.");
+    } catch (error) {
+      console.error("Submission error:", error);
+      setSubmitError("Failed to save application data.");
     } finally {
       setIsSubmitting(false);
     }
@@ -238,7 +323,6 @@ export default function SavingsMalaysianInfo() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -272,7 +356,6 @@ export default function SavingsMalaysianInfo() {
             className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
           >
             <ChevronLeftIcon className="w-5 h-5" />
-            
             Back
           </button>
         ) : (
@@ -290,7 +373,6 @@ export default function SavingsMalaysianInfo() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -302,7 +384,6 @@ export default function SavingsMalaysianInfo() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Verify Your Personal Information
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please make sure all information match your official documents.
           </p>
@@ -310,8 +391,7 @@ export default function SavingsMalaysianInfo() {
 
         <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-6">
-              
+            <div className="space-y-6">  
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Full Name<span className="text-red-500">*</span>
@@ -357,8 +437,8 @@ export default function SavingsMalaysianInfo() {
                         value={
                           formData.gender === "M" ? "M" :
                           formData.gender === "F" ? "F" :
-                          formData.gender === "NB" || formData.gender === "Non-binary" ? "Non-binary" :
-                          formData.gender === "NONE" || formData.gender === "Prefer not to say" ? "Prefer not to say" : formData.gender
+                          formData.gender === "NB" ? "Non-binary" :
+                          formData.gender === "NONE" ? "Prefer not to say" : formData.gender
                         }
                       />
                     </div>
@@ -372,8 +452,8 @@ export default function SavingsMalaysianInfo() {
                         <option value="" disabled>Select</option>
                         <option value="M">M</option>
                         <option value="F">F</option>
-                        <option value="Non-binary">Non-binary</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
+                        <option value="NB">Non-binary</option>
+                        <option value="NONE">Prefer not to say</option>
                       </select>
 
                       <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -443,7 +523,6 @@ export default function SavingsMalaysianInfo() {
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
                     />
-
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
@@ -512,13 +591,13 @@ export default function SavingsMalaysianInfo() {
                   </label>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                    value={formData.state}
-                  />
-                </div>
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.state}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -536,8 +615,7 @@ export default function SavingsMalaysianInfo() {
             <div className="md:col-span-2 pt-4 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that the information provided is accurate and belongs to you.
-              </p>
-              
+              </p> 
               <button 
                 onClick={handleNext} 
                 disabled={!isFormValid}
@@ -553,7 +631,6 @@ export default function SavingsMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
