@@ -45,7 +45,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const router = useRouter();
 
   const { isExpanded, isHovered, isMobileOpen, toggleMobileSidebar, toggleSidebar, setIsHovered } = useSidebar();
-
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [currentAccountName, setCurrentAccountName] = useState<string>("");
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(true);
@@ -134,6 +133,19 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   useEffect(() => {
     setMounted(true);
+    const isAuthenticated = sessionStorage.getItem("is_authenticated");
+
+    if (!isAuthenticated && !pathname.startsWith("/login") && !pathname.startsWith("/reset_password")) {
+
+    localStorage.removeItem("currentAccount");
+    localStorage.removeItem("currentUsername");
+    localStorage.removeItem("currentUserAvatar");
+    localStorage.removeItem("currentUserEmail");
+
+    router.push("/login");
+      return;
+    }
+
     const name = localStorage.getItem("currentAccount");
     const username = localStorage.getItem("currentUsername") || name;
     setCurrentUsername(username || "");
@@ -159,7 +171,7 @@ export default function AdminLayoutContent({ children }: { children: React.React
           if (!res.ok) throw new Error("Failed to fetch profile");
           return res.json();
         })
-
+        
         .then((data) => {
           if (data && data.avatar) {
             setLoggedInUser(prev => prev ? { ...prev, avatar: data.avatar } : null);
@@ -178,7 +190,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
             localStorage.setItem("currentUserId", String(data.user_id));
           }
         })
-
         .catch((err) => {
           console.error("Failed to fetch updated avatar:", err);
         });
@@ -206,13 +217,11 @@ export default function AdminLayoutContent({ children }: { children: React.React
         }
       }
     })
-
     .catch((err) => {
       console.error("Database profile initialization error:", err);
     })
-      
     .finally(() => setIsLoadingAccounts(false));
-  }, []);
+  }, [pathname, router]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

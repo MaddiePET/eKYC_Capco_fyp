@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
 
@@ -84,6 +85,8 @@ const getSplitAddress = (profile: ProfileData) => {
 };
 
 export default function DashboardProfile() {
+  const router = useRouter();
+
   const {
     isOpen: isMetaModalOpen,
     openModal: openMetaModal,
@@ -100,6 +103,7 @@ export default function DashboardProfile() {
 
         if (!username) {
           setLoading(false);
+          router.push("/login");
           return;
         }
 
@@ -119,7 +123,7 @@ export default function DashboardProfile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   const handleMetaSave = () => {
     console.log("Saving meta changes...");

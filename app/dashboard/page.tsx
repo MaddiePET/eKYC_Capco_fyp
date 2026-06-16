@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ApexOptions } from "apexcharts";
 import { worldMill } from "@react-jvectormap/world";
 import Badge from "@/components/ui/badge/Badge";
@@ -133,6 +134,8 @@ const CountryMap: React.FC<CountryMapProps> = ({ mapColor }) => {
 };
 
 export default function Dashboard() {
+  const router = useRouter();
+
   const [isSalesDropdownOpen, setIsSalesDropdownOpen] = useState(false);
   const [isTargetDropdownOpen, setIsTargetDropdownOpen] = useState(false);
   const [isDemoDropdownOpen, setIsDemoDropdownOpen] = useState(false);
@@ -150,6 +153,11 @@ export default function Dashboard() {
     const username = localStorage.getItem("currentUsername") || name;
     let localAvatar = localStorage.getItem("currentUserAvatar");
     const email = localStorage.getItem("currentUserEmail");
+
+    if (!username) {
+      router.push("/login");
+      return;
+    }
 
     if (localAvatar && localAvatar.length > 100 && !localAvatar.startsWith("data:image")) {
       localAvatar = `data:image/jpeg;base64,${localAvatar}`;
@@ -179,7 +187,7 @@ export default function Dashboard() {
           console.error("Failed to fetch updated avatar:", err);
         });
     }
-  }, []);
+  }, [router]);
 
   const getTabClass = (option: string) =>
     selectedTab === option

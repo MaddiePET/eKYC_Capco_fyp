@@ -372,9 +372,9 @@ export default function ResetPassword() {
                     required
                     className={`w-full px-4 py-2.5 pr-10 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none appearance-none ${
                       isUsernameValid === true
-                        ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
-                        : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                    } text-gray-800 dark:text-white dark:placeholder-gray-400`}
+                        ? "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-800/50 dark:text-gray-300"
+                        : "bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                    }`}
                     onChange={(e) => {
                       const cleanedValue = e.target.value
                         .replace(/[^a-zA-Z0-9]/g, "")

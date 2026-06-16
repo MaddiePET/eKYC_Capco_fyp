@@ -30,11 +30,15 @@ export default function LogIn() {
   const [cooldown, setCooldown] = useState(0);
   const [isValidating, setIsValidating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
-    const [usernameError, setUsernameError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     setMounted(true);
+    // CRITICAL: Clear previous sessions when the user visits the Login page
+    sessionStorage.removeItem("is_authenticated");
+    localStorage.removeItem("currentUsername");
+    localStorage.removeItem("currentAccount");
   }, []);
 
   useEffect(() => {
@@ -148,6 +152,8 @@ export default function LogIn() {
       const data = await res.json();
 
       try {
+        sessionStorage.setItem("is_authenticated", "true");
+
         localStorage.setItem("currentUsername", data.username || "");
         localStorage.setItem("currentAccount", data.name || "");
         localStorage.setItem("currentUserAvatar", data.avatar || ""); 
