@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function SavingsMalaysianMobileFaceCapture() {
@@ -59,29 +60,14 @@ function SavingsMalaysianMobileFaceCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const base64ToBlob = (base64: string, mimeType = 'image/jpeg') => {
-    const byteCharacters = atob(base64);
-    const byteArrays = [];
-    for (let i = 0; i < byteCharacters.length; i += 512) {
-      const slice = byteCharacters.slice(i, i + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let j = 0; j < slice.length; j++) {
-        byteNumbers[j] = slice.charCodeAt(j);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-    return new Blob(byteArrays, { type: mimeType });
-  };
-
   const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const selfieFile = event.target.files?.[0];
     if (!selfieFile || !journeyId) return;
 
-    const idCardBase64 = localStorage.getItem("ekyc_id_image");
-    if (!idCardBase64) {
+    const idCardUrl = localStorage.getItem("ekyc_id_image_url");
+    if (!idCardUrl) {
       setErrorMessage("ID Document not found. Please rescan your MyKad first.");
       return;
     }
@@ -90,16 +76,43 @@ function SavingsMalaysianMobileFaceCapture() {
     setErrorMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("journeyId", journeyId);
-      formData.append("selfie", selfieFile);
-      formData.append("idCard", base64ToBlob(idCardBase64), "idcard.jpg");
+      console.log("Step 1: Uploading local live selfie stream directly to Supabase sandbox...");
+      const fileExtension = selfieFile.name.split(".").pop();
+      const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `selfies/${fileName}`;
 
-      const faceApiRes = await fetch("/api/ekyc/okayface", { method: "POST", body: formData });
+      const { error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, selfieFile, { cacheControl: "3600", upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
+
+      console.log("Step 2: Dispatched token URLs to backend facial evaluation routes...");
+      const faceApiRes = await fetch("/api/ekyc/okayface", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          selfieUrl: selfiePublicUrl,
+          idCardUrl: idCardUrl
+        })
+      });
       const faceResult = await faceApiRes.json();
 
       if (faceResult.status === "success") {
-        const liveApiRes = await fetch("/api/ekyc/okaylive", { method: "POST", body: formData });
+        const liveApiRes = await fetch("/api/ekyc/okaylive", { 
+          method: "POST", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            selfieUrl: selfiePublicUrl,
+            idCardUrl,
+          }) 
+        });
         const liveResult = await liveApiRes.json();
         if (!liveApiRes.ok) throw new Error(liveResult.message || "OkayLive failed");
 
@@ -141,6 +154,16 @@ function SavingsMalaysianMobileFaceCapture() {
           );
           setThresholdFailed(true);
           return;
+        }
+
+        const cleanupRes = await fetch("/api/ekyc/purge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selfieUrl: selfiePublicUrl, idCardUrl }),
+        });
+
+        if (!cleanupRes.ok) {
+          console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
         }
               
         setSuccess(true);

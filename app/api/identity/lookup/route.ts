@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { lookupJPNIdentity } from "../../../../jpn-db/jpn-api";
 import { lookupJIMIdentity } from "../../../../jim-db/jim-api";
 import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api";
@@ -25,13 +27,21 @@ async function lookupIdentity(idType: string, idNum: string) {
 
 export async function GET(req: Request) {
   try {
+    console.log("[identity/lookup] Request received");
     const url = new URL(req.url);
 
     const lookup = url.searchParams.get("lookup");
     const idType = url.searchParams.get("id_type");
     const idNum = url.searchParams.get("id_num");
 
+    console.log("[identity/lookup] Params:", {
+      lookup,
+      idType,
+      hasIdNum: !!idNum,
+    });
+
     if (!idNum) {
+      console.log("[identity/lookup] Missing id_num");
       return NextResponse.json(
         { error: "Missing id_num query parameter" },
         { status: 400 }
@@ -39,7 +49,14 @@ export async function GET(req: Request) {
     }
 
     if (lookup === "ssm_businesses") {
+      console.log("[identity/lookup] Looking up SSM businesses");
+
       const businesses = await lookupSSMBusinesses(idNum);
+
+      console.log(
+        "[identity/lookup] SSM lookup complete. Count:",
+        businesses.length
+      );
 
       if (businesses.length === 0) {
         return NextResponse.json({
@@ -59,13 +76,21 @@ export async function GET(req: Request) {
     }
 
     if (!idType) {
+      console.log("[identity/lookup] Missing id_type");
       return NextResponse.json(
         { error: "Missing id_type query parameter" },
         { status: 400 }
       );
     }
 
+    console.log("[identity/lookup] Looking up identity:", idType);
+
     const result = await lookupIdentity(idType, idNum);
+
+    console.log(
+      "[identity/lookup] Lookup complete. Found:",
+      !!result
+    );
 
     if (!result) {
       return NextResponse.json({
@@ -73,6 +98,11 @@ export async function GET(req: Request) {
         message: "Identity not found in government databases.",
       });
     }
+
+    console.log(
+      "[identity/lookup] Returning success from source:",
+      result.source
+    );
 
     return NextResponse.json({
       success: true,
@@ -85,6 +115,7 @@ export async function GET(req: Request) {
     });
   } catch (error: any) {
     console.error("Identity lookup error:", error);
+    console.error("[identity/lookup] STACK:", error?.stack);
 
     return NextResponse.json(
       {

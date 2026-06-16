@@ -4,10 +4,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { supabase } from "@/lib/supabaseClient";
 
 function SavingsMalaysianMobileMyKadCapture() {
   const MAX_ATTEMPTS = 3;
-
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +16,7 @@ function SavingsMalaysianMobileMyKadCapture() {
   const [duplicateMessage, setDuplicateMessage] = useState("");
   const [frontImage, setFrontImage] = useState<string | null>(null);
   const [backImage, setBackImage] = useState<string | null>(null);
+  const [uploadingSide, setUploadingSide] = useState<"front" | "back" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failCount, setFailCount] = useState(0);
   
@@ -23,7 +24,6 @@ function SavingsMalaysianMobileMyKadCapture() {
   const backInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearchParams();
-
   const journeyId = searchParams.get('journeyId');
 
   useEffect(() => {
@@ -51,29 +51,43 @@ function SavingsMalaysianMobileMyKadCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image(); 
-      img.src = `data:image/jpeg;base64,${base64}`;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const scale = Math.min(800 / img.width, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
-      };
-    });
-  };
-
   useEffect(() => {
     if (!journeyId) {
       alert("Invalid link. Please scan the QR code again from your desktop.");
     }
   }, [journeyId]);
 
+  const detectImageFormat = (base64: string): "PNG" | "JPG" => {
+    // Decode first 4 bytes to check magic numbers
+    const binaryStr = atob(base64.slice(0, 8));
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    
+    // PNG: starts with 89 50 4E 47
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+      return "PNG";
+    }
+    
+    // JPG: starts with FF D8 FF
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+      return "JPG";
+    }
+    
+    // Default to JPG if cannot detect
+    return "JPG";
+  };
+
   function extractMyKadNumber(okayIdResult: any) {
+    const extractedNumber =
+      okayIdResult?.extracted?.passport_no ||
+      okayIdResult?.extracted?.id_no ||
+      okayIdResult?.extracted?.id_num ||
+      okayIdResult?.extracted?.ic_no;
+
+    if (extractedNumber) return extractedNumber;
+
     const fields =
       okayIdResult?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
 
@@ -81,81 +95,78 @@ function SavingsMalaysianMobileMyKadCapture() {
       (field: any) => field.FieldType === 2 || field.wFieldType === 2
     );
 
-    return idField?.Field_Visual || "";
+    return idField?.Field_Visual || idField?.Field_MRZ || "";
   }
 
-  const handleVerification = useCallback(async (fImg: string, bImg: string) => {
+  const handleVerification = useCallback(async (fImgUrl: string, bImgUrl: string) => {
     if (!journeyId || isLoading) return;
 
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
+      console.log("Step 2: Processing front image OCR over lightweight string pointers...");
       const frontIdRes = await fetch("/api/ekyc/okayid", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          journeyId, base64ImageString: fImg 
+          journeyId, 
+          supabaseImageUrl: fImgUrl 
         }),
       });
       
       const frontIdData = await frontIdRes.json();
-
+      console.log("Okayid front response:", JSON.stringify(frontIdData, null, 2));
       if (frontIdData.status !== "success") {
         throw new Error(frontIdData.message || "unrecognized");
       }
 
+      console.log("Step 3: Processing face card quality alignment verification...");
       const frontDocRes = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           type: "nonpassport",
-          halfSizeImage: fImg,
+          imageUrl: fImgUrl,
           isBack: false,
         }),
       });
 
       const frontDocData = await frontDocRes.json();
+      console.log("Okaydoc front response:", JSON.stringify(frontDocData, null, 2));
       if (frontDocData.status !== "success") {
         throw new Error(frontDocData.message || "not meeting quality standards");
       }
 
+      console.log("Step 4: Running matching quality assessments over back card orientation...");
       const backDocRes = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           type: "nonpassport",
-          halfSizeImage: bImg,
+          imageUrl: bImgUrl,
           isBack: true,
         }),
       });
       
       const backDocData = await backDocRes.json();
-
+      console.log("Okaydoc back response:", JSON.stringify(backDocData, null, 2));
       if (backDocData.status !== "success") {
         throw new Error(backDocData.message || "not meeting quality standards");
       }
 
       const icNo = extractMyKadNumber(frontIdData);
-
       if (!icNo) {
         throw new Error("MyKad number could not be extracted");
       }
 
-      const identityRes = await fetch(
-        `/api/identity/lookup?id_type=ic&id_num=${encodeURIComponent(icNo)}`
-      );
-
+      const identityRes = await fetch(`/api/identity/lookup?id_type=ic&id_num=${encodeURIComponent(icNo)}`);
       const identityData = await identityRes.json();
 
       if (!identityRes.ok || !identityData.success) {
-        throw new Error(
-          "Identity was not found in government records"
-        );
+        throw new Error("Identity was not found in government records");
       }
 
       const accountCheckRes = await fetch("/api/application/check_existing_savings_account", {
@@ -166,20 +177,16 @@ function SavingsMalaysianMobileMyKadCapture() {
 
       if (accountCheckRes.status === 409) {
         const checkData = await accountCheckRes.json();
-        
         setIsDuplicate(true);
         setDuplicateMessage(checkData.error || "You already have an existing account with this MyKad.");
 
-        await fetch("/api/ekyc/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            journeyId,
-            status: "duplicate",
-            id_type: "ic",
-            id_num: icNo,
-          }),
-        });
+        if (icNo) {
+          await fetch("/api/ekyc/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ journeyId, status: "verified", id_type: "ic", id_num: icNo }),
+          });
+        }
 
         setIsLoading(false);
         return;
@@ -187,14 +194,12 @@ function SavingsMalaysianMobileMyKadCapture() {
         throw new Error("Failed to verify existing account status");
       }
 
-      const compressedBase64 = await compressImage(fImg);
-      localStorage.setItem("ekyc_id_image", compressedBase64);
+      // Save the public Supabase front URL string link token for the Face Comparison step
+      localStorage.setItem("ekyc_id_image_url", fImgUrl);
 
       await fetch("/api/ekyc/status", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           status: "verified",
@@ -213,23 +218,13 @@ function SavingsMalaysianMobileMyKadCapture() {
       const reason = error.message.toLowerCase();
 
       if (remaining > 0) {
-        setErrorMessage(
-          `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? 's' : ''} left.`
-        );
+        setErrorMessage(`Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? 's' : ''} left.`);
       } else {
-        setErrorMessage(
-          `Too many failed attempts. Please refer to your desktop screen.`
-        );
-        
+        setErrorMessage(`Too many failed attempts. Please refer to your desktop screen.`);
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
-          body: JSON.stringify({ 
-            journeyId, 
-            status: "failed" 
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "failed" })
         });
       }
 
@@ -248,22 +243,40 @@ function SavingsMalaysianMobileMyKadCapture() {
     }
   }, [frontImage, backImage, handleVerification, isLoading, success, isDuplicate, failCount]);
 
-  const handleCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: 'front' | 'back'
-  ) => {
+  const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const file = event.target.files?.[0];
     if (!file || !journeyId) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = (reader.result as string).split(',')[1];
-      if (type === 'front') setFrontImage(base64String);
-      else setBackImage(base64String);
-    };
-    reader.readAsDataURL(file);
+    try {
+      setUploadingSide(type);
+      setIsLoading(true);
+      console.log(`Step 1: Uploading mykad_${type} directly to Supabase storage...`);
+      const fileExtension = file.name.split(".").pop();
+      const fileName = `${type}_mykad_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `mykad/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, file, { cacheControl: "3600", upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
+
+      if (type === 'front') setFrontImage(publicUrl);
+      else setBackImage(publicUrl);
+
+    } catch (e: any) {
+      console.error("Supabase upload exception:", e.message);
+      setErrorMessage("Image streaming connection failure. Please retry capture.");
+    } finally {
+      setUploadingSide(null);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -414,7 +427,13 @@ function SavingsMalaysianMobileMyKadCapture() {
               }`}
               >
                 <span className="font-semibold text-sm">
-                  {isLoading && frontImage && backImage ? "Verifying..." : (failCount > 0 && failCount < MAX_ATTEMPTS && !frontImage ? "Try Again (Front)" : "Capture Front")}
+                  {uploadingSide === 'front'
+                    ? 'Uploading front photo...'
+                    : frontImage
+                    ? 'Front photo uploaded'
+                    : failCount > 0 && failCount < MAX_ATTEMPTS
+                    ? 'Try Again (Front)'
+                    : 'Capture Front'}
                 </span>
                 {isLoading && frontImage && backImage ? (
                   <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
@@ -451,7 +470,13 @@ function SavingsMalaysianMobileMyKadCapture() {
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}              >
                 <span className="font-semibold text-sm">
-                  {isLoading && frontImage && backImage ? "Verifying..." : (failCount > 0 && failCount < MAX_ATTEMPTS && !backImage ? "Try Again (Back)" : "Capture Back")}
+                  {uploadingSide === 'back'
+                    ? 'Uploading back photo...'
+                    : backImage
+                    ? 'Back photo uploaded'
+                    : failCount > 0 && failCount < MAX_ATTEMPTS
+                    ? 'Try Again (Back)'
+                    : 'Capture Back'}
                 </span>
                 {isLoading && frontImage && backImage ? (
                   <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
@@ -478,6 +503,13 @@ function SavingsMalaysianMobileMyKadCapture() {
                 )}
               </button>
             </div>
+
+            {frontImage && backImage && !success && !errorMessage && (
+              <div className="mt-4 w-full max-w-xs rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm">
+                <p className="text-sm font-semibold">Both MyKad photos are uploaded successfully.</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800">Verification is in progress. Please keep this page open until the scan completes.</p>
+              </div>
+            )}
           </div>
         )}
 

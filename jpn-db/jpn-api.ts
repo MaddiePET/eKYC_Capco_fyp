@@ -15,22 +15,47 @@ function initializeJPN() {
     if (existingApp) {
       jpnApp = existingApp;
     } else {
-      const serviceAccountPath = path.join(
-        process.cwd(),
-        "jpn-db",
-        "serviceAccountKey-JPN.json"
-      );
+      let serviceAccount;
 
-      const serviceAccount = JSON.parse(
-        fs.readFileSync(serviceAccountPath, "utf8")
-      );
+      if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
+        try {
+          const decoded = Buffer.from(process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
+          serviceAccount = JSON.parse(decoded);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT_B64 env var:", err);
+          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT_B64");
+        }
+      } else if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
+        try {
+          serviceAccount = JSON.parse(process.env.FIREBASE_JPN_SERVICE_ACCOUNT);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT env var:", err);
+          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT JSON");
+        }
+      } else {
+        // Fall back to local file (for local development)
+        const serviceAccountPath = path.join(
+          process.cwd(),
+          "jpn-db",
+          "serviceAccountKey-JPN.json"
+        );
 
-      jpnApp = admin.initializeApp(
-        {
-          credential: admin.credential.cert(serviceAccount),
-        },
-        appName
-      );
+        serviceAccount = JSON.parse(
+          fs.readFileSync(serviceAccountPath, "utf8")
+        );
+      }
+
+      try {
+        jpnApp = admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+          },
+          appName
+        );
+      } catch (err) {
+        console.error("Failed to initialize Firebase JPN app:", err);
+        throw err;
+      }
     }
 
     jpnDb = jpnApp.firestore();

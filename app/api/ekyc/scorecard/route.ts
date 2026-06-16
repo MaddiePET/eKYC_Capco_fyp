@@ -50,8 +50,6 @@ export async function GET(req: Request) {
 
     const scorecardText = await scorecardResponse.text();
 
-    console.log("Scorecard raw response:", scorecardText);
-
     let scorecardResult: Record<string, unknown> = {};
 
     try {
