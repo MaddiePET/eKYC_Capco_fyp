@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
     // 2. Fallback: Read active mid-flow mobile updates from the staging session space
     const stagingResult = await client.query(
-      `SELECT status, step, id_type, id_num, scorecard, scorecard_result 
+      `SELECT status, step, id_type, id_num, scorecard, updated_at
        FROM banka."Ekyc_status" 
        WHERE journey_id = $1`,
       [journeyId]
@@ -110,7 +110,6 @@ export async function POST(req: Request) {
          id_type          = COALESCE(EXCLUDED.id_type, banka."Ekyc_status".id_type),
          id_num           = COALESCE(EXCLUDED.id_num, banka."Ekyc_status".id_num),
          scorecard        = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
-         scorecard_result = EXCLUDED.scorecard_result,
          updated_at       = NOW()
        RETURNING *`,
       [
