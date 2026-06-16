@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   const client = await pool.connect();
   try {
-    // 1. Check if a finalized account registration record already exists
+    // 1. Check if a finalized, fully registered account record exists in the primary database
     const completedResult = await client.query(
       `SELECT j.scorecard, j.scorecard_result, c.id_type, c.id_num, c.full_name
        FROM banka."Journey" j
@@ -34,31 +34,26 @@ export async function GET(req: Request) {
       });
     }
 
-    // 2. Read live active phone updates from your new independent staging session table
+    // 2. Fallback: Read active mid-flow mobile updates from the staging session space
     const stagingResult = await client.query(
-      `SELECT scorecard, scorecard_result 
+      `SELECT status, step, id_type, id_num, scorecard, scorecard_result 
        FROM banka."Ekyc_Staging_Session" 
        WHERE journey_id = $1`,
       [journeyId]
     );
 
     if (stagingResult.rows.length === 0) {
-      return NextResponse.json({ verified: false, status: "pending", step: "ID_UPLOAD" });
+      return NextResponse.json({ status: "pending", step: "ID_UPLOAD" });
     }
 
     const stageRow = stagingResult.rows[0];
     
-    // Extrapolate potential object details out of the scorecard payload object structure if needed
-    const extractedIdType = stageRow.scorecard?.id_type || "PASSPORT";
-    const extractedIdNum = stageRow.scorecard?.id_num || "VERIFIED_HOLDER";
-
-    // 🎯 RE-INJECT LEGACY BACKWARDS COMPATIBILITY CONTRACT CONTRACT TO UNBLOCK BROWSER POLLING
+    // 🎯 MATCH THE OLD OBJECT CONTRACT EXACTLY TO TRIGGER FRONTEND DASHBOARD STATE REDIRECTS
     return NextResponse.json({
-      verified: true, // Swapped to true so the frontend intercepts the step completion event
-      status: "face_verified", 
-      step: "LIVENESS_CHECK",
-      id_type: extractedIdType, 
-      id_num: extractedIdNum,   
+      status: stageRow.status || "pending",
+      step: stageRow.step,
+      id_type: stageRow.id_type,
+      id_num: stageRow.id_num,
       scorecard: stageRow.scorecard,
       scorecard_result: stageRow.scorecard_result
     });
@@ -79,38 +74,59 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { journeyId, scorecard, custId, scorecardResult } = body;
+  // 📥 EXTRACT EVERY FIELD THE MOBILE SENDS (Matching your old Map setup logic perfectly!)
+  const { journeyId, status, step, id_type, id_num, scorecard, scorecardResult } = body;
 
-  if (!journeyId) {
-    return NextResponse.json({ error: "Missing required journeyId reference" }, { status: 400 });
+  if (!journeyId || !status) {
+    return NextResponse.json({ error: "Missing journeyId or status" }, { status: 400 });
   }
 
   const client = await pool.connect();
   try {
+    // Calculate pass thresholds dynamically if scorecard lists are attached mid-stream
+    let computedScore = scorecardResult || 0.0;
+    if (scorecard?.scorecardResultList) {
+      let total = 0, passed = 0;
+      for (const item of scorecard.scorecardResultList) {
+        for (const check of (item.checkResultList || [])) {
+          total++;
+          if (check.checkStatus === "P") passed++;
+        }
+      }
+      if (total > 0) computedScore = Number(((passed / total) * 100).toFixed(2));
+    }
+
+    // ✅ SAFE WRITE: Save EVERYTHING the phone posts into staging rows, keeping updates cohesive
     const result = await client.query(
-      `INSERT INTO banka."Journey"
-         (journey_id, cust_id, application_date, approval_date, scorecard_result, scorecard)
-       VALUES ($1, $2, NOW(), NOW(), $3, $4)
+      `INSERT INTO banka."Ekyc_Staging_Session" 
+         (journey_id, status, step, id_type, id_num, scorecard, scorecard_result, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
        ON CONFLICT (journey_id) DO UPDATE SET
+         status           = EXCLUDED.status,
+         step             = COALESCE(EXCLUDED.step, banka."Ekyc_Staging_Session".step),
+         id_type          = COALESCE(EXCLUDED.id_type, banka."Ekyc_Staging_Session".id_type),
+         id_num           = COALESCE(EXCLUDED.id_num, banka."Ekyc_Staging_Session".id_num),
+         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Ekyc_Staging_Session".scorecard),
          scorecard_result = EXCLUDED.scorecard_result,
-         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Journey".scorecard)
+         updated_at       = NOW()
        RETURNING *`,
       [
         journeyId,
-        custId || 1, // Fallback integer placeholder to preserve database foreign key safety rules
-        scorecardResult || 0.0,
+        status,
+        step || null,
+        id_type || null,
+        id_num || null,
         scorecard ? JSON.stringify(scorecard) : null,
+        computedScore
       ]
     );
 
-    const row = result.rows[0];
-    console.log("SAVING JOURNEY LIFECYCLE STATE SUCCESS:", row.journey_id);
+    console.log("MOBILE STAGING PERSISTENCE SUCCESS:", result.rows[0].journey_id);
 
     return NextResponse.json({
       success: true,
-      journey_id: row.journey_id,
-      scorecard: row.scorecard,
-      scorecard_result: row.scorecard_result
+      status: result.rows[0].status,
+      step: result.rows[0].step
     });
   } catch (error: any) {
     console.error("Ekyc status POST transaction failure:", error?.message || error);
