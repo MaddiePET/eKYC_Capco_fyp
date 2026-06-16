@@ -17,7 +17,6 @@ function initializeJPN() {
     } else {
       let serviceAccount;
 
-      // Try to read from environment variable first (for Vercel/production)
       if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
         try {
           const decoded = Buffer.from(process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64, "base64").toString("utf8");

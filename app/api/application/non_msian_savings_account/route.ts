@@ -7,7 +7,6 @@ export const runtime = "nodejs";
 
 function generateAccountNumber() {
   let accountNo = "";
-
   for (let i = 0; i < 16; i++) {
     accountNo += Math.floor(Math.random() * 10).toString();
   }
@@ -16,6 +15,15 @@ function generateAccountNumber() {
 
 function enc(value: any) {
   return value ? encrypt(String(value), "banka") : null;
+}
+
+function getBaseUrl(req: Request): string {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  const origin = req.headers.get("origin");
+  if (origin) return origin;
+  return "http://localhost:3000";
 }
 
 export async function POST(req: Request) {
@@ -65,15 +73,24 @@ export async function POST(req: Request) {
 
     const normalizedPassportNum = customerPassportNum.replace(/\s/g, "").toUpperCase().trim();
 
-    const statusUrl = `${req.headers.get("origin") || "http://localhost:3000"}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`;
+    // ─── FIX 1 applied here ────────────────────────────────────────────────
+    const baseUrl = getBaseUrl(req);
+    const statusUrl = `${baseUrl}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`;
     console.log("[non_msian_savings_account] Fetching eKYC status from:", statusUrl);
 
     let statusRes;
     try {
-      statusRes = await fetch(statusUrl);
+      // ─── FIX 2: add a timeout so a hung eKYC call fails fast ─────────────
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s
+      statusRes = await fetch(statusUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
     } catch (fetchErr: any) {
-      console.error("[non_msian_savings_account] eKYC status fetch error:", fetchErr?.message || fetchErr);
-      throw new Error("Failed to fetch eKYC status (network error)");
+      const msg = fetchErr?.name === "AbortError"
+        ? "eKYC status request timed out after 10 seconds"
+        : `Failed to fetch eKYC status: ${fetchErr?.message || fetchErr}`;
+      console.error("[non_msian_savings_account] eKYC fetch error:", msg);
+      throw new Error(msg);
     }
 
     console.log("[non_msian_savings_account] eKYC status HTTP:", statusRes.status);
@@ -85,8 +102,8 @@ export async function POST(req: Request) {
       } catch (e) {
         text = "<unreadable response body>";
       }
-      console.error("[non_msian_savings_account] eKYC status non-ok response:", statusRes.status, text.substring(0, 100));
-      throw new Error("Failed to fetch eKYC status");
+      console.error("[non_msian_savings_account] eKYC status non-ok response:", statusRes.status, text.substring(0, 200));
+      throw new Error(`eKYC status returned HTTP ${statusRes.status}: ${text.substring(0, 100)}`);
     }
 
     const statusData = await statusRes.json();
@@ -102,7 +119,7 @@ export async function POST(req: Request) {
       for (const check of checks) {
         totalChecks++;
         if (check.checkStatus === "P") {
-         passedChecks++;
+          passedChecks++;
         }
       }
     }
@@ -118,9 +135,9 @@ export async function POST(req: Request) {
     const SCORECARD_PASS_THRESHOLD = 70;
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
-    
+
     console.log("EKYC STATUS DATA:", statusData);
-    
+
     if (
       statusData.status !== "face_verified" ||
       !["passport", "international_passport"].includes(statusIdType) ||
@@ -135,9 +152,9 @@ export async function POST(req: Request) {
     if (scorecardResult < SCORECARD_PASS_THRESHOLD) {
       return NextResponse.json(
         {
-           error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
-           scorecardResult,
-           threshold: SCORECARD_PASS_THRESHOLD,
+          error: `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`,
+          scorecardResult,
+          threshold: SCORECARD_PASS_THRESHOLD,
         },
         { status: 403 }
       );
@@ -217,13 +234,7 @@ export async function POST(req: Request) {
 
       const mailingAddressResult = await client.query(
         `
-        INSERT INTO banka."Address" (
-          add_1, 
-          add_2, 
-          postcode, 
-          state, 
-          country
-        )
+        INSERT INTO banka."Address" (add_1, add_2, postcode, state, country)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING add_id
         `,
@@ -245,7 +256,7 @@ export async function POST(req: Request) {
       WHERE id_num_hash = $1
       `,
       [idNumHash]
-    ) ;
+    );
 
     let custId: number;
 
@@ -312,10 +323,10 @@ export async function POST(req: Request) {
       await client.query(
         `
         INSERT INTO banka."Non_msian_details" (
-          cust_id, 
-          pp_issue_office, 
-          pp_issue_date, 
-          pp_exp_date, 
+          cust_id,
+          pp_issue_office,
+          pp_issue_date,
+          pp_exp_date,
           home_add_id
         )
         VALUES ($1, $2, $3, $4, $5)
@@ -330,7 +341,7 @@ export async function POST(req: Request) {
           nonMsianDetails.pp_issue_office || null,
           nonMsianDetails.pp_issue_date || null,
           nonMsianDetails.pp_exp_date || null,
-          homeAddId
+          homeAddId,
         ]
       );
     }
@@ -338,28 +349,20 @@ export async function POST(req: Request) {
     if (supportingDocs && supportingDocs.length > 0) {
       for (const doc of supportingDocs) {
         let docBuffer = null;
-        
+
         if (doc.doc_file) {
-          const base64Data = doc.doc_file.includes(',') 
-            ? doc.doc_file.split(',')[1] 
+          const base64Data = doc.doc_file.includes(",")
+            ? doc.doc_file.split(",")[1]
             : doc.doc_file;
           docBuffer = Buffer.from(base64Data, "base64");
         }
 
         await client.query(
           `
-          INSERT INTO banka."Non_msian_supporting_docs" (
-            cust_id, 
-            doc_name, 
-            doc_file
-          )
+          INSERT INTO banka."Non_msian_supporting_docs" (cust_id, doc_name, doc_file)
           VALUES ($1, $2, $3)
           `,
-          [
-            custId,
-            doc.doc_name || 'Untitled Document',
-            docBuffer
-          ]
+          [custId, doc.doc_name || "Untitled Document", docBuffer]
         );
       }
     }
@@ -372,6 +375,7 @@ export async function POST(req: Request) {
     );
 
     if (usernameCheck.rows.length > 0) {
+      await client.query("ROLLBACK");
       return NextResponse.json(
         { error: "This username is already taken. Please choose another." },
         { status: 400 }
@@ -380,26 +384,17 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hashPassword(cleanUser.password);
 
+    // ─── FIX 3: store null instead of an empty Buffer for missing images ───
     let profileBuffer: Buffer | null = null;
-    
     if (user.img) {
       profileBuffer = user.img.startsWith("data:image")
         ? Buffer.from(user.img.split(",")[1], "base64")
-        : Buffer.from(user.img);
-    } else {
-      profileBuffer = Buffer.alloc(0);
+        : Buffer.from(user.img, "base64");
     }
 
     const userResult = await client.query(
       `
-      INSERT INTO banka."User" (
-        cust_id, 
-        username, 
-        password, 
-        img, 
-        sec_phrase, 
-        branch
-      )
+      INSERT INTO banka."User" (cust_id, username, password, img, sec_phrase, branch)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING user_id
       `,
@@ -430,12 +425,12 @@ export async function POST(req: Request) {
     const savingsResult = await client.query(
       `
       INSERT INTO banka."Savings_account" (
-        account_no, 
-        user_id, 
-        occupation, 
-        monthly_income, 
-        income_source, 
-        employment_type, 
+        account_no,
+        user_id,
+        occupation,
+        monthly_income,
+        income_source,
+        employment_type,
         is18
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -451,7 +446,7 @@ export async function POST(req: Request) {
         cleanSavings.is18,
       ]
     );
-        
+
     await client.query(
       `
       INSERT INTO banka."Journey" (
@@ -464,11 +459,7 @@ export async function POST(req: Request) {
       VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
       ON CONFLICT (journey_id) DO NOTHING
       `,
-      [
-        journeyId,
-        custId,
-        scorecardResult,
-      ]
+      [journeyId, custId, scorecardResult]
     );
 
     await client.query("COMMIT");
@@ -495,7 +486,6 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-    
   } catch (error: any) {
     console.error("Non-Malaysian savings account error:", error);
 
