@@ -565,7 +565,7 @@ export default function CurrentMalaysianOTP() {
                   </Label>
 
                   <div className="flex mt-2">
-                    <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-90/90 dark:border-[#5c6185]/20">
+                    <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
                       <img
                         src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg"
                         alt="MY"

@@ -235,7 +235,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
                   : isProcessing
                   ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
@@ -292,6 +292,16 @@ export default function SavingsNonMalaysianPassportQRCode() {
                 <div className="w-[220px] h-[220px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
               )}
             </div>
+
+            {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
+              <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
+                </span>
+                Waiting for Passport scan...
+              </div>
+            )}
           </div>
         </section>
 

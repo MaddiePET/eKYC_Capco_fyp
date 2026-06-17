@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from "@/lib/supabaseClient";
 
-function CurrentMalaysianMobileMyKadCapture() {
+export default function CurrentMalaysianMobileMyKadCapture() {
   const MAX_ATTEMPTS = 3;
 
   const router = useRouter();
@@ -58,28 +58,6 @@ function CurrentMalaysianMobileMyKadCapture() {
     }
   }, [journeyId]);
 
-  const detectImageFormat = (base64: string): "PNG" | "JPG" => {
-    // Decode first 4 bytes to check magic numbers
-    const binaryStr = atob(base64.slice(0, 8));
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-    
-    // PNG: starts with 89 50 4E 47
-    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-      return "PNG";
-    }
-    
-    // JPG: starts with FF D8 FF
-    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
-      return "JPG";
-    }
-    
-    // Default to JPG if cannot detect
-    return "JPG";
-  };
-
   function extractMyKadNumber(okayIdResult: any) {
     const extractedNumber =
       okayIdResult?.extracted?.passport_no ||
@@ -106,7 +84,15 @@ function CurrentMalaysianMobileMyKadCapture() {
     setErrorMessage(null);
 
     try {
-      console.log("Step 2: Processing front image OCR over lightweight string pointers...");
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "processing",
+        }),
+      });
+
       const frontIdRes = await fetch("/api/ekyc/okayid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,12 +103,10 @@ function CurrentMalaysianMobileMyKadCapture() {
       });
 
       const frontIdData = await frontIdRes.json();
-      console.log("Okayid front response:", JSON.stringify(frontIdData, null, 2));
       if (frontIdData.status !== "success") {
         throw new Error(frontIdData.message || "unrecognized");
       }
 
-      console.log("Step 3: Processing face card quality alignment verification...");
       const frontDocRes = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,12 +119,10 @@ function CurrentMalaysianMobileMyKadCapture() {
       });
 
       const frontDocData = await frontDocRes.json();
-      console.log("Okaydoc front response:", JSON.stringify(frontDocData, null, 2));
       if (frontDocData.status !== "success") {
         throw new Error(frontDocData.message || "not meeting quality standards");
       }
 
-      console.log("Step 4: Running matching quality assessments over back card orientation...");
       const backDocRes = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -153,15 +135,12 @@ function CurrentMalaysianMobileMyKadCapture() {
       });
 
       const backDocData = await backDocRes.json();
-      console.log("Okaydoc back response:", JSON.stringify(backDocData, null, 2));
 
       if (backDocData.status !== "success") {
         throw new Error(backDocData.message || "not meeting quality standards");
       }
 
       const icNo = extractMyKadNumber(frontIdData);
-
-      console.log("Extracted IC number:", icNo);
 
       if (!icNo) {
         throw new Error("IC number could not be extracted");
@@ -170,7 +149,6 @@ function CurrentMalaysianMobileMyKadCapture() {
       const identityRes = await fetch(
         `/api/identity/lookup?id_type=ic&id_num=${encodeURIComponent(icNo)}`
       );
-
       const identityData = await identityRes.json();
 
       if (!identityRes.ok || !identityData.success) {
@@ -187,7 +165,6 @@ function CurrentMalaysianMobileMyKadCapture() {
 
       if (accountCheckRes.status === 409) {
         const checkData = await accountCheckRes.json();
-        
         setIsDuplicate(true);
         setDuplicateMessage(checkData.error || "You already have an existing current account with this MyKad.");
 
@@ -212,9 +189,7 @@ function CurrentMalaysianMobileMyKadCapture() {
 
       await fetch("/api/ekyc/status", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           status: "verified",
@@ -223,6 +198,7 @@ function CurrentMalaysianMobileMyKadCapture() {
         }),
       });
 
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setSuccess(true);
 
     } catch (error: any) {
@@ -233,23 +209,18 @@ function CurrentMalaysianMobileMyKadCapture() {
       const reason = error.message.toLowerCase();
 
       if (remaining > 0) {
-        setErrorMessage(
-          `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? 's' : ''} left.`
-        );
-      } else {
-        setErrorMessage(
-          `Too many failed attempts. Please refer to your desktop screen.`
-        );
-        
+        setErrorMessage(`Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? 's' : ''} left.`);
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
-          body: JSON.stringify({ 
-            journeyId, 
-            status: "failed" 
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "failed_attempt" })
+        });
+      } else {
+        setErrorMessage(`Too many failed attempts. Please refer to your desktop screen.`);
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "failed" })
         });
       }
 
@@ -280,7 +251,6 @@ function CurrentMalaysianMobileMyKadCapture() {
     try {
       setUploadingSide(type);
       setIsLoading(true);
-      console.log(`Step 1: Uploading current_${type}_mykad directly to Supabase storage bucket...`);
       
       const fileExtension = file.name.split(".").pop();
       const fileName = `current_${type}_mykad_${journeyId}_${Date.now()}.${fileExtension}`;
@@ -421,8 +391,22 @@ function CurrentMalaysianMobileMyKadCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
                 {errorMessage}
+              </div>
+            )}
+
+            {(frontImage || backImage) && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">
+                  {frontImage && backImage ? "MyKad Images Received" : "MyKad Photo Captured"}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  {frontImage && backImage 
+                    ? "Your MyKad images are being verified. This may take a few moments. Please do not close this window."
+                    : "Please capture the remaining side to begin verification."
+                  }
+                </p>
               </div>
             )}
 
@@ -455,15 +439,17 @@ function CurrentMalaysianMobileMyKadCapture() {
                 }`}
               >
                 <span className="font-semibold text-sm">
-                  {uploadingSide === 'front'
-                    ? 'Uploading front photo...'
+                  {isLoading && frontImage && backImage 
+                    ? "Verifying..." 
+                    : uploadingSide === 'front'
+                    ? "Uploading..."
                     : frontImage
-                    ? 'Front photo uploaded'
+                    ? "Uploaded"
                     : failCount > 0 && failCount < MAX_ATTEMPTS
-                    ? 'Try Again (Front)'
-                    : 'Capture Front'}
+                    ? "Try Again (Front)"
+                    : "Capture Front"}
                 </span>
-                {isLoading && frontImage && backImage ? (
+                {uploadingSide === 'front' || (isLoading && frontImage && backImage) ? (
                   <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
                 ) : (
                   <svg 
@@ -499,19 +485,21 @@ function CurrentMalaysianMobileMyKadCapture() {
                 }`}
               >
                 <span className="font-semibold text-sm">
-                  {uploadingSide === 'back'
-                    ? 'Uploading back photo...'
+                  {isLoading && frontImage && backImage 
+                    ? "Verifying..." 
+                    : uploadingSide === 'back'
+                    ? "Uploading..."
                     : backImage
-                    ? 'Back photo uploaded'
+                    ? "Uploaded"
                     : failCount > 0 && failCount < MAX_ATTEMPTS
-                    ? 'Try Again (Back)'
-                    : 'Capture Back'}
+                    ? "Try Again (Back)"
+                    : "Capture Back"}
                 </span>
-                {isLoading && frontImage && backImage ? (
+                {uploadingSide === 'back' || (isLoading && frontImage && backImage) ? (
                   <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
                 ) : (
                   <svg 
-                    className={`w-6 h-6 ${frontImage ? 'text-[#3D405B]' : 'text-[#3D405B] dark:text-gray-300'}`} 
+                    className={`w-6 h-6 ${backImage ? 'text-[#3D405B]' : 'text-[#3D405B] dark:text-gray-300'}`} 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -532,13 +520,6 @@ function CurrentMalaysianMobileMyKadCapture() {
                 )}
               </button>
             </div>
-
-            {frontImage && backImage && !success && !errorMessage && (
-              <div className="mt-4 w-full max-w-xs rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm">
-                <p className="text-sm font-semibold">Both MyKad photos are uploaded successfully.</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800">Verification is in progress. Please keep this page open until the scan completes.</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -592,19 +573,5 @@ function CurrentMalaysianMobileMyKadCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function CurrentMalaysianMobileMyKadCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <CurrentMalaysianMobileMyKadCapture />
-    </React.Suspense>
   );
 }

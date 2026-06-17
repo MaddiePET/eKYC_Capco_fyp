@@ -19,7 +19,7 @@ export default function SavingsMalaysianFaceQRCode() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [verificationError, setVerificationError] = useState("");
 
-  const SCORECARD_PASS_THRESHOLD = 50;
+  const SCORECARD_PASS_THRESHOLD = 70;
 
   const calculateScorecardResult = (scorecard: any) => {
     const scorecardLists = scorecard?.scorecardResultList || [];
@@ -228,7 +228,7 @@ export default function SavingsMalaysianFaceQRCode() {
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
                   : isProcessing
                   ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
@@ -249,7 +249,7 @@ export default function SavingsMalaysianFaceQRCode() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                       <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
                       <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
-                        Face Photo Received
+                        Face Image Received
                       </span>
                       <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
                         Your face image is being verified. This may take a few moments. Please do not close this window.
@@ -283,6 +283,16 @@ export default function SavingsMalaysianFaceQRCode() {
                 <div className="w-[220px] h-[220px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
               )}
             </div>
+
+            {!isVerified && !isFailed && !isProcessing && (
+              <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
+                </span>
+                Waiting for Face scan...
+              </div>
+            )}
           </div>
         </section>
 

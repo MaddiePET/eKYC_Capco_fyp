@@ -14,6 +14,7 @@ export default function CurrentMalaysianMyKadQRCode() {
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
@@ -75,23 +76,21 @@ export default function CurrentMalaysianMyKadQRCode() {
       try {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
         
-        // 1. Get the response as raw text first instead of parsing JSON blindly
         const rawText = await res.text();
 
-        // 2. Safely catch empty or incomplete responses during data writes
         if (!rawText || rawText.trim() === "") {
-          console.log("Status check received empty text content, skipping interval turn...");
           return;
         }
 
-        // 3. Securely parse the verified JSON data string
         const data = JSON.parse(rawText);
 
-        if (data.status === "verified") {
+        if (data.status === "processing") {
+          setIsProcessing(true);
+        } else if (data.status === "verified") {
+          setIsProcessing(false);
           const detectedIdNum = data.id_num;
 
           if (!detectedIdNum) {
-            console.error("MyKad number missing from verified eKYC status.");
             setIsFailed(true);
             clearInterval(checkStatus);
             return;
@@ -107,20 +106,23 @@ export default function CurrentMalaysianMyKadQRCode() {
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "duplicate") {
+          setIsProcessing(false);
           const detectedIdNum = data.id_num;
           if (detectedIdNum) {
             await checkExistingCurrentAccount(detectedIdNum);
           }
           clearInterval(checkStatus);
         } else if (data.status === "failed") {
+          setIsProcessing(false);
           setIsFailed(true);
           clearInterval(checkStatus);
+        } else if (data.status === "failed_attempt") {
+          setIsProcessing(false);
         }
       } catch (error) {
-        // 4. Mute noisy network disconnect blips so they don't crash your browser state
         console.warn("Verification status polling skipped a turn due to a temporary network collision.");
       }
-    }, 3000);
+    }, 500);
 
     return () => clearInterval(checkStatus);
   }, []);
@@ -273,7 +275,9 @@ export default function CurrentMalaysianMyKadQRCode() {
             <div
               className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                  : isProcessing
+                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -284,11 +288,23 @@ export default function CurrentMalaysianMyKadQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed || duplicateAccountPopup
-                        ? "opacity-30 blur-sm"
+                      isVerified || isFailed || duplicateAccountPopup || isProcessing
+                        ? "opacity-20 blur-md"
                         : "opacity-100"
                     }`}
                   />
+
+                  {isProcessing && !isVerified && !isFailed && !duplicateAccountPopup && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                        MyKad Images Received
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                        Your MyKad images are being verified. This may take a few moments. Please do not close this window.
+                      </span>
+                    </div>
+                  )}
 
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -317,7 +333,7 @@ export default function CurrentMalaysianMyKadQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && !duplicateAccountPopup && (
+            {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />

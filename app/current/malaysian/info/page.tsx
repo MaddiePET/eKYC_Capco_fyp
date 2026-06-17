@@ -48,11 +48,6 @@ export default function CurrentMalaysianInfo() {
     (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
     "";
 
-  console.log("INFO PAGE LOADED");
-  console.log("mode:", mode);
-  console.log("custIdFromParams:", custIdFromParams);
-  console.log("idNumFromParams:", idNumFromParams);
-  
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const formatDateForFields = (value: unknown) => {
@@ -166,8 +161,6 @@ export default function CurrentMalaysianInfo() {
           ? `/api/customer/lookup?cust_id=${encodeURIComponent(custIdFromParams)}`
           : `/api/customer/lookup?id_num=${encodeURIComponent(idNumFromParams)}`;
 
-        console.log("INFO PAGE MODE:", mode);
-        console.log("INFO PAGE CUSTOMER LOOKUP URL:", lookupUrl);
         const res = await fetch(lookupUrl);
         const data = await res.json();
 

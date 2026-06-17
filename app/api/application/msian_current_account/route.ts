@@ -47,9 +47,6 @@ export async function POST(req: Request) {
     const applicationMode = data.applicationMode || data.mode || data.application_mode || data.flow || "new_user";
     const isAddAccountFlow = applicationMode === "existing_customer" || applicationMode === "add_account";
 
-    console.log("DEBUG applicationMode:", applicationMode);
-    console.log("DEBUG isAddAccountFlow:", isAddAccountFlow);
-
     const personalInfo = data.personalInfo || {};
     const contactInfo = data.contactInfo || {};
     const businessContact = data.businessContact || {};
@@ -96,8 +93,6 @@ export async function POST(req: Request) {
       );
 
       const statusData = await statusRes.json();
-
-      console.log("DEBUG business statusData:", statusData);
 
       const statusIdType = statusData.id_type?.toLowerCase();
       const statusIdNum = statusData.id_num?.replace(/-/g, "").trim().toUpperCase();
@@ -154,8 +149,6 @@ export async function POST(req: Request) {
           { status: 403}
         );
       }
-
-      console.log("DEBUG business scorecardResult:", scorecardResult);
     }
 
     await client.query("BEGIN");
@@ -199,10 +192,6 @@ export async function POST(req: Request) {
     if (existingCustomerCheck.rows.length > 0) {
       custId = existingCustomerCheck.rows[0].cust_id;
       homeAddId = existingCustomerCheck.rows[0].home_add;
-
-      console.log(
-        `[CURRENT ACCOUNT] Existing customer found. Reusing existing Customer only. cust_id: ${custId}, home_add: ${homeAddId}`
-      );
     } else {
       const personalAddress = {
         add_1:
@@ -658,11 +647,6 @@ export async function POST(req: Request) {
     );
   } catch (error: any) {
     await client.query("ROLLBACK");
-
-    console.error(
-      "Malaysian current account deployment exception path hit:",
-      error
-    );
 
     return NextResponse.json(
       {
