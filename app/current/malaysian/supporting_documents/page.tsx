@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
+import { saveToStorage } from "@/lib/storage";
 
 interface DocEntry {
   id: number;
@@ -79,10 +80,14 @@ export default function CurrentMalaysianSupportingDocuments() {
   };
 
   const handleNext = () => {
+    const validDocuments = documents.filter((doc) => doc.name && doc.fileBase64);
+
     setFormData((prev: any) => ({
       ...prev,
-      supportingDocuments: documents,
+      supportingDocuments: validDocuments,
     }));
+
+    saveToStorage("supportingDocuments", validDocuments);
 
     router.push("/current/malaysian/account_creation");
   };
