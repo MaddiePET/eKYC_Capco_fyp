@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function SavingsNonMalaysianMobileFaceCapture() {
+export default function SavingsNonMalaysianMobileFaceCapture() {
   const MAX_ATTEMPTS = 10;
   const router = useRouter();
 
@@ -83,6 +83,15 @@ function SavingsNonMalaysianMobileFaceCapture() {
     setErrorMessage(null);
 
     try {
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "face_processing",
+        }),
+      });
+
       const fileExtension = selfieFile.name.split(".").pop();
       const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `selfies/${fileName}`;
@@ -186,6 +195,8 @@ function SavingsNonMalaysianMobileFaceCapture() {
           console.warn("Cleanup process returned non-ok status:", cleanupRes.status);
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         setSuccess(true);
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
@@ -201,6 +212,12 @@ function SavingsNonMalaysianMobileFaceCapture() {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "face_failed_attempt" }),
+        });
       } else {
         setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
@@ -351,11 +368,11 @@ function SavingsNonMalaysianMobileFaceCapture() {
               </div>
             )}
 
-            {faceImage && !success && !errorMessage && (
+            {isUploadingFace && !success && !errorMessage && (
               <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">Face Image Received</p>
                 <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
-                  Your face image is being processed. This may take a few moments.
+                  Your face image is being verified. This may take a few moments. Please do not close this window.
                 </p>
               </div>
             )}
@@ -463,19 +480,5 @@ function SavingsNonMalaysianMobileFaceCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function SavingsNonMalaysianMobileFaceCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <SavingsNonMalaysianMobileFaceCapture />
-    </React.Suspense>
   );
 }

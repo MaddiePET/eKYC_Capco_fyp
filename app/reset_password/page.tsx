@@ -389,13 +389,9 @@ export default function ResetPassword() {
                 </Label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  placeholder="Registered email"
+                  className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 cursor-not-allowed"
                   value={email}
                   readOnly
-                  onChange={(e) =>
-                    setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))
-                  }
                 />
               </div>
 

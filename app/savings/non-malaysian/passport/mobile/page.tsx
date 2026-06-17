@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function SavingsNonMalaysianMobilePassportCapture() {
+export default function SavingsNonMalaysianMobilePassportCapture() {
   const MAX_ATTEMPTS = 3;
   const router = useRouter();
 
@@ -59,6 +59,15 @@ function SavingsNonMalaysianMobilePassportCapture() {
     setErrorMessage(null);
 
     try {
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "processing",
+        }),
+      });
+
       const fileExtension = file.name.split(".").pop();
       const fileName = `passport_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `passports/${fileName}`;
@@ -171,6 +180,8 @@ function SavingsNonMalaysianMobilePassportCapture() {
           id_num: passportNo,
         }),
       });
+      
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setSuccess(true);
     } catch (error: any) {
@@ -183,6 +194,14 @@ function SavingsNonMalaysianMobilePassportCapture() {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            status: "failed_attempt",
+          }),
+        });
       } else {
         setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
@@ -324,11 +343,11 @@ function SavingsNonMalaysianMobilePassportCapture() {
               </div>
             )}
 
-            {passportImage && !success && !errorMessage && (
+            {isUploadingPassport && !success && !errorMessage && (
               <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
-                <p className="text-sm font-semibold text-center">Passport Photo Received</p>
+                <p className="text-sm font-semibold text-center">Passport Image Received</p>
                 <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
-                  Your Passport image is being processed. This may take a few moments.
+                  Your Passport image is being verified. This may take a few moments. Please do not close this window.
                 </p>
               </div>
             )}
@@ -437,19 +456,5 @@ function SavingsNonMalaysianMobilePassportCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function SavingsNonMalaysianMobilePassportCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <SavingsNonMalaysianMobilePassportCapture />
-    </React.Suspense>
   );
 }

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from "@/lib/supabaseClient";
 
-function SavingsMalaysianMobileMyKadCapture() {
+export default function SavingsMalaysianMobileMyKadCapture() {
   const MAX_ATTEMPTS = 3;
   const router = useRouter();
 
@@ -57,24 +57,6 @@ function SavingsMalaysianMobileMyKadCapture() {
     }
   }, [journeyId]);
 
-  const detectImageFormat = (base64: string): "PNG" | "JPG" => {
-    const binaryStr = atob(base64.slice(0, 8));
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-    
-    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-      return "PNG";
-    }
-    
-    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
-      return "JPG";
-    }
-    
-    return "JPG";
-  };
-
   function extractMyKadNumber(okayIdResult: any) {
     const extractedNumber =
       okayIdResult?.extracted?.passport_no ||
@@ -99,6 +81,15 @@ function SavingsMalaysianMobileMyKadCapture() {
     setErrorMessage(null);
 
     try {
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "processing",
+        }),
+      });
+
       const frontIdRes = await fetch("/api/ekyc/okayid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -172,7 +163,7 @@ function SavingsMalaysianMobileMyKadCapture() {
           await fetch("/api/ekyc/status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ journeyId, status: "verified", id_type: "ic", id_num: icNo }),
+            body: JSON.stringify({ journeyId, status: "duplicate", id_type: "ic", id_num: icNo }),
           });
         }
 
@@ -195,6 +186,8 @@ function SavingsMalaysianMobileMyKadCapture() {
         }),
       });
 
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       setSuccess(true);
 
     } catch (error: any) {
@@ -206,6 +199,11 @@ function SavingsMalaysianMobileMyKadCapture() {
 
       if (remaining > 0) {
         setErrorMessage(`Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? 's' : ''} left.`);
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "failed_attempt" })
+        });
       } else {
         setErrorMessage(`Too many failed attempts. Please refer to your desktop screen.`);
         await fetch("/api/ekyc/status", {
@@ -386,11 +384,11 @@ function SavingsMalaysianMobileMyKadCapture() {
             {(frontImage || backImage) && !success && !errorMessage && (
               <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">
-                  {frontImage && backImage ? "MyKad Photos Received" : "MyKad Photo Captured"}
+                  {frontImage && backImage ? "MyKad Images Received" : "MyKad Photo Captured"}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
                   {frontImage && backImage 
-                    ? "Your MyKad images are being processed. This may take a few moments."
+                    ? "Your MyKad images are being verified. This may take a few moments. Please do not close this window."
                     : "Please capture the remaining side to begin verification."
                   }
                 </p>
@@ -559,19 +557,5 @@ function SavingsMalaysianMobileMyKadCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function SavingsMalaysianMobileMyKadCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <SavingsMalaysianMobileMyKadCapture />
-    </React.Suspense>
   );
 }

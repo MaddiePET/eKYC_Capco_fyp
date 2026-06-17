@@ -607,11 +607,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
           onMouseLeave={() => setIsHovered(false)}
         >
           <div
-            className={`py-8 flex items-center justify-between ${
+            className={`py-8 gap-3 flex items-center justify-between ${
               !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
             }`}
           >
-           
             <Image 
               src="/images/logo/logo-light.svg" 
               alt="Logo" 
