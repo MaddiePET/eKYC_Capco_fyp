@@ -54,9 +54,7 @@ async function uploadJPN() {
     const citizens: JpnCitizen[] = jpnSchema.jpn_citizens;
     const templates: JpnTemplate[] = jpnSchema.face_templates;
 
-    console.log(
-      `Found ${citizens.length} citizens and ${templates.length} templates.`
-    );
+    console.log(`Found ${citizens.length} citizens and ${templates.length} templates.`);
 
     const batch = db.batch();
 
@@ -68,12 +66,10 @@ async function uploadJPN() {
 
       const normalizedIc = citizen.ic_number.replace(/-/g, "").trim();
       const lookupHash = hashLookup(normalizedIc);
-
       const docRef = db.collection("jpn_citizens").doc(lookupHash);
 
       batch.set(docRef, {
         lookup_hash: lookupHash,
-
         ic_number: encrypt(normalizedIc, "jpn"),
         full_name: encrypt(citizen.full_name || "", "jpn"),
         date_of_birth: encrypt(citizen.date_of_birth || "", "jpn"),
@@ -111,9 +107,7 @@ async function uploadJPN() {
 
     await batch.commit();
 
-    console.log(
-      "Success! JPN data uploaded with hashed document ID, lookup_hash, and encrypted fields."
-    );
+    console.log("Success! JPN data uploaded with hashed document ID, lookup_hash, and encrypted fields.");
   } catch (error) {
     console.error("JPN migration failed:", error);
     process.exit(1);

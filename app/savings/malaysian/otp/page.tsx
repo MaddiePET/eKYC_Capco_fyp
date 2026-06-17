@@ -312,7 +312,6 @@ export default function SavingsMalaysianOTP() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -454,11 +453,7 @@ export default function SavingsMalaysianOTP() {
               <button 
                 type="submit" 
                 disabled={isLoading || !email} 
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  isLoading || !email
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
-                }`}
+                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 {isLoading ? "Sending Code..." : "Send Code"}
               </button>
@@ -637,71 +632,36 @@ export default function SavingsMalaysianOTP() {
           </div>
         )}
 
-        {step !== "option" && (
-          <div className="max-w-md mx-auto animate-in fade-in duration-500">
-            <div className="mt-5 text-center">
-              <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span> 
-                <Link 
-                  href="/contact_support" 
-                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                >
-                  Contact Support
-                </Link>
-              </p>
-            </div>
-
-            <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg 
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
+        <div className="max-w-md mx-auto animate-in fade-in duration-500">
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span> 
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
-              </p>
-            </div>
+                Contact Support
+              </Link>
+            </p>
           </div>
-        )}
-        
-        {step === "option" && (
-           <div className="max-w-md mx-auto animate-in fade-in duration-500">
-             <div className="mt-5 text-center">
-                <p className="text-sm font-normal">
-                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                  <Link 
-                    href="/contact_support" 
-                    className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                  >
-                    Contact Support
-                  </Link>
-                </p>
-              </div>
 
-              <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                <svg 
-                  className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                >
-                  <path 
-                    fillRule="evenodd" 
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
-                    clipRule="evenodd" 
-                  />
-                </svg>
-                <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                  Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
-                </p>
-              </div>
-           </div>
-        )}
+          <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <svg 
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
+              fill="currentColor" 
+              viewBox="0 0 20 20"
+            >
+              <path 
+                fillRule="evenodd" 
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                clipRule="evenodd"
+              />
+            </svg>
+            <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
+              Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+            </p>
+          </div>
+        </div>
       </div>
 
       <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">

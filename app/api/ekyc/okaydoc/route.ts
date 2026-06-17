@@ -9,7 +9,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing journeyId, type, or imageUrl" }, { status: 400 });
     }
 
-    console.log("Downloading image from Supabase for OkayDoc authentication...");
     const supabaseResponse = await fetch(imageUrl);
     if (!supabaseResponse.ok) {
       return NextResponse.json({ error: "Failed to download main target image from supabase" }, { status: 400 });
@@ -37,8 +36,6 @@ export async function POST(req: Request) {
         halfSizeImage: base64Image,
         fullSizeImage: finalFullSizeBase64
       };
-
-      console.log("OkayDoc passport verification - journeyId:", journeyId);
     } else if (isBack) {
       okaydocBody = {
         journeyId: journeyId,
@@ -47,8 +44,6 @@ export async function POST(req: Request) {
         version: "2",
         docType: "mykad_back"
       };
-
-      console.log("OkayDoc MyKad verification - journeyId:", journeyId);
     } else {
       okaydocBody = {
         journeyId: journeyId,
@@ -69,8 +64,6 @@ export async function POST(req: Request) {
         islamFieldTamperingDetection: "true",
         qualityCheckDetection: "true"
       };
-      
-      console.log("OkayDoc MyKad verification - journeyId:", journeyId);
     } 
 
     const okaydocResponse = await fetch(okaydocUrl, {
@@ -79,16 +72,11 @@ export async function POST(req: Request) {
       body: JSON.stringify(okaydocBody),
     });
 
-    console.log("OkayDoc response status:", okaydocResponse.status);
     const okaydocText = await okaydocResponse.text();
     let okaydocResult: Record<string, unknown> = {};
 
     try {
       okaydocResult = okaydocText ? JSON.parse(okaydocText) : {};
-      const okaydocStatus = typeof (okaydocResult as { status?: unknown }).status === "string"
-        ? (okaydocResult as { status?: string }).status
-        : undefined;
-      console.log("OkayDoc result - status:", okaydocStatus);
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
       console.error("Failed to parse OkayDoc response:", message);

@@ -36,8 +36,6 @@ export async function GET(req: Request) {
 
     const auth = Buffer.from(`${username}:${password}`).toString("base64");
 
-    console.log("Scorecard request URL:", scorecardUrl);
-
     const scorecardResponse = await fetch(scorecardUrl, {
       method: "GET",
       headers: {
@@ -46,19 +44,12 @@ export async function GET(req: Request) {
       },
     });
 
-    console.log("Scorecard response status:", scorecardResponse.status);
-
     const scorecardText = await scorecardResponse.text();
 
     let scorecardResult: Record<string, unknown> = {};
 
     try {
       scorecardResult = scorecardText ? JSON.parse(scorecardText) : {};
-
-      console.log(
-        "Scorecard full response:",
-        JSON.stringify(scorecardResult, null, 2)
-      );
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
 

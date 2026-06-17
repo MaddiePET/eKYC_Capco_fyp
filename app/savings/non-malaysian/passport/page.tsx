@@ -14,7 +14,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
   const [journeyId, setJourneyId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);  
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
@@ -24,9 +23,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id_num: idNum,
-      }),
+      body: JSON.stringify({ id_num: idNum }),
     });
 
     const result = await response.json();
@@ -50,7 +47,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
     const jId = localStorage.getItem("journeyId");
 
     if (!jId) {
-      console.error("Journey ID missing");
       return;
     }
     
@@ -63,12 +59,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/non-malaysian/passport/mobile?journeyId=${jId}`;
 
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not be reachable from your phone. Open the app from the tunnel URL and refresh."
-      );
-    }
-
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
@@ -79,8 +69,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
         if (data.status === "verified") {
           const detectedPassportNum = data.id_num;
 
-          if(!detectedPassportNum) {
-            console.error("Passport number missing from verified eKYC status. ");
+          if (!detectedPassportNum) {
             setIsFailed(true);
             clearInterval(checkStatus);
             return;
@@ -104,7 +93,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
           clearInterval(checkStatus);
         }
       } catch (error) {
-        console.error("Error checking verification status:", error);
+        console.error(error);
       }
     }, 3000);
 
@@ -139,8 +128,8 @@ export default function SavingsNonMalaysianPassportQRCode() {
               onClick={() => router.push("/login")}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
             >
-             Go to Login
-           </button>
+              Go to Login
+            </button>
           </div>
         </div>
       )}
@@ -246,12 +235,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
             Open your mobile phone camera and scan the QR code below to securely capture your Passport.
           </p>
         </div>
-
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
-            {hostWarning}
-          </div>
-        )}
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">

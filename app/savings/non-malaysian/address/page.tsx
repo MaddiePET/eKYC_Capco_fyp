@@ -30,6 +30,7 @@ interface AddressSectionProps {
     value: string
   ) => void;
   disabled?: boolean;
+  countryDisabled?: boolean;
   headerRight?: React.ReactNode;
 }
 
@@ -45,8 +46,7 @@ const AddressSection = ({
   disabled = false,
   countryDisabled = false,
   headerRight,
-}: AddressSectionProps & { countryDisabled?: boolean }) => {
-  
+}: AddressSectionProps) => {
   return (
     <div className="flex-1">
       <div className="flex justify-between items-end mb-6 border-b border-gray-200 dark:border-gray-800 pb-2">
@@ -167,7 +167,9 @@ const AddressSection = ({
 
             {countryDisabled ? (
               <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{addressData[type].country || "Malaysia"}</span>
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                  {addressData[type].country || "Malaysia"}
+                </span>
               </div>
             ) : (
               <div className="relative">
@@ -177,18 +179,14 @@ const AddressSection = ({
                   disabled={disabled}
                   onChange={(e) => updateField(type, "country", e.target.value)}
                 >
-                  <option 
-                    value="" 
-                    disabled
-                  >
+                  <option value="" disabled>
                     Select Country
                   </option>
-
-                  {COUNTRIES.map((c) => 
+                  {COUNTRIES.map((c) => (
                     <option key={c} value={c} className="text-gray-800 dark:text-white">
                       {c}
                     </option>
-                  )}
+                  ))}
                 </select>
 
                 <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -217,6 +215,7 @@ const AddressSection = ({
 
 export default function SavingsNonMalaysianAddress() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mounted, setMounted] = useState<boolean>(false);
   const [addressData, setAddressData] = useState<AddressState>({
@@ -237,8 +236,6 @@ export default function SavingsNonMalaysianAddress() {
       country: "",
     },
   });
-
-  const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
@@ -270,17 +267,13 @@ export default function SavingsNonMalaysianAddress() {
     field: keyof AddressFields,
     value: string
   ) => {
-    setAddressData((prev) => {
-      const newData = {
-        ...prev,
-        [type]: {
-          ...prev[type],
-          [field]: value,
-        },
-      };
-
-      return newData;
-    });
+    setAddressData((prev) => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        [field]: value,
+      },
+    }));
   };
 
   const saveAddressToLocalStorage = () => {
@@ -294,7 +287,6 @@ export default function SavingsNonMalaysianAddress() {
         state: addressData.permanentAddress.state,
         country: addressData.permanentAddress.country,
       },
-
       mailingAddress: {
         add_type: "Mailing",
         add_1: addressData.mailingAddress.streetAddress1,
@@ -306,10 +298,7 @@ export default function SavingsNonMalaysianAddress() {
       },
     };
 
-    localStorage.setItem(
-      "nonMsianAddress",
-      JSON.stringify(addressInfo)
-    );
+    localStorage.setItem("nonMsianAddress", JSON.stringify(addressInfo));
   };
 
   const handleNext = () => {
@@ -358,19 +347,14 @@ export default function SavingsNonMalaysianAddress() {
           type="button"
           onClick={() => { 
             saveAddressToLocalStorage();
-            router.push(
-              `/savings/non-malaysian/info?journeyId=${encodeURIComponent(journeyId)}`
-            );
+            router.push(`/savings/non-malaysian/info?journeyId=${encodeURIComponent(journeyId)}`);
           }}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo/logo-light.svg"
             alt="Logo"

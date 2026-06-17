@@ -8,16 +8,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 function SavingsNonMalaysianMobileFaceCapture() {
   const MAX_ATTEMPTS = 10;
-
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failCount, setFailCount] = useState(0);
-
   const [thresholdFailed, setThresholdFailed] = useState(false);
   const [thresholdMessage, setThresholdMessage] = useState("");
+
+  const [faceImage, setFaceImage] = useState<string | null>(null);
+  const [isUploadingFace, setIsUploadingFace] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
@@ -71,23 +72,22 @@ function SavingsNonMalaysianMobileFaceCapture() {
     const selfieFile = event.target.files?.[0];
     if (!selfieFile || !journeyId) return;
 
-    // Grab the stored Supabase link from the passport scanning segment
     const idCardUrl = localStorage.getItem("ekyc_id_image_url");
     if (!idCardUrl) {
       setErrorMessage("ID Document reference not found. Please rescan your Passport first.");
       return;
     }
 
+    setIsUploadingFace(true);
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      console.log("Step 1: Uploading live selfie directly to Supabase storage...");
       const fileExtension = selfieFile.name.split(".").pop();
       const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `selfies/${fileName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("identity-docs")
         .upload(filePath, selfieFile, {
           cacheControl: "3600",
@@ -96,12 +96,12 @@ function SavingsNonMalaysianMobileFaceCapture() {
 
       if (uploadError) throw uploadError;
 
-      // Extract selfie token path
       const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
         .from("identity-docs")
         .getPublicUrl(filePath);
 
-      console.log("Step 2: Triggering lightweight text URL parameters to verification engine...");
+      setFaceImage(selfiePublicUrl);
+
       const faceApiRes = await fetch("/api/ekyc/okayface", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,10 +113,8 @@ function SavingsNonMalaysianMobileFaceCapture() {
       });
 
       const faceResult = await faceApiRes.json();
-      console.log("OkayFace output:", faceResult);
 
       if (faceResult.status === "success") {
-        // Triggering liveness evaluations downstream matching original rules
         const liveApiRes = await fetch("/api/ekyc/okaylive", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -124,7 +122,7 @@ function SavingsNonMalaysianMobileFaceCapture() {
             journeyId,
             selfieUrl: selfiePublicUrl,
             idCardUrl,
-          }), 
+          }),
         });
 
         const liveResult = await liveApiRes.json();
@@ -137,7 +135,6 @@ function SavingsNonMalaysianMobileFaceCapture() {
           `/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`
         );
         const scorecardResult = await scorecardRes.json();
-        console.log("Scorecard result:", scorecardResult);
 
         if (!scorecardRes.ok || scorecardResult.status !== "success") {
           throw new Error(scorecardResult.error || "Scorecard check failed");
@@ -162,8 +159,8 @@ function SavingsNonMalaysianMobileFaceCapture() {
         await fetch("/api/ekyc/status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            journeyId, 
+          body: JSON.stringify({
+            journeyId,
             status: "face_verified",
             scorecard: scorecardResult,
           }),
@@ -171,8 +168,8 @@ function SavingsNonMalaysianMobileFaceCapture() {
 
         if (score === null || score < SCORECARD_PASS_THRESHOLD) {
           setThresholdMessage(
-            score === null 
-              ? "No scorecard checks were found. Please proceed to the desktop page." 
+            score === null
+              ? "No scorecard checks were found. Please proceed to the desktop page."
               : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
           );
           setThresholdFailed(true);
@@ -186,14 +183,15 @@ function SavingsNonMalaysianMobileFaceCapture() {
         });
 
         if (!cleanupRes.ok) {
-          console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
+          console.warn("Cleanup process returned non-ok status:", cleanupRes.status);
         }
-        
+
         setSuccess(true);
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
     } catch (error: any) {
+      setFaceImage(null);
       const newFailCount = failCount + 1;
       setFailCount(newFailCount);
       const remaining = MAX_ATTEMPTS - newFailCount;
@@ -218,6 +216,7 @@ function SavingsNonMalaysianMobileFaceCapture() {
       }
     } finally {
       setIsLoading(false);
+      setIsUploadingFace(false);
     }
   };
 
@@ -352,6 +351,15 @@ function SavingsNonMalaysianMobileFaceCapture() {
               </div>
             )}
 
+            {faceImage && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Face Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your face image is being processed. This may take a few moments.
+                </p>
+              </div>
+            )}
+
             <input
               type="file"
               accept="image/*"
@@ -370,7 +378,13 @@ function SavingsNonMalaysianMobileFaceCapture() {
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading ? "Verifying..." : failCount > 0 ? "Try Again" : "Open Camera"}
+                {isUploadingFace
+                  ? "Verifying"
+                  : faceImage
+                  ? "Verified"
+                  : failCount > 0
+                  ? "Try Again"
+                  : "Open Camera"}
               </span>
 
               {isLoading ? (

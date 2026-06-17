@@ -14,7 +14,6 @@ export default function SavingsMalaysianMyKadQRCode() {
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
@@ -24,9 +23,7 @@ export default function SavingsMalaysianMyKadQRCode() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id_num: idNum,
-      }),
+      body: JSON.stringify({ id_num: idNum }),
     });
 
     const result = await response.json();
@@ -62,13 +59,6 @@ export default function SavingsMalaysianMyKadQRCode() {
 
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/malaysian/mykad/mobile?journeyId=${jId}`;
-
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not be reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
-      );
-    }
-
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
@@ -128,7 +118,6 @@ export default function SavingsMalaysianMyKadQRCode() {
             <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
               !
             </div>
-
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Account Already Exists
             </h2>
@@ -164,7 +153,6 @@ export default function SavingsMalaysianMyKadQRCode() {
                 />
               </svg>
             </div>
-
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Too Many Attempts
             </h2>
@@ -222,10 +210,7 @@ export default function SavingsMalaysianMyKadQRCode() {
           <ChevronLeftIcon className="w-5 h-5" /> 
           Back
         </button>
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo/logo-light.svg"
             alt="Logo"
@@ -248,12 +233,6 @@ export default function SavingsMalaysianMyKadQRCode() {
             Open your mobile phone camera and scan the QR code below to securely capture your MyKad.
           </p>
         </div>
-
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
-            {hostWarning}
-          </div>
-        )}
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
@@ -293,7 +272,6 @@ export default function SavingsMalaysianMyKadQRCode() {
                           />
                         </svg>
                       </div>
-
                       <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}

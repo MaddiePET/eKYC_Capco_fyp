@@ -18,6 +18,9 @@ function SavingsMalaysianMobileFaceCapture() {
   const [thresholdFailed, setThresholdFailed] = useState(false);
   const [thresholdMessage, setThresholdMessage] = useState("");
 
+  const [faceImage, setFaceImage] = useState<string | null>(null);
+  const [isUploadingFace, setIsUploadingFace] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const journeyId = searchParams.get("journeyId") || "";
@@ -72,11 +75,11 @@ function SavingsMalaysianMobileFaceCapture() {
       return;
     }
 
+    setIsUploadingFace(true);
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      console.log("Step 1: Uploading local live selfie stream directly to Supabase sandbox...");
       const fileExtension = selfieFile.name.split(".").pop();
       const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `selfies/${fileName}`;
@@ -91,7 +94,8 @@ function SavingsMalaysianMobileFaceCapture() {
         .from("identity-docs")
         .getPublicUrl(filePath);
 
-      console.log("Step 2: Dispatched token URLs to backend facial evaluation routes...");
+      setFaceImage(selfiePublicUrl);
+
       const faceApiRes = await fetch("/api/ekyc/okayface", { 
         method: "POST", 
         headers: { "Content-Type": "application/json" },
@@ -123,7 +127,7 @@ function SavingsMalaysianMobileFaceCapture() {
           throw new Error(scorecardResult.error || "Scorecard check failed");
         }
 
-        const scorecardList = scorecardResult.scorecardResultList as any[] | undefined;
+        const scorecardList = scorecardResult.scorecardResultList as any[];
         const hasFailedFacialVerification = scorecardList?.some((item) =>
           item.checkResultList?.some(
             (check: any) => check.checkType === "facialVerification" && check.checkStatus === "F"
@@ -149,8 +153,8 @@ function SavingsMalaysianMobileFaceCapture() {
         if (score === null || score < SCORECARD_PASS_THRESHOLD) {
           setThresholdMessage(
             score === null 
-            ? "No scorecard checks were found. Please proceed to the desktop page." 
-            : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
+              ? "No scorecard checks were found. Please proceed to the desktop page." 
+              : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
           );
           setThresholdFailed(true);
           return;
@@ -167,11 +171,11 @@ function SavingsMalaysianMobileFaceCapture() {
         }
               
         setSuccess(true);
-
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
     } catch (error: any) {
+      setFaceImage(null);
       const newFailCount = failCount + 1;
       setFailCount(newFailCount);
       const remaining = MAX_ATTEMPTS - newFailCount;
@@ -190,6 +194,7 @@ function SavingsMalaysianMobileFaceCapture() {
       if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsLoading(false);
+      setIsUploadingFace(false);
     }
   };
 
@@ -277,8 +282,18 @@ function SavingsMalaysianMobileFaceCapture() {
         ) : success ? (
           <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              <svg 
+                className="w-10 h-10" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="3" 
+                  d="M5 13l4 4L19 7" 
+                />
               </svg>
             </div>
             <div className="mb-6 text-center">
@@ -311,24 +326,66 @@ function SavingsMalaysianMobileFaceCapture() {
                 {errorMessage}
               </div>
             )}
+
+            {faceImage && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Face Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your face image is being processed. This may take a few moments.
+                </p>
+              </div>
+            )}
             
-            <input type="file" accept="image/*" capture="user" ref={fileInputRef} onChange={handleCapture} className="hidden" />
+            <input 
+              type="file" 
+              accept="image/*" 
+              capture="user" 
+              ref={fileInputRef} 
+              onChange={handleCapture} 
+              className="hidden" 
+            />
             
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
+              disabled={isLoading || failCount >= MAX_ATTEMPTS}
               className={`w-full max-w-xs py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600 ${
-                isLoading ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed" : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
+                isLoading || failCount >= MAX_ATTEMPTS
+                  ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed" 
+                  : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading ? "Verifying..." : failCount > 0 ? "Try Again" : "Open Camera"}
+                {isUploadingFace
+                  ? "Verifying"
+                  : faceImage
+                  ? "Verified"
+                  : failCount > 0
+                  ? "Try Again"
+                  : "Open Camera"}
               </span>
 
               {isLoading ? (
                 <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
               ) : (
-                <svg className="w-6 h-6 text-[#3D405B] dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
+                <svg 
+                  className="w-6 h-6 text-[#3D405B] dark:text-gray-300" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="1.5" 
+                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" 
+                  />
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="1.5" 
+                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" 
+                  />
+                </svg>
               )}
             </button>
           </div>
@@ -338,7 +395,10 @@ function SavingsMalaysianMobileFaceCapture() {
           <div className="text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-              <Link href="/contact_support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              >
                 Contact Support
               </Link>
             </p>
@@ -346,7 +406,20 @@ function SavingsMalaysianMobileFaceCapture() {
 
           <div className="mt-6 space-y-4">
             <div className="p-4 rounded-xl flex gap-3 border transition-all backdrop-blur-sm bg-amber-50/80 border-amber-200 dark:bg-amber-900/20 dark:border-amber-500/40">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <svg 
+                className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                />
+              </svg>
+
               <div className="text-xs leading-relaxed text-amber-900 dark:text-amber-100">
                 <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">
                   Important Notice:
@@ -372,7 +445,13 @@ function SavingsMalaysianMobileFaceCapture() {
 
 export default function SavingsMalaysianMobileFaceCapturePage() {
   return (
-    <React.Suspense fallback={<div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950"><p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p></div>}>
+    <React.Suspense
+      fallback={
+        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
+          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      }
+    >
       <SavingsMalaysianMobileFaceCapture />
     </React.Suspense>
   );

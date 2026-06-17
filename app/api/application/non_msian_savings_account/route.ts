@@ -3,6 +3,7 @@ import { pool } from "@/lib/db";
 import { hashPassword } from "@/scripts/hashpw";
 import { encrypt, hashLookup } from "@/lib/cryptoSecurity";
 import { sendAccountConfirmationEmail } from "@/lib/sendAccountConfirmationEmail";
+
 export const runtime = "nodejs";
 
 function generateAccountNumber() {
@@ -31,9 +32,6 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-
-    console.log("=== RECEIVED PAYLOAD IN TERMINAL ===", JSON.stringify(body, null, 2));
-
     const {
       journeyId,
       customer,
@@ -44,9 +42,6 @@ export async function POST(req: Request) {
       nonMsianDetails,
       supportingDocs,
     } = body;
-
-    console.log("[non_msian_savings_account] journeyId:", journeyId);
-    console.log("[non_msian_savings_account] customer id present:", !!(customer && (customer.passport_num || customer.id_num || customer.ic_num)));
 
     if (!customer || !homeAddress || !user || !savingsAccount) {
       return NextResponse.json(
@@ -72,28 +67,21 @@ export async function POST(req: Request) {
     }
 
     const normalizedPassportNum = customerPassportNum.replace(/\s/g, "").toUpperCase().trim();
-
-    // ─── FIX 1 applied here ────────────────────────────────────────────────
     const baseUrl = getBaseUrl(req);
     const statusUrl = `${baseUrl}/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`;
-    console.log("[non_msian_savings_account] Fetching eKYC status from:", statusUrl);
 
     let statusRes;
     try {
-      // ─── FIX 2: add a timeout so a hung eKYC call fails fast ─────────────
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       statusRes = await fetch(statusUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
     } catch (fetchErr: any) {
       const msg = fetchErr?.name === "AbortError"
         ? "eKYC status request timed out after 10 seconds"
         : `Failed to fetch eKYC status: ${fetchErr?.message || fetchErr}`;
-      console.error("[non_msian_savings_account] eKYC fetch error:", msg);
       throw new Error(msg);
     }
-
-    console.log("[non_msian_savings_account] eKYC status HTTP:", statusRes.status);
 
     if (!statusRes.ok) {
       let text = "";
@@ -102,13 +90,10 @@ export async function POST(req: Request) {
       } catch (e) {
         text = "<unreadable response body>";
       }
-      console.error("[non_msian_savings_account] eKYC status non-ok response:", statusRes.status, text.substring(0, 200));
       throw new Error(`eKYC status returned HTTP ${statusRes.status}: ${text.substring(0, 100)}`);
     }
 
     const statusData = await statusRes.json();
-    console.log("[non_msian_savings_account] eKYC status keys:", Object.keys(statusData || {}));
-
     const scorecardLists = statusData.scorecard?.scorecardResultList || [];
 
     let totalChecks = 0;
@@ -135,8 +120,6 @@ export async function POST(req: Request) {
     const SCORECARD_PASS_THRESHOLD = 70;
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
-
-    console.log("EKYC STATUS DATA:", statusData);
 
     if (
       statusData.status !== "face_verified" ||
@@ -384,12 +367,15 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hashPassword(cleanUser.password);
 
-    // ─── FIX 3: store null instead of an empty Buffer for missing images ───
     let profileBuffer: Buffer | null = null;
     if (user.img) {
-      profileBuffer = user.img.startsWith("data:image")
-        ? Buffer.from(user.img.split(",")[1], "base64")
-        : Buffer.from(user.img, "base64");
+      if (user.img.startsWith("http")) {
+        profileBuffer = Buffer.from(user.img, "utf-8");
+      } else if (user.img.startsWith("data:image")) {
+        profileBuffer = Buffer.from(user.img.split(",")[1], "base64");
+      } else {
+        profileBuffer = Buffer.from(user.img, "base64");
+      }
     }
 
     const userResult = await client.query(

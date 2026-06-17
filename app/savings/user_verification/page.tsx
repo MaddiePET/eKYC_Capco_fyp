@@ -241,14 +241,14 @@ export default function SavingsUserVerification() {
         <div className="mt-6 w-full max-w-md mx-auto relative z-10">
           <button
             onClick={handleNext}
-            disabled={!selectedOption}
+            disabled={!selectedOption || isLoading}
             className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 ${
-              selectedOption
+              selectedOption && !isLoading
                 ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
             }`}
           >
-            Continue
+            {isLoading ? "Loading..." : "Continue"}
           </button>
 
           <div className="mt-5 text-center">

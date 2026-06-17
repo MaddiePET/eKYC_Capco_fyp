@@ -33,7 +33,6 @@ export default function SavingsNonMalaysianAccountCreation() {
 
   useEffect(() => {
     setMounted(true);
-
     const savedEmailData = localStorage.getItem("nonMsianEmail") || localStorage.getItem("contactInfo");
     
     if (savedEmailData) {
@@ -92,7 +91,6 @@ export default function SavingsNonMalaysianAccountCreation() {
       
       const nonMsianApplication = JSON.parse(localStorage.getItem("nonMsianApplication") || "{}");
       const savings_account = nonMsianApplication.savings_account || {};
-
       const supportingDocs = nonMsianApplication.non_msian_supporting_docs || [];
       
       const homeAddress = {
@@ -131,7 +129,6 @@ export default function SavingsNonMalaysianAccountCreation() {
           gender: personalInfo.non_msian_details?.gender || personalInfo.gender || "",
           country: homeAddress.country,
         },
-
         homeAddress,
         mailingAddress,
         savingsAccount: {
@@ -141,7 +138,6 @@ export default function SavingsNonMalaysianAccountCreation() {
           employment_type: savings_account.employment_type || "",
           is18: savings_account.is18 !== undefined ? savings_account.is18 : true,
         },
-
         user: {
           username: username.trim(),
           password,
@@ -149,7 +145,6 @@ export default function SavingsNonMalaysianAccountCreation() {
           sec_phrase: securityPhrase,
           branch: nonMsianApplication.preferredBranch || "International Branch",
         },
-
         nonMsianDetails: {
           pp_issue_office: personalInfo.non_msian_details?.pp_issue_office || "",
           pp_issue_date: personalInfo.non_msian_details?.pp_issue_date || null,
@@ -157,8 +152,6 @@ export default function SavingsNonMalaysianAccountCreation() {
         },
         supportingDocs: supportingDocs
       };
-
-      console.log("Sending Non-Malaysian savings account application payload verification:", JSON.stringify(payload, null, 2));
 
       const response = await fetch("/api/application/non_msian_savings_account", {
         method: "POST",
@@ -329,7 +322,6 @@ export default function SavingsNonMalaysianAccountCreation() {
                           d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" 
                         />                      
                       </svg>
-
                       <span className="text-[10px] text-gray-400 uppercase font-bold">Upload</span>
                     </div>
                   )}

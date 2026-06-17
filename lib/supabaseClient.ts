@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-// Fail-safe check to alert you during local testing or demo builds
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error(
     "Supabase environmental parameters are missing! " +
@@ -11,5 +10,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Fallback empty strings prevent Turbopack from crashing during compile phases
 export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");

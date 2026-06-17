@@ -10,30 +10,25 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function SavingsMalaysianFaceQRCode() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [verificationError, setVerificationError] = useState("");
-
-  const searchParams = useSearchParams();
 
   const SCORECARD_PASS_THRESHOLD = 70;
 
   const calculateScorecardResult = (scorecard: any) => {
     const scorecardLists = scorecard?.scorecardResultList || [];
-
     let totalChecks = 0;
     let passedChecks = 0;
 
     for (const scorecardItem of scorecardLists) {
       const checks = scorecardItem.checkResultList || [];
-
       for (const check of checks) {
         totalChecks++;
-
         if (check.checkStatus === "P") {
           passedChecks++;
         }
@@ -51,7 +46,6 @@ export default function SavingsMalaysianFaceQRCode() {
     const jId = searchParams.get("journeyId") || localStorage.getItem("journeyId");
 
     if (!jId) {
-      console.error("Journey ID missing");
       return;
     }
     
@@ -63,12 +57,6 @@ export default function SavingsMalaysianFaceQRCode() {
 
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/malaysian/face_verification/mobile?journeyId=${jId}`;
-
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not reachable from your phone. Open the app from the tunnel URL and refresh."
-      );
-    }
 
     setMobileUrl(targetUrl);
 
@@ -91,7 +79,6 @@ export default function SavingsMalaysianFaceQRCode() {
             setVerificationError(
               `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`
             );
-
             setIsFailed(true);
             clearInterval(checkStatus);
             return;
@@ -152,7 +139,7 @@ export default function SavingsMalaysianFaceQRCode() {
               {verificationError || "Face verification failed after multiple attempts. Please return to the home page to restart."}            
             </p>
             <button
-               onClick={() => router.push(`/savings/malaysian/mykad`)}
+              onClick={() => router.push(`/savings/malaysian/mykad`)}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
             >
               Restart Verification
@@ -229,12 +216,6 @@ export default function SavingsMalaysianFaceQRCode() {
             Open your mobile phone camera and scan the QR code below to securely capture a selfie.
           </p>
         </div>
-
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">
-            {hostWarning}
-          </div>
-        )}
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">

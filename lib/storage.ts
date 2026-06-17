@@ -9,9 +9,7 @@ export function saveToStorage(key: string, value: any) {
 export function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     const item = localStorage.getItem(key);
-
     if (!item) return fallback;
-
     return JSON.parse(item);
   } catch (err) {
     console.error(`Failed to parse ${key}:`, err);

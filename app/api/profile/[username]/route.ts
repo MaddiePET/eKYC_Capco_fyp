@@ -31,8 +31,6 @@ export async function GET(
   try {
     const { username } = await context.params;
 
-    console.log("PROFILE QUERY USERNAME:", username);
-
     const query = `
       SELECT
         u.username,
@@ -205,7 +203,6 @@ export async function GET(
     });
   } catch (err) {
     console.error("PROFILE ROUTE ERROR:", err);
-
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

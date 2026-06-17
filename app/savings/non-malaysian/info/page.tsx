@@ -6,11 +6,16 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 export default function SavingsNonMalaysianInfo() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const journeyId = searchParams.get("journeyId") || "";
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
   const [lookupError, setLookupError] = useState<string | null>(null);
@@ -27,18 +32,14 @@ export default function SavingsNonMalaysianInfo() {
     expiryDate: "",
   });
 
-  const searchParams = useSearchParams();
-  const journeyId = searchParams.get("journeyId") || "";
-
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
 
     if (!Number.isNaN(date.getTime())) {
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "",
+        month: MONTH_NAMES[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -50,7 +51,7 @@ export default function SavingsNonMalaysianInfo() {
       const day = Number(isoMatch[3]);
       return {
         day: day.toString().padStart(2, "0"),
-        month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"][month - 1] || "",
+        month: MONTH_NAMES[month - 1] || "",
         year,
       };
     }

@@ -10,15 +10,22 @@ export async function POST() {
         password: process.env.INNOVA8TIF_PASS,
       }),
     });
-    
+
     const data = await res.json();
-    
+
     if (data.status === "success") {
       return NextResponse.json({ journeyId: data.journeyId });
-    } else {
-      return NextResponse.json({ error: "Auth failed with Innov8tif" }, { status: 401 });
     }
+
+    return NextResponse.json(
+      { error: "Auth failed with Innov8tif" },
+      { status: 401 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Innov8tif API error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

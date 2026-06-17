@@ -55,9 +55,7 @@ async function uploadJIM() {
     const residents: JimResident[] = jimSchema.jim_nonresidents;
     const templates: JimTemplate[] = jimSchema.face_templates;
 
-    console.log(
-      `Found ${residents.length} residents and ${templates.length} templates.`
-    );
+    console.log(`Found ${residents.length} residents and ${templates.length} templates.`);
 
     const batch = db.batch();
 
@@ -73,7 +71,6 @@ async function uploadJIM() {
 
       batch.set(docRef, {
         lookup_hash: lookupHash,
-
         passport_no: encrypt(normalizedPassport, "jim"),
         full_name: encrypt(person.full_name || "", "jim"),
         date_of_birth: encrypt(person.date_of_birth || "", "jim"),
@@ -112,9 +109,7 @@ async function uploadJIM() {
 
     await batch.commit();
 
-    console.log(
-      "Success! JIM data uploaded with hashed document ID, lookup_hash, and encrypted fields."
-    );
+    console.log("Success! JIM data uploaded with hashed document ID, lookup_hash, and encrypted fields.");
   } catch (error) {
     console.error("JIM migration failed:", error);
     process.exit(1);

@@ -17,6 +17,105 @@ interface User {
   securityPhrase: string;
 }
 
+function convertBase64ToDataUrl(base64: string): string {
+  let mimeType = "image/jpeg";
+  
+  if (base64.startsWith("PHN2Zy") || base64.startsWith("PD94bWw")) {
+    mimeType = "image/svg+xml";
+  } else if (base64.startsWith("iVBORw0KGg")) {
+    mimeType = "image/png";
+  } else if (base64.startsWith("R0lGODlh")) {
+    mimeType = "image/gif";
+  } else if (base64.startsWith("/9j/")) {
+    mimeType = "image/jpeg";
+  }
+
+  return `data:${mimeType};base64,${base64}`;
+}
+
+function formatAvatarSrc(avatar: any): string {
+  if (!avatar) return "/owner.jpg";
+
+  if (typeof avatar === "string") {
+    if (
+      avatar.startsWith("http://") || 
+      avatar.startsWith("https://") || 
+      avatar.startsWith("data:image/")
+    ) {
+      return avatar;
+    }
+
+    if (avatar.startsWith("{") && avatar.includes('"type"')) {
+      try {
+        const parsed = JSON.parse(avatar);
+        return formatAvatarSrc(parsed);
+      } catch {}
+    }
+
+    if (avatar.startsWith("\\x") || avatar.startsWith("\\\\x") || avatar.startsWith("x")) {
+      const cleanHex = avatar.replace(/^\\\\x|^\\x|^x/, "");
+      try {
+        let binary = "";
+        for (let i = 0; i < cleanHex.length; i += 2) {
+          binary += String.fromCharCode(parseInt(cleanHex.substring(i, i + 2), 16));
+        }
+        
+        if (
+          binary.startsWith("http://") || 
+          binary.startsWith("https://") || 
+          binary.startsWith("data:image/")
+        ) {
+          return binary;
+        }
+        return convertBase64ToDataUrl(btoa(binary));
+      } catch (err) {
+        console.error("Failed parsing hex image data:", err);
+      }
+    }
+
+    const cleanBase64 = avatar.replace(/[\r\n\s]+/g, "");
+    return convertBase64ToDataUrl(cleanBase64);
+  }
+
+  if (avatar && typeof avatar === "object") {
+    if (avatar.type === "Buffer" && Array.isArray(avatar.data)) {
+      const uintArray = new Uint8Array(avatar.data);
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+
+    if (avatar instanceof Uint8Array || Array.isArray(avatar)) {
+      const uintArray = Array.isArray(avatar) ? new Uint8Array(avatar) : avatar;
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+  }
+
+  return "/owner.jpg";
+}
+
 export default function LogIn() {
   const router = useRouter();
 
@@ -35,7 +134,6 @@ export default function LogIn() {
 
   useEffect(() => {
     setMounted(true);
-    // CRITICAL: Clear previous sessions when the user visits the Login page
     sessionStorage.removeItem("is_authenticated");
     localStorage.removeItem("currentUsername");
     localStorage.removeItem("currentAccount");
@@ -84,15 +182,7 @@ export default function LogIn() {
       }
 
       const user = await res.json();
-
-      if (
-        user.avatar && 
-        !user.avatar.startsWith("http") && 
-        !user.avatar.startsWith("data:image/")
-      ) {
-        const cleanBase64 = user.avatar.replace(/[\r\n]+/g, "");
-        user.avatar = `data:image/jpeg;base64,${cleanBase64}`;
-      }
+      user.avatar = formatAvatarSrc(user.avatar);
 
       setCurrentUser(user);
       setStep("confirm");

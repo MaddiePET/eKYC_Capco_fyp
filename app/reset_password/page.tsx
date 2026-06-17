@@ -149,9 +149,7 @@ export default function ResetPassword() {
       }
 
       setStep("reset");
-      setMessage(
-        "Email verified successfully. You can now reset your password."
-      );
+      setMessage("Email verified successfully. You can now reset your password.");
       setMessageType("success");
     } catch (err: any) {
       setMessage(err.message);
@@ -175,15 +173,13 @@ export default function ResetPassword() {
     } else {
       newOtp[index] = cleanValue;
       setOtp(newOtp);
-      if (cleanValue && index < 5)
+      if (cleanValue && index < 5) {
         otpInputs.current[index + 1]?.focus();
+      }
     }
   };
 
-  const handleOtpPaste = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
     e.preventDefault();
     const pastedData = e.clipboardData
       .getData("text")
@@ -203,10 +199,7 @@ export default function ResetPassword() {
     otpInputs.current[nextFocusIndex]?.focus();
   };
 
-  const handleOtpKeyDown = (
-    e: React.KeyboardEvent,
-    index: number
-  ) => {
+  const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpInputs.current[index - 1]?.focus();
     }
@@ -317,10 +310,7 @@ export default function ResetPassword() {
           <div />
         )}
 
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo/logo-light.svg"
             alt="Logo"
@@ -399,11 +389,7 @@ export default function ResetPassword() {
                 </Label>
                 <input
                   type="email"
-                  className={`w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 ${
-                    email && isUsernameValid === true
-                      ? "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                      : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  }`}
+                  className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   placeholder="Registered email"
                   value={email}
                   readOnly

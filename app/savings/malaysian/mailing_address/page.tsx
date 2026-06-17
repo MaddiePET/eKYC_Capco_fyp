@@ -6,14 +6,29 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
+const cleanAddressText = (val: string) => {
+  return val
+    .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const cleanStateText = (val: string) => {
+  return val
+    .replace(/[^a-zA-Z ]/g, "")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export default function SavingsMalaysianMailingAddress() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-
-  const searchParams = useSearchParams();
 
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
   const idType = searchParams.get("id_type") || (typeof window !== "undefined" ? localStorage.getItem("id_type") : "") || "ic";
@@ -111,7 +126,7 @@ export default function SavingsMalaysianMailingAddress() {
   const isFormValid =
     mailingData.add1.trim() !== "" &&
     mailingData.add2.trim() !== "" &&
-    mailingData.postal.trim() !== "" && mailingData.postal.trim().length === 5 &&
+    mailingData.postal.trim().length === 5 &&
     mailingData.state.trim() !== "" &&
     mailingData.country.trim() !== "";
 
@@ -198,6 +213,12 @@ export default function SavingsMalaysianMailingAddress() {
           </div>
         </div>
 
+        {submitError && (
+          <div className="mb-4 p-3 rounded-lg text-sm bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">
+            {submitError}
+          </div>
+        )}
+
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -212,11 +233,7 @@ export default function SavingsMalaysianMailingAddress() {
                 onChange={(e) =>
                   setMailingData({
                     ...mailingData,
-                    add1: e.target.value
-                    .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                    .split(" ")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" "),
+                    add1: cleanAddressText(e.target.value),
                   })
                 }
               />
@@ -234,11 +251,7 @@ export default function SavingsMalaysianMailingAddress() {
                 onChange={(e) =>
                   setMailingData({
                     ...mailingData,
-                    add2: e.target.value
-                    .replace(/[^a-zA-Z0-9,.\-\/ ]/g, "")
-                    .split(" ")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" "),
+                    add2: cleanAddressText(e.target.value),
                   })
                 }
               />
@@ -276,11 +289,7 @@ export default function SavingsMalaysianMailingAddress() {
                   onChange={(e) =>
                     setMailingData({
                       ...mailingData,
-                      state: e.target.value
-                      .replace(/[^a-zA-Z ]/g, "")
-                      .split(" ")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(" "),
+                      state: cleanStateText(e.target.value),
                     })
                   }
                 />

@@ -8,9 +8,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing journeyId or supabaseImageUrl" }, { status: 400 });
     }
 
-    console.log("Downloading image from Supabase for OkayID... Url:", supabaseImageUrl);
-    
-    // 1. Fetch image from supabase Storage
     const supabaseResponse = await fetch(supabaseImageUrl);
     if (!supabaseResponse.ok) {
       return NextResponse.json({ error: "Failed to download image from supabase storage" }, { status: 400 });
@@ -20,12 +17,6 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
     const base64ImageString = buffer.toString("base64");
 
-    console.log(
-      "[OkayID] Downloaded image size from supabase (bytes):",
-      buffer.length
-    );
-
-    console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId, "imageFormat:", imageFormat);
     const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
     const okayidBody = {
       journeyId,
@@ -43,17 +34,10 @@ export async function POST(req: Request) {
     });
 
     const okayidText = await okayidResponse.text();
-    console.log("[OkayID] Response size bytes:", Buffer.byteLength(okayidText, "utf8"));
-
     let okayidResult: Record<string, unknown> = {};
 
     try {
       okayidResult = okayidText ? JSON.parse(okayidText) : {};
-      const okayidStatus = typeof (okayidResult as { status?: unknown }).status === "string"
-        ? (okayidResult as { status?: string }).status
-        : undefined;
-      console.log("OkayID result - status:", okayidStatus);
-      console.log("[OkayID] Response received successfully");
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
       console.error("Failed to parse OkayID response:", message);

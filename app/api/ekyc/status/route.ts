@@ -13,8 +13,8 @@ export async function GET(req: Request) {
   try {
     const result = await client.query(
       `SELECT status, step, id_type, id_num, scorecard
-       FROM banka."Ekyc_status"
-       WHERE journey_id = $1`,
+        FROM banka."Ekyc_status"
+        WHERE journey_id = $1`,
       [journeyId]
     );
 
@@ -51,19 +51,18 @@ export async function POST(req: Request) {
 
   const client = await pool.connect();
   try {
-    // Upsert: insert on first write, update on subsequent writes.
     const result = await client.query(
       `INSERT INTO banka."Ekyc_status"
-         (journey_id, status, step, id_type, id_num, scorecard, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
-       ON CONFLICT (journey_id) DO UPDATE SET
-         status     = EXCLUDED.status,
-         step       = COALESCE(EXCLUDED.step,      banka."Ekyc_status".step),
-         id_type    = COALESCE(EXCLUDED.id_type,   banka."Ekyc_status".id_type),
-         id_num     = COALESCE(EXCLUDED.id_num,    banka."Ekyc_status".id_num),
-         scorecard  = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
-         updated_at = NOW()
-       RETURNING *`,
+          (journey_id, status, step, id_type, id_num, scorecard, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        ON CONFLICT (journey_id) DO UPDATE SET
+          status     = EXCLUDED.status,
+          step       = COALESCE(EXCLUDED.step,      banka."Ekyc_status".step),
+          id_type    = COALESCE(EXCLUDED.id_type,   banka."Ekyc_status".id_type),
+          id_num     = COALESCE(EXCLUDED.id_num,    banka."Ekyc_status".id_num),
+          scorecard  = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
+          updated_at = NOW()
+        RETURNING *`,
       [
         journeyId,
         status,
@@ -75,7 +74,6 @@ export async function POST(req: Request) {
     );
 
     const row = result.rows[0];
-    console.log("SAVING EKYC STATUS:", row);
 
     return NextResponse.json({
       success:   true,

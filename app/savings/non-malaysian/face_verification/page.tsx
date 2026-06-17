@@ -15,7 +15,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
   const [journeyId, setJourneyId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [verificationError, setVerificationError] = useState("");
 
   const searchParams = useSearchParams();
@@ -62,12 +61,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
 
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/non-malaysian/face_verification/mobile?journeyId=${jId}`;
-
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not reachable from your phone. Open the app from the tunnel URL and refresh."
-      );
-    }
 
     setMobileUrl(targetUrl);
 
@@ -228,12 +221,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
             Open your mobile phone camera and scan the QR code below to securely capture a selfie.
           </p>
         </div>
-
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">
-            {hostWarning}
-          </div>
-        )}
 
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
