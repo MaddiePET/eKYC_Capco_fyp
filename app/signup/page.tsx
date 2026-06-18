@@ -1,0 +1,138 @@
+// app/signup/page.tsx
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import ChevronLeftIcon from "@/icons/chevron-left.svg";
+
+export default function SignupSelectionPage() {
+  const router = useRouter();
+  const [selectedOption, setSelectedOption] = useState<'savings' | 'current' | null>(null);
+
+  const handleNext = () => {
+    if (selectedOption === 'savings') {
+      // Append flag for the Savings onboarding flow
+      router.push('/savings/nationality_selection?from=signup');
+    } else if (selectedOption === 'current') {
+      // Append flag for the Current onboarding flow
+      router.push('/current/malaysian/mykad?from=signup');
+    }
+  };
+
+  return (
+    <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
+      {/* Top Background Waves */}
+      <div className="absolute top-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
+        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+          <path className="fill-[#3D405B]/80" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
+          <path className="fill-[#3D405B]" d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"/>
+        </svg>
+      </div>
+      
+      {/* Bottom Background Waves */}
+      <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
+        <svg className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+          <path className="fill-[#F0CA8E]" d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"/>
+        </svg>
+      </div>
+
+      <div className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto z-20 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => router.push("/login")}
+          className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+          Back to Login
+        </button>
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/images/logo/logo-light.svg" alt="Logo" width={40} height={40} className="block dark:invert-0 invert" />
+          <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">DTCOB</h1>
+        </Link>
+      </div>
+
+      <div className="relative w-full max-w-2xl z-10">
+        <div className="mb-10 text-center">
+          <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">Choose Your Account Type</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Select the type of account you would like to open with us today.</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div
+            onClick={() => setSelectedOption('savings')}
+            className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
+              selectedOption === 'savings'
+                ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E]'
+                : 'border-gray-200 bg-white hover:border-[#F0CA8E] dark:bg-gray-900/90'
+            }`}
+          >
+            {selectedOption === 'savings' && (
+              <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            <div className={`mb-4 p-3 rounded-xl transition-colors ${selectedOption === 'savings' ? 'bg-[#F0CA8E] text-[#3D405B]' : 'bg-gray-50 text-gray-400'}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6A2.25 2.25 0 0 1 18.75 20H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold mb-2 text-[#3D405B] dark:text-white">Savings Account</h3>
+            <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">Perfect for everyday banking, growing your wealth, and easy access to your funds.</p>
+          </div>
+
+          <div
+            onClick={() => setSelectedOption('current')}
+            className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
+              selectedOption === 'current'
+                ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E]'
+                : 'border-gray-200 bg-white hover:border-[#F0CA8E] dark:bg-gray-900/90'
+            }`}
+          >
+            {selectedOption === 'current' && (
+              <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            <div className={`mb-4 p-3 rounded-xl transition-colors ${selectedOption === 'current' ? 'bg-[#F0CA8E] text-[#3D405B]' : 'bg-gray-50 text-gray-400'}`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-5.25 1.5h16.5A2.25 2.25 0 0 0 21.75 16.5V5.25A2.25 2.25 0 0 0 19.5 3H4.5A2.25 2.25 0 0 0 2.25 5.25v11.25A2.25 2.25 0 0 0 4.5 18.75Z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold mb-2 text-[#3D405B] dark:text-white">Current Account</h3>
+            <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">Ideal for daily transactions and managing business finances with higher limits.</p>
+          </div>
+        </div>
+
+        <div className="mt-6 w-full max-w-md mx-auto relative z-10">
+          <button
+            onClick={handleNext}
+            disabled={!selectedOption}
+            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 ${
+              selectedOption
+                ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800'
+            }`}
+          >
+            Continue
+          </button>
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+              <Link href="/contact_support" className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 transition-colors">Contact Support</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+        &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
+      </footer>
+    </div>
+  );
+}
