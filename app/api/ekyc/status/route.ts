@@ -18,25 +18,18 @@ export async function GET(req: Request) {
       [journeyId]
     );
 
-    if (stagingResult.rows.length === 0) {
-      return NextResponse.json({ status: "pending", step: "ID_UPLOAD" });
+    if (result.rows.length === 0) {
+      return NextResponse.json({ status: "pending" });
     }
 
-    const stageRow = stagingResult.rows[0];
-    
-    // 🎯 MATCH THE OLD OBJECT CONTRACT EXACTLY TO TRIGGER FRONTEND DASHBOARD STATE REDIRECTS
+    const row = result.rows[0];
     return NextResponse.json({
-      status: stageRow.status || "pending",
-      step: stageRow.step,
-      id_type: stageRow.id_type,
-      id_num: stageRow.id_num,
-      scorecard: stageRow.scorecard,
-      scorecard_result: stageRow.scorecard_result
+      status:    row.status,
+      step:      row.step,
+      id_type:   row.id_type,
+      id_num:    row.id_num,
+      scorecard: row.scorecard,
     });
-
-  } catch (error: any) {
-    console.error("Ekyc status GET lookup failure:", error?.message || error);
-    return NextResponse.json({ error: "Internal Database Selection Failure" }, { status: 500 });
   } finally {
     client.release();
   }
@@ -50,7 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { journeyId, status, step, id_type, id_num, scorecard, scorecardResult } = body;
+  const { journeyId, status, id_type, id_num, step, scorecard } = body;
 
   if (!journeyId || !status) {
     return NextResponse.json({ error: "Missing journeyId or status" }, { status: 400 });
@@ -73,24 +66,26 @@ export async function POST(req: Request) {
       [
         journeyId,
         status,
-        step || null,
-        id_type || null,
-        id_num || null,
+        step     ?? null,
+        id_type  ?? null,
+        id_num   ?? null,
         scorecard ? JSON.stringify(scorecard) : null,
-        computedScore
       ]
     );
 
     const row = result.rows[0];
 
     return NextResponse.json({
-      success: true,
-      status: result.rows[0].status,
-      step: result.rows[0].step
+      success:   true,
+      status:    row.status,
+      step:      row.step,
+      id_type:   row.id_type,
+      id_num:    row.id_num,
+      scorecard: row.scorecard,
     });
-  } catch (error: any) {
-    console.error("Ekyc status POST transaction failure:", error?.message || error);
-    return NextResponse.json({ error: "Internal Database Write Failure" }, { status: 500 });
+  } catch (error) {
+    console.error("Ekyc status POST error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     client.release();
   }
