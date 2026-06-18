@@ -13,7 +13,8 @@ type MessageType = "success" | "error" | "";
 
 export default function SavingsNonMalaysianOTP() {
   const router = useRouter();
-  
+  const searchParams = useSearchParams();
+
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("option");
   const [method, setMethod] = useState<Method>(null);
@@ -27,9 +28,10 @@ export default function SavingsNonMalaysianOTP() {
 
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const searchParams = useSearchParams();
-  
-  const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
+  const journeyId =
+    searchParams.get("journeyId") ||
+    (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") ||
+    "";
 
   useEffect(() => {
     setMounted(true);
@@ -53,7 +55,9 @@ export default function SavingsNonMalaysianOTP() {
     } else if (step === "input") {
       setStep("option");
     } else {
-      router.push(`/savings/non-malaysian/face_verification?journeyId=${encodeURIComponent(journeyId)}`);
+      router.push(
+        `/savings/non-malaysian/face_verification?journeyId=${encodeURIComponent(journeyId)}`
+      );
     }
   };
 
@@ -113,9 +117,15 @@ export default function SavingsNonMalaysianOTP() {
 
   const fetchAndRouteToInfo = async () => {
     try {
-      const statusRes = await fetch(`/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`);
+      const statusRes = await fetch(
+        `/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`
+      );
       const statusData = await statusRes.json();
-      const passportNo = statusData?.id_num || statusData?.data?.id_num || statusData?.identity?.id_num || "";
+      const passportNo =
+        statusData?.id_num ||
+        statusData?.data?.id_num ||
+        statusData?.identity?.id_num ||
+        "";
 
       if (!passportNo) {
         setMessage("Passport number missing. Please restart Passport verification.");
@@ -124,7 +134,11 @@ export default function SavingsNonMalaysianOTP() {
         return;
       }
 
-      router.push(`/savings/non-malaysian/info?id_type=passport&id_num=${encodeURIComponent(passportNo)}&journeyId=${encodeURIComponent(journeyId)}`);
+      router.push(
+        `/savings/non-malaysian/info?id_type=passport&id_num=${encodeURIComponent(
+          passportNo
+        )}&journeyId=${encodeURIComponent(journeyId)}`
+      );
     } catch (error) {
       setMessage("Failed to retrieve profile data.");
       setMessageType("error");
@@ -154,7 +168,10 @@ export default function SavingsNonMalaysianOTP() {
           return;
         }
 
-        localStorage.setItem("nonMsianEmail", JSON.stringify({ email: email, emailVerified: true }));
+        localStorage.setItem(
+          "nonMsianEmail",
+          JSON.stringify({ email, emailVerified: true })
+        );
         await fetchAndRouteToInfo();
       } catch (error) {
         setMessage("Something went wrong while verifying the OTP.");
@@ -172,7 +189,7 @@ export default function SavingsNonMalaysianOTP() {
   const handleOtpChange = (value: string, index: number) => {
     const cleanValue = value.replace(/[^0-9]/g, "");
     const newOtp = [...otp];
-    
+
     if (cleanValue.length > 1) {
       const pastedChars = cleanValue.slice(0, 6).split("");
       pastedChars.forEach((char, i) => {
@@ -236,16 +253,13 @@ export default function SavingsNonMalaysianOTP() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
-          <Image 
-            src="/images/logo/logo-light.svg" 
-            alt="Logo" 
-            width={40} 
-            height={40} 
-            className="block dark:invert-0 invert" 
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/images/logo/logo-light.svg"
+            alt="Logo"
+            width={40}
+            height={40}
+            className="block dark:invert-0 invert"
           />
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
@@ -266,32 +280,36 @@ export default function SavingsNonMalaysianOTP() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
-              <div 
-                onClick={() => setMethod("Email")} 
+              <div
+                onClick={() => setMethod("Email")}
                 className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                  method === "Email" 
-                    ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
-                    : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
+                  method === "Email"
+                    ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"
+                    : "border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70"
                 }`}
               >
                 {method === "Email" && (
                   <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                    <svg 
-                      className="w-4 h-4" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2.5" 
-                        d="M5 13l4 4L19 7" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M5 13l4 4L19 7"
                       />
                     </svg>
                   </div>
                 )}
-                <h3 className={`text-lg font-bold mb-2 ${method === "Email" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
+                <h3
+                  className={`text-lg font-bold mb-2 ${
+                    method === "Email" ? "text-[#3D405B] dark:text-white" : "text-gray-800 dark:text-white"
+                  }`}
+                >
                   Via Email
                 </h3>
                 <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
@@ -299,35 +317,36 @@ export default function SavingsNonMalaysianOTP() {
                 </p>
               </div>
 
-              <div 
-                onClick={() => setMethod("Phone")} 
+              <div
+                onClick={() => setMethod("Phone")}
                 className={`relative cursor-pointer p-8 rounded-2xl border-2 transition-all duration-300 flex flex-col items-center text-center group backdrop-blur-sm ${
-                  method === "Phone" 
-                    ? 'border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40' 
-                    : 'border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70'
+                  method === "Phone"
+                    ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"
+                    : "border-gray-200 bg-white/70 hover:border-[#F0CA8E]/50 dark:border-gray-800 dark:bg-gray-900/70"
                 }`}
               >
                 {method === "Phone" && (
                   <div className="absolute top-3 right-3 bg-[#F0CA8E] text-white p-1 rounded-full shadow-sm">
-                    <svg 
-                      className="w-4 h-4" 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2.5" 
-                        d="M5 13l4 4L19 7" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M5 13l4 4L19 7"
                       />
                     </svg>
                   </div>
                 )}
-                <h3 className={`text-lg font-bold mb-2 ${
-                  method === "Phone" 
-                    ? 'text-[#3D405B] dark:text-white' 
-                    : 'text-gray-800 dark:text-white'
+                <h3
+                  className={`text-lg font-bold mb-2 ${
+                    method === "Phone"
+                      ? "text-[#3D405B] dark:text-white"
+                      : "text-gray-800 dark:text-white"
                   }`}
                 >
                   Via Phone Number
@@ -337,16 +356,16 @@ export default function SavingsNonMalaysianOTP() {
                 </p>
               </div>
             </div>
-            
+
             <div className="max-w-md mx-auto">
               <div className="flex flex-col items-center w-full">
-                <button 
-                  onClick={handleContinueFromOption} 
-                  disabled={!method} 
+                <button
+                  onClick={handleContinueFromOption}
+                  disabled={!method}
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                    method 
-                      ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                    method
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
                 >
                   Continue
@@ -355,9 +374,9 @@ export default function SavingsNonMalaysianOTP() {
 
               <div className="mt-5 text-center">
                 <p className="text-sm font-normal">
-                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span> 
-                  <Link 
-                    href="/contact_support" 
+                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+                  <Link
+                    href="/contact_support"
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                   >
                     Contact Support
@@ -366,19 +385,27 @@ export default function SavingsNonMalaysianOTP() {
               </div>
 
               <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                <svg 
-                  className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                  fill="currentColor" 
+                <svg
+                  className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                  fill="currentColor"
                   viewBox="0 0 20 20"
                 >
-                  <path 
-                    fillRule="evenodd" 
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                     clipRule="evenodd"
                   />
                 </svg>
                 <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                  Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+                  Standard rates may apply. Your contact detail is used solely for{" "}
+                  <span className="font-bold text-blue-700 dark:text-blue-300">
+                    secure account registration
+                  </span>{" "}
+                  and{" "}
+                  <span className="font-bold text-blue-700 dark:text-blue-300">
+                    identity verification
+                  </span>
+                  .
                 </p>
               </div>
             </div>
@@ -396,22 +423,21 @@ export default function SavingsNonMalaysianOTP() {
               </p>
             </div>
 
-            <form 
-              onSubmit={handleSendOtp} 
-              className="space-y-6"
-            >
+            <form onSubmit={handleSendOtp} className="space-y-6">
               {method === "Email" ? (
                 <div>
                   <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Email Address<span className="text-red-500">*</span>
                   </Label>
-                  <input 
-                    type="email" 
-                    required 
-                    placeholder="Enter your email" 
-                    className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))} 
+                  <input
+                    type="email"
+                    required
+                    placeholder="Enter your email"
+                    className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
+                    value={email}
+                    onChange={(e) =>
+                      setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))
+                    }
                   />
                 </div>
               ) : (
@@ -422,35 +448,37 @@ export default function SavingsNonMalaysianOTP() {
 
                   <div className="flex">
                     <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
-                      <img 
-                        src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg" 
-                        alt="MY" 
-                        className="w-5 h-auto rounded-sm shadow-sm" 
+                      <img
+                        src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg"
+                        alt="MY"
+                        className="w-5 h-auto rounded-sm shadow-sm"
                       />
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">+60</span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                        +60
+                      </span>
                     </div>
 
                     <input
-                      type="tel" 
-                      maxLength={10} 
-                      required 
+                      type="tel"
+                      maxLength={10}
+                      required
                       placeholder="Enter your mobile number"
                       className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-r-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                      value={phoneNumber} 
-                      onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                      value={phoneNumber}
+                      onChange={(e) =>
+                        setPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))
+                      }
                     />
                   </div>
                 </div>
               )}
 
-              <button 
-                type="submit" 
-                disabled={isLoading || (method === "Email" ? !email : phoneNumber.length < 9)} 
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  !isLoading && (method === "Email" ? email : phoneNumber.length >= 9)
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
-                }`}
+              <button
+                type="submit"
+                disabled={
+                  isLoading || (method === "Email" ? !email : phoneNumber.length < 9)
+                }
+                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 {isLoading ? "Sending Code..." : "Send Code"}
               </button>
@@ -459,8 +487,8 @@ export default function SavingsNonMalaysianOTP() {
             <div className="mt-5 text-center">
               <p className="text-sm font-normal">
                 <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                <Link 
-                  href="/contact_support" 
+                <Link
+                  href="/contact_support"
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
                   Contact Support
@@ -469,19 +497,27 @@ export default function SavingsNonMalaysianOTP() {
             </div>
 
             <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg 
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                fill="currentColor" 
+              <svg
+                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                fill="currentColor"
                 viewBox="0 0 20 20"
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                   clipRule="evenodd"
                 />
               </svg>
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+                Standard rates may apply. Your contact detail is used solely for{" "}
+                <span className="font-bold text-blue-700 dark:text-blue-300">
+                  secure account registration
+                </span>{" "}
+                and{" "}
+                <span className="font-bold text-blue-700 dark:text-blue-300">
+                  identity verification
+                </span>
+                .
               </p>
             </div>
           </div>
@@ -494,58 +530,71 @@ export default function SavingsNonMalaysianOTP() {
                 Verify Your {method === "Email" ? "Email" : "Phone Number"}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{method === "Email" ? email : `+60 ${phoneNumber}`}</span>. Please provide the code to proceed.
+                We've sent a 6-digit code to{" "}
+                <span className="font-bold text-gray-900 dark:text-white">
+                  {method === "Email" ? email : `+60 ${phoneNumber}`}
+                </span>
+                . Please provide the code to proceed.
               </p>
             </div>
 
             {message && (
-              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                messageType === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
-              }`}>
+              <div
+                className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success"
+                    ? "bg-green-50 border-green-200 text-green-600"
+                    : "bg-red-50 border-red-200 text-red-600"
+                }`}
+              >
                 {message}
               </div>
             )}
-            
+
             <div className="space-y-6">
               <div className="flex justify-center gap-2">
                 {otp.map((digit, index) => (
                   <input
-                    key={index} 
-                    type="text" 
-                    inputMode="numeric" 
-                    maxLength={1} 
-                    ref={(el) => { otpInputs.current[index] = el; }}
-                    value={digit} 
-                    onChange={(e) => handleOtpChange(e.target.value, index)} 
+                    key={index}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    ref={(el) => {
+                      otpInputs.current[index] = el;
+                    }}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e.target.value, index)}
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
                     className="w-12 h-14 text-center text-xl font-bold transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   />
                 ))}
               </div>
-              
-              <button 
-                type="button" 
-                onClick={handleVerifyOtp} 
-                disabled={otp.join("").length < 6 || isLoading} 
+
+              <button
+                type="button"
+                onClick={handleVerifyOtp}
+                disabled={otp.join("").length < 6 || isLoading}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  otp.join("").length === 6 
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                  otp.join("").length === 6
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                 }`}
               >
                 {isLoading ? "Verifying..." : "Verify"}
               </button>
             </div>
-            
+
             <div className="text-center mt-6">
               {timer > 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Resend code in <span className="font-bold text-blue-600 dark:text-blue-400">{timer}s</span>
+                  Resend code in{" "}
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {timer}s
+                  </span>
                 </p>
               ) : (
-                <button 
-                  type="button" 
-                  onClick={handleSendOtp} 
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
                   className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
                 >
                   Resend Code
@@ -555,9 +604,9 @@ export default function SavingsNonMalaysianOTP() {
 
             <div className="mt-4 text-center">
               <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>  
-                <Link 
-                  href="/contact_support" 
+                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+                <Link
+                  href="/contact_support"
                   className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
                   Contact Support
@@ -566,19 +615,27 @@ export default function SavingsNonMalaysianOTP() {
             </div>
 
             <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg 
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                fill="currentColor" 
+              <svg
+                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                fill="currentColor"
                 viewBox="0 0 20 20"
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                   clipRule="evenodd"
                 />
               </svg>
               <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+                Standard rates may apply. Your contact detail is used solely for{" "}
+                <span className="font-bold text-blue-700 dark:text-blue-300">
+                  secure account registration
+                </span>{" "}
+                and{" "}
+                <span className="font-bold text-blue-700 dark:text-blue-300">
+                  identity verification
+                </span>
+                .
               </p>
             </div>
           </div>

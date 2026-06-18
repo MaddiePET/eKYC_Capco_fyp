@@ -6,7 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function CurrentMalaysianMobileFaceCapture() {
+export default function CurrentMalaysianMobileFaceCapture() {
   const MAX_ATTEMPTS = 3;
 
   const router = useRouter();
@@ -18,6 +18,9 @@ function CurrentMalaysianMobileFaceCapture() {
 
   const [thresholdFailed, setThresholdFailed] = useState(false);
   const [thresholdMessage, setThresholdMessage] = useState("");
+
+  const [faceImage, setFaceImage] = useState<string | null>(null);
+  const [isUploadingFace, setIsUploadingFace] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
@@ -77,11 +80,20 @@ function CurrentMalaysianMobileFaceCapture() {
       return;
     }
 
+    setIsUploadingFace(true);
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      console.log("Step 1: Uploading local live selfie stream directly to Supabase sandbox...");
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "face_processing",
+        }),
+      });
+
       const fileExtension = selfieFile.name.split(".").pop();
       const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `selfies/${fileName}`;
@@ -96,7 +108,8 @@ function CurrentMalaysianMobileFaceCapture() {
         .from("identity-docs")
         .getPublicUrl(filePath);
 
-      console.log("Step 2: Dispatched token URLs to backend facial evaluation routes...");
+      setFaceImage(selfiePublicUrl);
+
       const faceApiRes = await fetch("/api/ekyc/okayface", { 
         method: "POST", 
         headers: { "Content-Type": "application/json" },
@@ -124,8 +137,6 @@ function CurrentMalaysianMobileFaceCapture() {
         const scorecardRes = await fetch(`/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`);
         const scorecardResult = await scorecardRes.json();
   
-        console.log("Scorecard result:", scorecardResult);
-
         if (!scorecardRes.ok || scorecardResult.status !== "success") {
           throw new Error(scorecardResult.error || "Scorecard check failed");
         }
@@ -177,12 +188,15 @@ function CurrentMalaysianMobileFaceCapture() {
           console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
         }
 
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         setSuccess(true);
 
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
     } catch (error: any) {
+      setFaceImage(null);
       const newFailCount = failCount + 1;
       setFailCount(newFailCount);
       const remaining = MAX_ATTEMPTS - newFailCount;
@@ -192,6 +206,12 @@ function CurrentMalaysianMobileFaceCapture() {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+        
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "face_failed_attempt" }),
+        });
       } else {
         setErrorMessage(
           "Too many failed attempts. Please refer to your desktop screen."
@@ -201,11 +221,11 @@ function CurrentMalaysianMobileFaceCapture() {
           method: "POST",
           headers: { 
             "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({ 
-              journeyId, 
-              status: "face_failed" 
-            }),
+          },
+          body: JSON.stringify({ 
+            journeyId, 
+            status: "face_failed" 
+          }),
         });
       }
 
@@ -214,6 +234,7 @@ function CurrentMalaysianMobileFaceCapture() {
       }
     } finally {
       setIsLoading(false);
+      setIsUploadingFace(false);
     }
   };
 
@@ -348,6 +369,15 @@ function CurrentMalaysianMobileFaceCapture() {
               </div>
             )}
 
+            {isUploadingFace && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Face Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your face image is being verified. This may take a few moments. Please do not close this window.
+                </p>
+              </div>
+            )}
+
             <input
               type="file"
               accept="image/*"
@@ -366,7 +396,13 @@ function CurrentMalaysianMobileFaceCapture() {
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading ? "Verifying..." : failCount > 0 ? "Try Again" : "Open Camera"}
+                {isUploadingFace 
+                  ? "Verifying" 
+                  : faceImage 
+                  ? "Verified" 
+                  : failCount > 0 
+                  ? "Try Again" 
+                  : "Open Camera"}
               </span>
 
               {isLoading ? (
@@ -445,19 +481,5 @@ function CurrentMalaysianMobileFaceCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function CurrentMalaysianMobileFaceCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <CurrentMalaysianMobileFaceCapture />
-    </React.Suspense>
   );
 }

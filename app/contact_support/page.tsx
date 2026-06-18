@@ -11,11 +11,8 @@ export default function ContactSupportPage() {
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);
-  const [username, setUsername] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactMessage, setContactMessage] = useState("");
-  const [isValidating, setIsValidating] = useState(false);
-  const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -23,50 +20,10 @@ export default function ContactSupportPage() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (username.length < 5) {
-      setIsUsernameValid(null);
-      setContactEmail("");
-      return;
-    }
-
-    setIsUsernameValid(null);
-
-    const delayDebounceFn = setTimeout(async () => {
-      setIsValidating(true);
-
-      try {
-        const res = await fetch(`/api/users/${username}`);
-        const isValid = res.ok;
-        setIsUsernameValid(isValid);
-
-        if (isValid) {
-          const user = await res.json();
-          setContactEmail(user.email || "");
-        } else {
-          setContactEmail("");
-          setFormStatus({ type: 'error', message: "Username not found. Please try again." });
-        }
-      } catch {
-        setIsUsernameValid(false);
-        setContactEmail("");
-        setFormStatus({ type: 'error', message: "Username not found. Please try again." });
-      } finally {
-        setIsValidating(false);
-      }
-    }, 800);
-    return () => clearTimeout(delayDebounceFn);
-  }, [username]);
-
   const handleSubmit = async () => {
     setFormStatus(null);
 
-    if (isUsernameValid !== true) {
-      setFormStatus({ type: 'error', message: 'A valid username is required to submit this form.' });
-      return;
-    }
-
-    if (!username.trim() || !contactEmail.trim() || !contactMessage.trim()) {
+    if (!contactEmail.trim() || !contactMessage.trim()) {
       setFormStatus({ type: 'error', message: 'Please fill in all required fields.' });
       return;
     }
@@ -77,7 +34,7 @@ export default function ContactSupportPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email: contactEmail, message: contactMessage }),
+        body: JSON.stringify({ email: contactEmail, message: contactMessage }),
       });
 
       const data = await res.json();
@@ -85,10 +42,8 @@ export default function ContactSupportPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to send message.');
 
       setFormStatus({ type: 'success', message: data.message || 'Your message has been sent successfully.' });
-      setUsername('');
       setContactEmail('');
       setContactMessage('');
-      setIsUsernameValid(null);
     } catch (err: any) {
       console.error('Support form submit error:', err);
       setFormStatus({ type: 'error', message: err.message || 'Failed to send message.' });
@@ -145,10 +100,7 @@ export default function ContactSupportPage() {
           Back
         </button>
 
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image    
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -168,7 +120,7 @@ export default function ContactSupportPage() {
             Contact Support
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Send us a message and we&apos;ll get back to you shortly.
+            Have a question or complaint? Send us a message and we&apos;ll get back to you shortly.
           </p>
         </div>
 
@@ -192,67 +144,25 @@ export default function ContactSupportPage() {
         >
           <div>
             <Label className="block mb-2 text-gray-800 dark:text-white/90">
-              Username <span className="text-error-500">*</span>
-            </Label>
-            
-            <div className="relative w-full">
-              <input
-                placeholder="Enter your username"
-                type="text"
-                value={username}
-                required
-                className={`w-full px-4 py-2.5 pr-10 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none appearance-none ${
-                  isUsernameValid === true
-                    ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
-                    : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                } text-gray-800 dark:text-white dark:placeholder-gray-400`}
-                onChange={(e) => {
-                  const cleanedValue = e.target.value
-                    .replace(/[^a-zA-Z0-9]/g, "")
-                    .replace(/^./, (c) => c.toUpperCase());
-                  setUsername(cleanedValue);
-                  setFormStatus(null);
-                }}
-              />
-              {isUsernameValid === true && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 font-bold">
-                  ✓
-                </span>
-              )}
-              {isValidating && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-gray-400 border-t-[#3D405B] rounded-full animate-spin"></div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Label className="block mb-2 text-gray-800 dark:text-white/90">
               Email Address <span className="text-error-500">*</span>
             </Label>
             <input
               type="email"
-              className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none appearance-none cursor-not-allowed ${
-                contactEmail && isUsernameValid === true
-                  ? "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-800/50 dark:text-gray-300"
-                  : "bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-              }`}
-              placeholder="Registered email"
+              className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+              placeholder="Enter your email address"
               value={contactEmail}
-              readOnly
-              onChange={(e) =>
-                setContactEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))
-              }
+              onChange={(e) => setContactEmail(e.target.value.replace(/[^a-zA-Z0-9@.\-_+]/g, ""))} 
               required
             />
           </div>
 
           <div>
             <Label className="block mb-2 text-gray-800 dark:text-white/90">
-              Message <span className="text-error-500">*</span>
+              Message / Complaint <span className="text-error-500">*</span>
             </Label>
             <textarea
-              className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-              placeholder="Describe your issue or question"
+              className="w-full px-4 py-2.5 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none min-h-[120px]"
+              placeholder="Describe your issue, question, or complaint..."
               value={contactMessage}
               onChange={(e) => setContactMessage(e.target.value)}
               required
@@ -262,19 +172,9 @@ export default function ContactSupportPage() {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={
-                isSubmitting ||
-                isValidating ||
-                isUsernameValid !== true ||
-                !username ||
-                !contactEmail
-              }
+              disabled={isSubmitting || !contactEmail.trim() || !contactMessage.trim()}
               className={`w-full inline-flex items-center justify-center px-6 py-3 text-sm font-bold transition rounded-xl ${
-                !isSubmitting &&
-                !isValidating &&
-                isUsernameValid === true &&
-                username &&
-                contactEmail
+                !isSubmitting && contactEmail.trim() && contactMessage.trim()
                   ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
               }`}

@@ -8,14 +8,31 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { saveToStorage } from "@/lib/storage";
 import { useFormData } from "@/context/FormContext";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const MONTH_MAP: Record<string, string> = {
+  January: "01",
+  February: "02",
+  March: "03",
+  April: "04",
+  May: "05",
+  June: "06",
+  July: "07",
+  August: "08",
+  September: "09",
+  October: "10",
+  November: "11",
+  December: "12",
+};
+
 export default function SavingsMalaysianInfo() {
   const router = useRouter();
   const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
-  const [lookupError, setLookupError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     gender: "",
     fullName: "",
@@ -59,10 +76,9 @@ export default function SavingsMalaysianInfo() {
     const date = new Date(String(value));
 
     if (!Number.isNaN(date.getTime())) {
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "",
+        month: MONTH_NAMES[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
@@ -76,7 +92,7 @@ export default function SavingsMalaysianInfo() {
 
       return {
         day: day.toString().padStart(2, "0"),
-        month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",][month - 1] || "",
+        month: MONTH_NAMES[month - 1] || "",
         year,
       };
     }
@@ -117,8 +133,6 @@ export default function SavingsMalaysianInfo() {
 
   const fetchIdentity = async (idType: string, idNum: string) => {
     if (!idNum) return;
-    setLookupStatus("fetching");
-    setLookupError(null);
 
     try {
       const response = await fetch(`/api/identity/lookup?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}`);
@@ -126,19 +140,13 @@ export default function SavingsMalaysianInfo() {
 
       if (response.ok && data.success && data.identity) {
         const identityData = data.formData || data.identity;
-
         setFormData((prev) => ({
           ...prev,
           ...normalizeIdentity(identityData, idType, idNum),
         }));
-        setLookupStatus("done");
-      } else {
-        setLookupStatus("not-found");
-        setLookupError(data.message || "No identity data found.");
       }
-    } catch (error: any) {
-      setLookupStatus("not-found");
-      setLookupError(error?.message || "Unable to load identity data.");
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -208,7 +216,7 @@ export default function SavingsMalaysianInfo() {
           country: customer.country || "Malaysia",
         }));
       } catch (error) {
-        console.error("Existing customer load error:", error);
+        console.error(error);
         alert("Unable to load existing customer details.");
       }
     }
@@ -221,24 +229,8 @@ export default function SavingsMalaysianInfo() {
 
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
 
-      const monthMap: Record<string, string> = {
-        January: "01",
-        February: "02",
-        March: "03",
-        April: "04",
-        May: "05",
-        June: "06",
-        July: "07",
-        August: "08",
-        September: "09",
-        October: "10",
-        November: "11",
-        December: "12",
-      };
-
-      const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
+      const dob = `${formData.dobYear}-${MONTH_MAP[formData.dobMonth]}-${formData.dobDay}`;
       const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
       const personalInfo = {
@@ -291,8 +283,7 @@ export default function SavingsMalaysianInfo() {
         )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
       );
     } catch (error) {
-      console.error("Submission error:", error);
-      setSubmitError("Failed to save application data.");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -519,7 +510,7 @@ export default function SavingsMalaysianInfo() {
                 <div className="flex mt-2">
                   <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
                     <img 
-                      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg`} 
+                      src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg" 
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
                     />
@@ -621,8 +612,8 @@ export default function SavingsMalaysianInfo() {
                 disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
                   isFormValid 
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]" 
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                 }`}
               >
                 Continue

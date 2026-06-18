@@ -14,7 +14,7 @@ export default function SavingsMalaysianMyKadQRCode() {
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
@@ -24,9 +24,7 @@ export default function SavingsMalaysianMyKadQRCode() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id_num: idNum,
-      }),
+      body: JSON.stringify({ id_num: idNum }),
     });
 
     const result = await response.json();
@@ -62,13 +60,6 @@ export default function SavingsMalaysianMyKadQRCode() {
 
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/malaysian/mykad/mobile?journeyId=${jId}`;
-
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not be reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
-      );
-    }
-
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
@@ -76,38 +67,30 @@ export default function SavingsMalaysianMyKadQRCode() {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
         const data = await res.json();
 
-        if (data.status === "verified") {
-          const detectedIdNum = data.id_num;
-
-          if (!detectedIdNum) {
-            console.error("MyKad number missing from verified eKYC status.");
-            setIsFailed(true);
-            clearInterval(checkStatus);
-            return;
-          }
-
-          const hasExistingAccount = await checkExistingSavingsAccount(detectedIdNum);
-
-          if (hasExistingAccount) {
-            clearInterval(checkStatus);
-            return;
-          }
+        if (data.status === "processing") {
+          setIsProcessing(true);
+        } else if (data.status === "verified") {
+          setIsProcessing(false);
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "duplicate") {
+          setIsProcessing(false);
           const detectedIdNum = data.id_num;
           if (detectedIdNum) {
             await checkExistingSavingsAccount(detectedIdNum);
           }
           clearInterval(checkStatus);
         } else if (data.status === "failed") {
+          setIsProcessing(false);
           setIsFailed(true);
           clearInterval(checkStatus);
+        } else if (data.status === "failed_attempt") {
+          setIsProcessing(false);
         }
       } catch (error) {
         console.error("Error checking verification status:", error);
       }
-    }, 3000);
+    }, 500);
 
     return () => clearInterval(checkStatus);
   }, []);
@@ -128,7 +111,6 @@ export default function SavingsMalaysianMyKadQRCode() {
             <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
               !
             </div>
-
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Account Already Exists
             </h2>
@@ -164,7 +146,6 @@ export default function SavingsMalaysianMyKadQRCode() {
                 />
               </svg>
             </div>
-
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Too Many Attempts
             </h2>
@@ -249,18 +230,14 @@ export default function SavingsMalaysianMyKadQRCode() {
           </p>
         </div>
 
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
-            {hostWarning}
-          </div>
-        )}
-
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div
               className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                  : isProcessing
+                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -271,11 +248,24 @@ export default function SavingsMalaysianMyKadQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed || duplicateAccountPopup
-                        ? "opacity-30 blur-sm"
+                      isVerified || isFailed || duplicateAccountPopup || isProcessing
+                        ? "opacity-20 blur-md"
                         : "opacity-100"
                     }`}
                   />
+
+                  {isProcessing && !isVerified && !isFailed && !duplicateAccountPopup && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                        MyKad Images Received
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                        Your MyKad images are being verified. This may take a few moments. Please do not close this window.
+                      </span>
+                    </div>
+                  )}
+
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                       <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
@@ -293,7 +283,6 @@ export default function SavingsMalaysianMyKadQRCode() {
                           />
                         </svg>
                       </div>
-
                       <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
                     </div>
                   )}
@@ -303,7 +292,7 @@ export default function SavingsMalaysianMyKadQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && !duplicateAccountPopup && (
+            {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />

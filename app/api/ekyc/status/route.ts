@@ -11,34 +11,10 @@ export async function GET(req: Request) {
 
   const client = await pool.connect();
   try {
-    // 1. Check if a finalized, fully registered account record exists in the primary database
-    const completedResult = await client.query(
-      `SELECT j.scorecard, j.scorecard_result, c.id_type, c.id_num, c.full_name
-       FROM banka."Journey" j
-       INNER JOIN banka."Customer" c ON j.cust_id = c.cust_id
-       WHERE j.journey_id = $1`,
-      [journeyId]
-    );
-
-    if (completedResult.rows.length > 0) {
-      const row = completedResult.rows[0];
-      return NextResponse.json({
-        verified: true,
-        status: "face_verified",
-        step: "COMPLETED",
-        id_type: row.id_type,
-        id_num: row.id_num,
-        full_name: row.full_name,
-        scorecard: row.scorecard,
-        scorecard_result: row.scorecard_result
-      });
-    }
-
-    // 2. Fallback: Read active mid-flow mobile updates from the staging session space
-    const stagingResult = await client.query(
-      `SELECT status, step, id_type, id_num, scorecard, updated_at
-       FROM banka."Ekyc_status" 
-       WHERE journey_id = $1`,
+    const result = await client.query(
+      `SELECT status, step, id_type, id_num, scorecard
+        FROM banka."Ekyc_status"
+        WHERE journey_id = $1`,
       [journeyId]
     );
 
@@ -82,36 +58,18 @@ export async function POST(req: Request) {
 
   const client = await pool.connect();
   try {
-    // Calculate pass thresholds dynamically if scorecard lists are attached mid-stream
-    let computedScore = scorecardResult || 0.0;
-    if (scorecard?.scorecardResultList) {
-      let total = 0, passed = 0;
-      for (const item of scorecard.scorecardResultList) {
-        for (const check of (item.checkResultList || [])) {
-          total++;
-          if (check.checkStatus === "P") passed++;
-        }
-      }
-      if (total > 0) computedScore = Number(((passed / total) * 100).toFixed(2));
-    }
-
-    if (computedScore < 70.0) {
-      console.warn(`[PRESENTATION BYPASS] Real score was ${computedScore}%. Overriding to 85.0% for demo continuity.`);
-      computedScore = 85.0;
-    }
-
     const result = await client.query(
-      `INSERT INTO banka."Ekyc_status" 
-         (journey_id, status, step, id_type, id_num, scorecard, scorecard_result, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-       ON CONFLICT (journey_id) DO UPDATE SET
-         status           = EXCLUDED.status,
-         step             = COALESCE(EXCLUDED.step, banka."Ekyc_status".step),
-         id_type          = COALESCE(EXCLUDED.id_type, banka."Ekyc_status".id_type),
-         id_num           = COALESCE(EXCLUDED.id_num, banka."Ekyc_status".id_num),
-         scorecard        = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
-         updated_at       = NOW()
-       RETURNING *`,
+      `INSERT INTO banka."Ekyc_status"
+          (journey_id, status, step, id_type, id_num, scorecard, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        ON CONFLICT (journey_id) DO UPDATE SET
+          status     = EXCLUDED.status,
+          step       = COALESCE(EXCLUDED.step,      banka."Ekyc_status".step),
+          id_type    = COALESCE(EXCLUDED.id_type,   banka."Ekyc_status".id_type),
+          id_num     = COALESCE(EXCLUDED.id_num,    banka."Ekyc_status".id_num),
+          scorecard  = COALESCE(EXCLUDED.scorecard, banka."Ekyc_status".scorecard),
+          updated_at = NOW()
+        RETURNING *`,
       [
         journeyId,
         status,
@@ -123,7 +81,7 @@ export async function POST(req: Request) {
       ]
     );
 
-    console.log("MOBILE STAGING PERSISTENCE SUCCESS:", result.rows[0].journey_id);
+    const row = result.rows[0];
 
     return NextResponse.json({
       success: true,

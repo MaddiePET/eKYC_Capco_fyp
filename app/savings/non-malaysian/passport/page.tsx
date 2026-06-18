@@ -14,7 +14,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
   const [journeyId, setJourneyId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);  
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
@@ -24,9 +24,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id_num: idNum,
-      }),
+      body: JSON.stringify({ id_num: idNum }),
     });
 
     const result = await response.json();
@@ -50,7 +48,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
     const jId = localStorage.getItem("journeyId");
 
     if (!jId) {
-      console.error("Journey ID missing");
       return;
     }
     
@@ -63,12 +60,6 @@ export default function SavingsNonMalaysianPassportQRCode() {
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/non-malaysian/passport/mobile?journeyId=${jId}`;
 
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not be reachable from your phone. Open the app from the tunnel URL and refresh."
-      );
-    }
-
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
@@ -76,37 +67,30 @@ export default function SavingsNonMalaysianPassportQRCode() {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
         const data = await res.json();
 
-        if (data.status === "verified") {
-          const detectedPassportNum = data.id_num;
-
-          if(!detectedPassportNum) {
-            console.error("Passport number missing from verified eKYC status. ");
-            setIsFailed(true);
-            clearInterval(checkStatus);
-            return;
-          }
-
-          const hasExistingSavings = await checkExistingSavingsAccount(detectedPassportNum);
-          if (hasExistingSavings) {
-            clearInterval(checkStatus);
-            return;
-          }
+        if (data.status === "processing") {
+          setIsProcessing(true);
+        } else if (data.status === "verified") {
+          setIsProcessing(false);
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "duplicate") {
+          setIsProcessing(false);
           const detectedPassportNum = data.id_num;
           if (detectedPassportNum) {
             await checkExistingSavingsAccount(detectedPassportNum);
           }
           clearInterval(checkStatus);
         } else if (data.status === "failed") {
+          setIsProcessing(false);
           setIsFailed(true);
           clearInterval(checkStatus);
+        } else if (data.status === "failed_attempt") {
+          setIsProcessing(false);
         }
       } catch (error) {
-        console.error("Error checking verification status:", error);
+        console.error(error);
       }
-    }, 3000);
+    }, 500);
 
     return () => clearInterval(checkStatus);
   }, []);
@@ -139,8 +123,8 @@ export default function SavingsNonMalaysianPassportQRCode() {
               onClick={() => router.push("/login")}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
             >
-             Go to Login
-           </button>
+              Go to Login
+            </button>
           </div>
         </div>
       )}
@@ -247,17 +231,13 @@ export default function SavingsNonMalaysianPassportQRCode() {
           </p>
         </div>
 
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
-            {hostWarning}
-          </div>
-        )}
-
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                  : isProcessing
+                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -268,11 +248,23 @@ export default function SavingsNonMalaysianPassportQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed || duplicateAccountPopup
-                        ? "opacity-30 blur-sm"
+                      isVerified || isFailed || duplicateAccountPopup || isProcessing
+                        ? "opacity-20 blur-md"
                         : "opacity-100"
                     }`}
                   />
+
+                  {isProcessing && !isVerified && !isFailed && !duplicateAccountPopup && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                        Passport Image Received
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                        Your Passport image is being verified. This may take a few moments. Please do not close this window.
+                      </span>
+                    </div>
+                  )}
 
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -301,7 +293,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && !duplicateAccountPopup && (
+            {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />

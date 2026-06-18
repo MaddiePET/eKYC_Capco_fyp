@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { BRANCHES } from "@/data/branches";
 import { 
@@ -43,21 +43,14 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
       <select 
         required={required} 
         className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none ${
-          !value 
-            ? "!text-gray-400" 
-            : ""
+          !value ? "!text-gray-400" : ""
         }`} 
         value={value} 
         onChange={onChange}
       >
-        <option 
-          value="" 
-          disabled 
-          className="text-gray-400"
-        >
+        <option value="" disabled className="text-gray-400">
           Please Select
         </option>
-
         {options.map((opt) => (
           <option key={opt.value} value={opt.value} className="text-gray-800 dark:text-white">
             {opt.label}
@@ -66,18 +59,8 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
       </select>
 
       <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-        <svg 
-          className="w-4 h-4 text-gray-400" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth="2" 
-            d="M19 9l-7 7-7-7" 
-          />
+        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
     </div>
@@ -100,17 +83,17 @@ export default function SavingsNonMalaysianApplication() {
   });
 
   const [documents, setDocuments] = useState<DocEntry[]>([{ id: Date.now(), name: "", preview: null }]);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [preferredBranch, setPreferredBranch] = useState("");
 
   const isFormValid = 
-  formData.occupation !== "" &&
-  formData.incomeRange !== "" &&
-  formData.employmentType !== "" &&
-  formData.sourceOfIncome !== "" &&
-  formData.isOfAge === true;
+    formData.occupation !== "" &&
+    formData.incomeRange !== "" &&
+    formData.employmentType !== "" &&
+    formData.sourceOfIncome !== "" &&
+    formData.isOfAge === true;
 
   useEffect(() => {
     setMounted(true);
@@ -166,7 +149,6 @@ export default function SavingsNonMalaysianApplication() {
         }
         setIsLocating(false);
       },
-
       () => {
         alert("Location access denied.");
         setIsLocating(false);
@@ -192,11 +174,7 @@ export default function SavingsNonMalaysianApplication() {
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -217,7 +195,6 @@ export default function SavingsNonMalaysianApplication() {
     }
 
     const fileBase64 = await fileToBase64(file);
-
     updateDoc(id, {
       preview: file.name,
       fileBase64,
@@ -233,30 +210,24 @@ export default function SavingsNonMalaysianApplication() {
         employment_type: formData.employmentType,
         is18: formData.isOfAge,
       },
-
       non_msian_supporting_docs: documents.map((doc) => ({
         doc_name: doc.name,
         doc_file: doc.fileBase64 || null 
       })),
-
       preferredBranch,
     };
 
-    localStorage.setItem(
-      "nonMsianApplication",
-      JSON.stringify(applicationData)
-    );
-
+    localStorage.setItem("nonMsianApplication", JSON.stringify(applicationData));
     router.push("/savings/non-malaysian/account_creation");
   };
 
   const handleBack = () => {
-    if (step > 1){
+    if (step > 1) {
       setStep(step - 1);
     } else {
       router.push("/savings/non-malaysian/address");
     }
-  }
+  };
 
   if (!mounted) return null;
 
@@ -302,10 +273,7 @@ export default function SavingsNonMalaysianApplication() {
           <ChevronLeftIcon className="w-5 h-5" /> 
           Back
         </button>
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -340,28 +308,28 @@ export default function SavingsNonMalaysianApplication() {
                   label="Occupation" 
                   required 
                   value={formData.occupation} 
-                  onChange={(e) => setFormData({...formData, occupation: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
                   options={non_malaysian_occupations}
                 />
                 <CustomSelect 
                   label="Monthly Income Range" 
                   required 
                   value={formData.incomeRange} 
-                  onChange={(e) => setFormData({...formData, incomeRange: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, incomeRange: e.target.value })}
                   options={income_range}
                 />
                 <CustomSelect 
                   label="Employment Type" 
                   required 
                   value={formData.employmentType} 
-                  onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
                   options={non_malaysian_employment_types}
                 />
                 <CustomSelect 
                   label="Source of Income" 
                   required 
                   value={formData.sourceOfIncome} 
-                  onChange={(e) => setFormData({...formData, sourceOfIncome: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, sourceOfIncome: e.target.value })}
                   options={non_malaysian_source_of_income}
                 />
               </div>
@@ -472,13 +440,14 @@ export default function SavingsNonMalaysianApplication() {
                     <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">
                       Document {index + 1}
                     </h3>
-                    {documents.length > 1 && 
-                    <button 
-                      onClick={() => setDocuments(documents.filter(d => d.id !== doc.id))} 
-                      className="text-xs text-red-500 font-bold hover:underline"
-                    >
-                      Remove
-                    </button>}
+                    {documents.length > 1 && (
+                      <button 
+                        onClick={() => setDocuments(documents.filter(d => d.id !== doc.id))} 
+                        className="text-xs text-red-500 font-bold hover:underline"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
 
                   <div className="mb-6">
@@ -491,11 +460,11 @@ export default function SavingsNonMalaysianApplication() {
                       className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       value={doc.name} 
                       onChange={(e) => {
-                      const sanitized = e.target.value
-                        .replace(/[^a-zA-Z0-9 ]/g, "")
-                        .split(" ")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ");
+                        const sanitized = e.target.value
+                          .replace(/[^a-zA-Z0-9 ]/g, "")
+                          .split(" ")
+                          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                          .join(" ");
                         updateDoc(doc.id, { name: sanitized });
                       }}
                     />
@@ -524,49 +493,27 @@ export default function SavingsNonMalaysianApplication() {
                     {doc.preview ? (
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-3">
-                          <svg 
-                            className="w-5 h-5 text-[#3D405B] dark:text-[#F0CA8E]" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth="2" 
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-                            />
+                          <svg className="w-5 h-5 text-[#3D405B] dark:text-[#F0CA8E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate max-w-[250px]">{doc.preview}</span>
                         </div>
-
                         <span className="text-xs text-[#3D405B] dark:text-[#F0CA8E] font-semibold">Change</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3 w-full pointer-events-none">
                         <svg 
                           className={`w-5 h-5 transition-colors ${
-                            draggingId === doc.id 
-                              ? 'text-[#3D405B] dark:text-[#F0CA8E]' 
-                              : 'text-gray-400 group-hover:text-[#F0CA8E]'
+                            draggingId === doc.id ? 'text-[#3D405B] dark:text-[#F0CA8E]' : 'text-gray-400 group-hover:text-[#F0CA8E]'
                           }`} 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24" 
                           strokeWidth="1.5"
                         >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
-                          />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                         </svg>
-                        <span className={`text-sm font-medium ${
-                            draggingId === doc.id 
-                              ? 'text-[#3D405B] dark:text-[#F0CA8E]' 
-                              : 'text-gray-500'
-                          }`}
-                        >
+                        <span className={`text-sm font-medium ${draggingId === doc.id ? 'text-[#3D405B] dark:text-[#F0CA8E]' : 'text-gray-500'}`}>
                           {draggingId === doc.id ? 'Drop here' : 'Click or drag to upload (PDF, DOC)'}
                         </span>
                       </div>
@@ -625,23 +572,9 @@ export default function SavingsNonMalaysianApplication() {
               {!userLocation ? (
                 <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl text-center dark:bg-blue-900/30 dark:border-blue-500/50">
                   <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-blue-800 dark:text-blue-300">
-                    <svg 
-                      className="w-6 h-6" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
 
@@ -661,30 +594,20 @@ export default function SavingsNonMalaysianApplication() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 p-4 bg-[#3D405B]/5 border-2 border-[#3D405B]/20 rounded-xl">
-                   <div className="flex-shrink-0 w-8 h-8 bg-[#3D405B] text-white rounded-lg flex items-center justify-center">
-                    <svg 
-                      className="w-4 h-4" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
+                  <div className="flex-shrink-0 w-8 h-8 bg-[#3D405B] text-white rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     </svg>
-                   </div>
+                  </div>
 
-                   <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-hidden">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Current Location
                     </p>
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                       {userAddress}
                     </p>
-                   </div>
+                  </div>
                   
                   <button 
                     onClick={() => setUserLocation(null)} 
@@ -715,18 +638,8 @@ export default function SavingsNonMalaysianApplication() {
                     }`}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-[#F0CA8E] text-[#3D405B] dark:text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
-                      <svg 
-                        className="w-5 h-5" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                        />
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                     </div>
 
@@ -740,7 +653,9 @@ export default function SavingsNonMalaysianApplication() {
                     </div>
 
                     {distance && (
-                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">
+                        {distance} km
+                      </span>
                     )}
                   </div>
                 );

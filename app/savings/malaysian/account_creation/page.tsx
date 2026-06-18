@@ -33,9 +33,7 @@ export default function SavingsMalaysianAccountCreation() {
 
   useEffect(() => {
     setMounted(true);
-
     let email = "";
-
     const savedContactData = localStorage.getItem("contactInfo");
 
     if (savedContactData) {
@@ -61,9 +59,19 @@ export default function SavingsMalaysianAccountCreation() {
     "https://api.dicebear.com/7.x/initials/svg?seed=GP&backgroundColor=F4ABC4",
   ];
 
-  const phraseOptions: string[] = ["Whale Hello There!", "Sofa So Good..", "Donut Worry Be Happy!"];
+  const phraseOptions: string[] = [
+    "Whale Hello There!",
+    "Sofa So Good..",
+    "Donut Worry Be Happy!",
+  ];
+
   const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(password);
-  const score = (password.length >= 8 ? 1 : 0) + (/[0-9]/.test(password) ? 1 : 0) + (/[A-Z]/.test(password) ? 1 : 0) + (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
+  
+  const score = 
+    (password.length >= 8 ? 1 : 0) + 
+    (/[0-9]/.test(password) ? 1 : 0) + 
+    (/[A-Z]/.test(password) ? 1 : 0) + 
+    (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
   const getPasswordStrength = (): string => {
     if (password.length === 0) return "";
@@ -75,13 +83,11 @@ export default function SavingsMalaysianAccountCreation() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-
     if (file) {
       setProfileFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setProfilePreview(dataUrl); 
+        setProfilePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -136,10 +142,9 @@ export default function SavingsMalaysianAccountCreation() {
           dob: personalInfo.dob || "",
           ph_no: phoneVerification.ph_no || phoneVerification.phone_number || personalInfo.ph_no || "",
           email: contactInfo.email || contactInfo.email_address || userEmail || "",
-          gender: personalInfo.gender || "", 
+          gender: personalInfo.gender || "",
           country: personalInfo.country || "Malaysia",
         },
-
         homeAddress,
         mailingAddress,
         savingsAccount: {
@@ -149,7 +154,6 @@ export default function SavingsMalaysianAccountCreation() {
           employment_type: savingsApplication.employment_type || "",
           is18: savingsApplication.is18 !== undefined ? savingsApplication.is18 : true,
         },
-
         user: {
           username: username.trim(),
           password,
@@ -167,7 +171,10 @@ export default function SavingsMalaysianAccountCreation() {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to complete savings account registration.");
+      }
 
       localStorage.setItem("currentAccount", username.trim());
       localStorage.setItem("currentUsername", username.trim());
@@ -197,15 +204,15 @@ export default function SavingsMalaysianAccountCreation() {
       try {
         setIsValidatingUsername(true);
         setUsernameError(null);
-        
+
         const res = await fetch(`/api/auth/check_existing_username?username=${encodeURIComponent(username.trim())}`);
         const data = await res.json();
-        
+
         if (data.exists) {
           setUsernameError("This username is already taken. Please choose another.");
           return;
         }
-        
+
         setStep("password");
       } catch (err) {
         setUsernameError("Unable to verify username availability. Please try again.");
@@ -313,7 +320,6 @@ export default function SavingsMalaysianAccountCreation() {
                         className="w-full h-full object-cover" 
                         alt="Profile" 
                       />
-
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <span className="text-white text-[10px] font-bold uppercase bg-white/20 backdrop-blur-sm px-2 py-1 rounded">Change</span>
                       </div>
@@ -333,7 +339,6 @@ export default function SavingsMalaysianAccountCreation() {
                           d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" 
                         />
                       </svg>
-
                       <span className="text-[10px] text-gray-400 uppercase font-bold">Upload</span>
                     </div>
                   )}
@@ -455,16 +460,12 @@ export default function SavingsMalaysianAccountCreation() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value.replace(/\s/g, ""))}
                   />
-
                   <button 
                     type="button" 
                     onClick={() => setShowPassword(!showPassword)} 
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
                   >
-                    {showPassword 
-                      ? <EyeIcon className="w-5 h-5" /> 
-                      : <EyeCloseIcon className="w-5 h-5" />
-                    }
+                    {showPassword ? <EyeIcon className="w-5 h-5" /> : <EyeCloseIcon className="w-5 h-5" />}
                   </button>
                 </div>
 

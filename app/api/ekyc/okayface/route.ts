@@ -2,16 +2,12 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    // Expecting standard JSON now instead of heavy multi-part form data
     const { journeyId, selfieUrl, idCardUrl } = await req.json();
 
     if (!journeyId || !selfieUrl || !idCardUrl) {
       return NextResponse.json({ error: "Missing journeyId, selfieUrl, or idCardUrl" }, { status: 400 });
     }
 
-    console.log("Downloading images from Supabase for OkayFace mapping...");
-
-    // Download both files concurrently
     const [selfieRes, idCardRes] = await Promise.all([
       fetch(selfieUrl),
       fetch(idCardUrl)
@@ -21,7 +17,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Failed to pull image references from supabase storage" }, { status: 400 });
     }
 
-    // Convert them to blobs to append cleanly into our form submission
     const selfieBlob = await selfieRes.blob();
     const idCardBlob = await idCardRes.blob();
 
@@ -32,8 +27,6 @@ export async function POST(req: Request) {
     formData.append("livenessDetection", "false");
     formData.append("imageBest", selfieBlob, "selfie.jpg");
     formData.append("imageIdCard", idCardBlob, "idcard.jpg");
-
-    console.log("Calling Innov8tif /okayface for journeyId:", journeyId);
 
     const response = await fetch(okayfaceUrl, {
       method: "POST",
@@ -50,15 +43,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid JSON response from OkayFace" }, { status: 500 });
     }
 
-    console.log("OkayFace full response:", JSON.stringify(result, null, 2));
-
-    if (result?.result_idcard && typeof result.result_idcard.confidence === "number") {
-      if (result.result_idcard.confidence < 60) {
-        console.log(`[SANDBOX BYPASS] Intercepted raw confidence mismatch (${result.result_idcard.confidence}). Overriding to 88 for demo continuity.`);
-        result.result_idcard.confidence = 88;
-      }
-    }
-    
     return NextResponse.json(result, { status: response.status });
   } catch (error: any) {
     console.error("OkayFace route error:", error.message);

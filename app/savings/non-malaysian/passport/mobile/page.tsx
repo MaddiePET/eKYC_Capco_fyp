@@ -6,9 +6,8 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function SavingsNonMalaysianMobilePassportCapture() {
+export default function SavingsNonMalaysianMobilePassportCapture() {
   const MAX_ATTEMPTS = 3;
-
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -21,9 +20,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
   const [failCount, setFailCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const searchParams = useSearchParams();
-    
   const journeyId = searchParams.get("journeyId") || "";
 
   useEffect(() => {
@@ -60,15 +57,22 @@ function SavingsNonMalaysianMobilePassportCapture() {
     setIsUploadingPassport(true);
     setIsLoading(true);
     setErrorMessage(null);
-    let uploadedUrlForCleanup: string | null = null;
 
     try {
-      console.log("Step 1: Uploading passport binary directly to Supabase storage...");
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "processing",
+        }),
+      });
+
       const fileExtension = file.name.split(".").pop();
       const fileName = `passport_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `passports/${fileName}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("identity-docs")
         .upload(filePath, file, {
           cacheControl: "3600",
@@ -81,28 +85,24 @@ function SavingsNonMalaysianMobilePassportCapture() {
         .from("identity-docs")
         .getPublicUrl(filePath);
 
-      uploadedUrlForCleanup = publicUrl;
       setPassportImage(publicUrl);
-      console.log("Step 2: Forwarding small public URL string to Vercel OCR parser...");
+
       const okayidResponse = await fetch("/api/ekyc/okayid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
-          supabaseImageUrl: publicUrl, // Handed down cleanly to server handlers
+          supabaseImageUrl: publicUrl,
         }),
       });
 
       const okayidResult = await okayidResponse.json();
-      console.log("Okayid full response:", JSON.stringify(okayidResult, null, 2));
 
       const passportNo =
         okayidResult?.extracted?.passport_no ||
         okayidResult?.passport_no ||
         okayidResult?.data?.passport_no ||
         "";
-
-      console.log("Extracted passport number:", passportNo);
 
       if (!passportNo) {
         throw new Error("Passport number could not be extracted");
@@ -112,7 +112,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error(okayidResult.message || "unrecognized");
       }
 
-      // Forwarding to quality validation engine
       const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -126,7 +125,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
       });
 
       const okaydocResult = await okaydocResponse.json();
-      console.log("Okaydoc full response:", JSON.stringify(okaydocResult, null, 2));
 
       if (okaydocResult.status !== "success") {
         throw new Error("not meeting quality standards");
@@ -170,7 +168,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
         throw new Error("Failed to verify existing account status");
       }
 
-      // Store the public reference path locally for subsequent facial matching stage
       localStorage.setItem("ekyc_id_image_url", publicUrl);
       
       await fetch("/api/ekyc/status", {
@@ -183,6 +180,8 @@ function SavingsNonMalaysianMobilePassportCapture() {
           id_num: passportNo,
         }),
       });
+      
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setSuccess(true);
     } catch (error: any) {
@@ -195,6 +194,14 @@ function SavingsNonMalaysianMobilePassportCapture() {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            status: "failed_attempt",
+          }),
+        });
       } else {
         setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
@@ -331,11 +338,20 @@ function SavingsNonMalaysianMobilePassportCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
                 {errorMessage}
               </div>
             )}
 
+            {isUploadingPassport && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Passport Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your Passport image is being verified. This may take a few moments. Please do not close this window.
+                </p>
+              </div>
+            )}
+            
             <input
               type="file"
               accept="image/*"
@@ -344,6 +360,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
               onChange={handleCapture}
               className="hidden"
             />
+            
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || failCount >= MAX_ATTEMPTS}
@@ -355,9 +372,9 @@ function SavingsNonMalaysianMobilePassportCapture() {
             >
               <span className="font-semibold text-sm">
                 {isUploadingPassport
-                  ? "Uploading passport photo..."
+                  ? "Verifying"
                   : passportImage
-                  ? "Passport photo uploaded"
+                  ? "Verified"
                   : failCount > 0
                   ? "Try Again"
                   : "Open Camera"}
@@ -386,13 +403,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
                 </svg>
               )}
             </button>
-
-            {passportImage && !success && !errorMessage && (
-              <div className="mt-4 w-full max-w-xs rounded-2xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm">
-                <p className="text-sm font-semibold">Passport photo uploaded successfully.</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800">We are verifying the image now. Please wait a moment while your Passport is analyzed.</p>
-              </div>
-            )}
           </div>
         )}
 
@@ -446,19 +456,5 @@ function SavingsNonMalaysianMobilePassportCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function SavingsNonMalaysianMobilePassportCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <SavingsNonMalaysianMobilePassportCapture />
-    </React.Suspense>
   );
 }

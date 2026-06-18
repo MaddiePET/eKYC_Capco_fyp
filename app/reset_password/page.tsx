@@ -149,9 +149,7 @@ export default function ResetPassword() {
       }
 
       setStep("reset");
-      setMessage(
-        "Email verified successfully. You can now reset your password."
-      );
+      setMessage("Email verified successfully. You can now reset your password.");
       setMessageType("success");
     } catch (err: any) {
       setMessage(err.message);
@@ -175,15 +173,13 @@ export default function ResetPassword() {
     } else {
       newOtp[index] = cleanValue;
       setOtp(newOtp);
-      if (cleanValue && index < 5)
+      if (cleanValue && index < 5) {
         otpInputs.current[index + 1]?.focus();
+      }
     }
   };
 
-  const handleOtpPaste = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
     e.preventDefault();
     const pastedData = e.clipboardData
       .getData("text")
@@ -203,10 +199,7 @@ export default function ResetPassword() {
     otpInputs.current[nextFocusIndex]?.focus();
   };
 
-  const handleOtpKeyDown = (
-    e: React.KeyboardEvent,
-    index: number
-  ) => {
+  const handleOtpKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       otpInputs.current[index - 1]?.focus();
     }
@@ -317,10 +310,7 @@ export default function ResetPassword() {
           <div />
         )}
 
-        <Link 
-          href="/" 
-          className="flex items-center gap-2"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo/logo-light.svg"
             alt="Logo"
@@ -370,11 +360,11 @@ export default function ResetPassword() {
                     type="text"
                     value={username}
                     required
-                    className={`w-full px-4 py-2.5 pr-10 text-sm font-medium transition-all bg-white border-2 rounded-xl outline-none appearance-none ${
+                    className={`w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 ${
                       isUsernameValid === true
                         ? "border-green-500 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:border-green-500 dark:focus:border-green-500"
                         : "border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                    } text-gray-800 dark:text-white dark:placeholder-gray-400`}
+                    }`}
                     onChange={(e) => {
                       const cleanedValue = e.target.value
                         .replace(/[^a-zA-Z0-9]/g, "")
@@ -399,17 +389,9 @@ export default function ResetPassword() {
                 </Label>
                 <input
                   type="email"
-                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none appearance-none cursor-not-allowed ${
-                    email && isUsernameValid === true
-                      ? "bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-800/50 dark:text-gray-300"
-                      : "bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
-                  }`}
-                  placeholder="Registered email"
+                  className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 cursor-not-allowed"
                   value={email}
                   readOnly
-                  onChange={(e) =>
-                    setEmail(e.target.value.replace(/[^a-zA-Z0-9@.]/g, ""))
-                  }
                 />
               </div>
 
@@ -547,7 +529,7 @@ export default function ResetPassword() {
 
                 <div className="relative">
                   <input
-                    className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
+                    className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter new password"
                     value={newPassword}
@@ -626,7 +608,7 @@ export default function ResetPassword() {
                   Confirm Password<span className="text-error-500">*</span>
                 </Label>
                 <input
-                  className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white"
+                  className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
                   type={showPassword ? "text" : "password"}
                   placeholder="Confirm new password"
                   value={confirmPassword}
@@ -639,13 +621,14 @@ export default function ResetPassword() {
 
               <button
                 type="submit"
-                disabled={
-                  !newPassword ||
-                  !isPasswordValid ||
-                  newPassword !== confirmPassword ||
-                  isLoading
-                }
-                className="w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] hover:bg-[#2c2f42] disabled:bg-gray-200 disabled:text-gray-400"
+                className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  newPassword &&
+                  isPasswordValid &&
+                  newPassword === confirmPassword &&
+                  !isLoading
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                }`}
               >
                 {isLoading ? "Updating..." : "Update Password"}
               </button>

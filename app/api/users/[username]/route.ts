@@ -8,7 +8,6 @@ export async function GET(
 ) {
   try {
     const { username } = await context.params;
-    console.log("USERNAME:", username);
 
     const result = await pool.query(
       `
@@ -32,7 +31,6 @@ export async function GET(
     }
 
     const user = result.rows[0];
-
     let avatarString = "";
 
     if (user.img) {
@@ -59,7 +57,6 @@ export async function GET(
     });
   } catch (err) {
     console.error(err);
-
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

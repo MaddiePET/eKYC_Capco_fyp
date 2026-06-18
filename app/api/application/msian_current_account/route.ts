@@ -47,15 +47,13 @@ export async function POST(req: Request) {
     const applicationMode = data.applicationMode || data.mode || data.application_mode || data.flow || "new_user";
     const isAddAccountFlow = applicationMode === "existing_customer" || applicationMode === "add_account";
 
-    console.log("DEBUG applicationMode:", applicationMode);
-    console.log("DEBUG isAddAccountFlow:", isAddAccountFlow);
-
     const personalInfo = data.personalInfo || {};
     const contactInfo = data.contactInfo || {};
     const businessContact = data.businessContact || {};
     const businessParticulars = data.businessParticulars || {};
     const businessAddressData = data.businessAddress || {};
     const account = data.account || {};
+    const supportingDocuments = data.supportingDocuments || [];
     const phoneVerification = data.phoneVerification || {};
     const customerIdNum = personalInfo.id_num || personalInfo.idNumber || personalInfo.ic_num;
     const customerFullName = personalInfo.fullName || personalInfo.full_name;
@@ -95,8 +93,6 @@ export async function POST(req: Request) {
       );
 
       const statusData = await statusRes.json();
-
-      console.log("DEBUG business statusData:", statusData);
 
       const statusIdType = statusData.id_type?.toLowerCase();
       const statusIdNum = statusData.id_num?.replace(/-/g, "").trim().toUpperCase();
@@ -153,16 +149,31 @@ export async function POST(req: Request) {
           { status: 403}
         );
       }
-
-      console.log("DEBUG business scorecardResult:", scorecardResult);
     }
 
     await client.query("BEGIN");
 
     const identityLookupHash = hashLookup(cleanIdNum);
 
-    const customerPhone = personalInfo.ph_no || phoneVerification.phoneNumber || personalInfo.ph_no_1 || businessContact.bus_ph_no || businessContact.phoneNumber || "";
-    const customerEmail = personalInfo.email || contactInfo.email ||  businessContact.bus_email ||  businessContact.email ||  "";
+    const customerPhone =
+      personalInfo.ph_no ||
+      phoneVerification.phoneNumber ||
+      personalInfo.ph_no_1;
+
+    const customerEmail =
+      personalInfo.email ||
+      personalInfo.email_address ||
+      contactInfo.email ||
+      contactInfo.email_address;
+
+    const businessPhone =
+      businessContact.bus_ph_no ||
+      businessContact.phoneNumber;
+
+    const businessEmail =
+      businessContact.bus_email ||
+      businessContact.email;
+
     const customerGender = mapGender(personalInfo.gender);
 
     const existingCustomerCheck = await client.query(
@@ -181,33 +192,6 @@ export async function POST(req: Request) {
     if (existingCustomerCheck.rows.length > 0) {
       custId = existingCustomerCheck.rows[0].cust_id;
       homeAddId = existingCustomerCheck.rows[0].home_add;
-
-      console.log(
-        `[CURRENT ACCOUNT] Existing customer found. Reusing cust_id: ${custId}, home_add: ${homeAddId}`
-      );
-
-      await client.query(
-        `
-        UPDATE banka."Customer"
-        SET
-          full_name = $1,
-          id_type = $2,
-          dob = $3,
-          ph_no = $4,
-          email = $5,
-          gender = $6
-        WHERE cust_id = $7
-        `,
-        [
-          enc(customerFullName),
-          personalInfo.id_type || "IC",
-          personalInfo.dob,
-          enc(customerPhone),
-          enc(customerEmail),
-          personalInfo.gender,
-          custId,
-        ]
-      );
     } else {
       const personalAddress = {
         add_1:
@@ -551,8 +535,8 @@ export async function POST(req: Request) {
           regNoHash,
           enc(regNoRaw),
           enc(businessParticulars.business_name || businessParticulars.bus_name),
-          enc(businessContact.bus_ph_no || businessContact.phoneNumber),
-          enc(businessContact.bus_email || businessContact.email),
+          enc(businessPhone),
+          enc(businessEmail),
           businessParticulars.start_date || null,
           businessType || null,
           businessAddId,
@@ -593,6 +577,28 @@ export async function POST(req: Request) {
           currentAccountRole,
         ]
       );
+    }
+
+    if (Array.isArray(supportingDocuments) && supportingDocuments.length > 0) {
+      for (const doc of supportingDocuments) {
+        if (!doc.name || !doc.fileBase64) continue;
+
+        await client.query(
+          `
+          INSERT INTO banka."Business_supporting_docs" (
+            reg_no,
+            doc_name,
+            doc_file
+          )
+          VALUES ($1, $2, $3)
+          `,
+          [
+            enc(regNoRaw),
+            enc(doc.name),
+            enc(doc.fileBase64),
+          ]
+        );
+      }
     }
 
     if (!isAddAccountFlow && journeyId && scorecardResult !== null) {
@@ -641,11 +647,6 @@ export async function POST(req: Request) {
     );
   } catch (error: any) {
     await client.query("ROLLBACK");
-
-    console.error(
-      "Malaysian current account deployment exception path hit:",
-      error
-    );
 
     return NextResponse.json(
       {

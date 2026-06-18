@@ -5,7 +5,6 @@ import { encrypt } from "@/lib/cryptoSecurity";
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   try {
     const body = await req.json();
-
     const { cust_id, ph_no } = body;
 
     if (cust_id === undefined || cust_id === null || !ph_no) {

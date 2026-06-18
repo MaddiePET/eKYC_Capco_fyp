@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { useFormData } from "@/context/FormContext";
 import Label from "@/components/form/Label";
+import { saveToStorage } from "@/lib/storage";
 
 type Step = "option" | "input" | "confirm" | "change" | "otp";
 type Method = "Email" | "Phone" | null;
@@ -77,7 +78,6 @@ export default function CurrentMalaysianOTP() {
     setEmail(
       currentFormData?.contactInfo?.email ||
       currentFormData?.contact?.email ||
-      currentFormData?.businessContact?.bus_email ||
       currentFormData?.email ||
       ""
     );
@@ -220,21 +220,28 @@ export default function CurrentMalaysianOTP() {
           return;
         }
 
+        const verifiedEmail = email.trim();
+
         setFormData((prev: any) => ({
           ...prev,
           contactInfo: {
             ...prev.contactInfo,
-            email: email.trim(),
-          },
-          businessContact: {
-            ...prev.businessContact,
-            bus_email: email.trim(),
+            email: verifiedEmail,
+            email_address: verifiedEmail,
           },
           phoneVerification: {
             ...prev.phoneVerification,
             phoneNumber: originalPhoneNumber,
-          }
+          },
         }));
+
+        saveToStorage("contactInfo", {
+          email: verifiedEmail,
+          email_address: verifiedEmail,
+        });
+
+        saveToStorage("personalInfoEmail", verifiedEmail);
+        localStorage.setItem("personalEmail", verifiedEmail);
         
         await fetchAndRouteToInfo();
       } catch (error) {
@@ -253,7 +260,6 @@ export default function CurrentMalaysianOTP() {
           },
           contactInfo: {
             ...prev.contactInfo,
-            email: email.trim(),
           }
         }));
         
@@ -559,7 +565,7 @@ export default function CurrentMalaysianOTP() {
                   </Label>
 
                   <div className="flex mt-2">
-                    <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-90/90 dark:border-[#5c6185]/20">
+                    <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
                       <img
                         src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg"
                         alt="MY"

@@ -7,8 +7,7 @@ declare global {
   var emailOtpStore: Map<string, EmailOtpRecord> | undefined;
 }
 
-const emailOtpStore =
-  global.emailOtpStore ?? new Map<string, EmailOtpRecord>();
+const emailOtpStore = global.emailOtpStore ?? new Map<string, EmailOtpRecord>();
 
 global.emailOtpStore = emailOtpStore;
 
@@ -24,7 +23,8 @@ export function saveEmailOtp(email: string, otp: string) {
 }
 
 export function verifyEmailOtp(email: string, otp: string) {
-  const record = emailOtpStore.get(normalizeEmail(email));
+  const normalized = normalizeEmail(email);
+  const record = emailOtpStore.get(normalized);
 
   if (!record) {
     return {
@@ -34,8 +34,7 @@ export function verifyEmailOtp(email: string, otp: string) {
   }
 
   if (Date.now() > record.expiresAt) {
-    emailOtpStore.delete(normalizeEmail(email));
-
+    emailOtpStore.delete(normalized);
     return {
       success: false,
       message: "OTP expired. Please request a new code.",
@@ -49,7 +48,7 @@ export function verifyEmailOtp(email: string, otp: string) {
     };
   }
 
-  emailOtpStore.delete(normalizeEmail(email));
+  emailOtpStore.delete(normalized);
 
   return {
     success: true,

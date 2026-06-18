@@ -15,6 +15,7 @@ export default function CurrentMalaysianFaceQRCode() {
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [verificationError, setVerificationError] = useState("");
 
@@ -77,7 +78,10 @@ export default function CurrentMalaysianFaceQRCode() {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
         const data = await res.json();
 
-        if (data.status === "face_verified") {
+        if (data.status === "face_processing") {
+          setIsProcessing(true);
+        } else if (data.status === "face_verified") {
+          setIsProcessing(false);
           const scorecardResult = calculateScorecardResult(data.scorecard);
 
           if (scorecardResult === null) {
@@ -100,14 +104,17 @@ export default function CurrentMalaysianFaceQRCode() {
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "face_failed") {
+          setIsProcessing(false);
           setVerificationError("Face verification failed after multiple attempts. Please restart verification.");
           setIsFailed(true);
           clearInterval(checkStatus);
+        } else if (data.status === "face_failed_attempt") {
+          setIsProcessing(false);
         }
       } catch (error) {
         console.error("Error checking verification status:", error);
       }
-    }, 3000);
+    }, 500);
 
     return () => clearInterval(checkStatus);
   }, [searchParams]);
@@ -240,6 +247,8 @@ export default function CurrentMalaysianFaceQRCode() {
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
                   ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  : isProcessing
+                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -250,9 +259,22 @@ export default function CurrentMalaysianFaceQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed ? "opacity-30 blur-sm" : "opacity-100"
+                      isVerified || isFailed || isProcessing ? "opacity-30 blur-sm" : "opacity-100"
                     }`}                  
                   />
+
+                  {isProcessing && !isVerified && !isFailed && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                        Face Image Received
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                        Your face image is being verified. This may take a few moments. Please do not close this window.
+                      </span>
+                    </div>
+                  )}
+
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                       <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
@@ -280,7 +302,7 @@ export default function CurrentMalaysianFaceQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && (
+            {!isVerified && !isFailed && !isProcessing && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />

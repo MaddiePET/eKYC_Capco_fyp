@@ -137,7 +137,6 @@ export default function CurrentMalaysianBusinessOTP() {
         setMessage("OTP sent successfully. Please check your email.");
         setMessageType("success");
       } catch (error) {
-        console.error("Send business email OTP error:", error);
         setMessage("Something went wrong while sending the OTP.");
         setMessageType("error");
       } finally {
@@ -197,7 +196,6 @@ export default function CurrentMalaysianBusinessOTP() {
           router.push("/current/malaysian/supporting_documents");
         }, 1000);
       } catch (error) {
-        console.error("Verify business email OTP error:", error);
         setMessage("Something went wrong while verifying the OTP.");
         setMessageType("error");
         setIsLoading(false);

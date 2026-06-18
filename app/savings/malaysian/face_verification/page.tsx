@@ -10,30 +10,26 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function SavingsMalaysianFaceQRCode() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
   const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [verificationError, setVerificationError] = useState("");
-
-  const searchParams = useSearchParams();
 
   const SCORECARD_PASS_THRESHOLD = 70;
 
   const calculateScorecardResult = (scorecard: any) => {
     const scorecardLists = scorecard?.scorecardResultList || [];
-
     let totalChecks = 0;
     let passedChecks = 0;
 
     for (const scorecardItem of scorecardLists) {
       const checks = scorecardItem.checkResultList || [];
-
       for (const check of checks) {
         totalChecks++;
-
         if (check.checkStatus === "P") {
           passedChecks++;
         }
@@ -51,7 +47,6 @@ export default function SavingsMalaysianFaceQRCode() {
     const jId = searchParams.get("journeyId") || localStorage.getItem("journeyId");
 
     if (!jId) {
-      console.error("Journey ID missing");
       return;
     }
     
@@ -64,12 +59,6 @@ export default function SavingsMalaysianFaceQRCode() {
     const origin = window.location.origin;
     const targetUrl = `${origin}/savings/malaysian/face_verification/mobile?journeyId=${jId}`;
 
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not reachable from your phone. Open the app from the tunnel URL and refresh."
-      );
-    }
-
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
@@ -77,7 +66,10 @@ export default function SavingsMalaysianFaceQRCode() {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
         const data = await res.json();
 
-        if (data.status === "face_verified") {
+        if (data.status === "face_processing") {
+          setIsProcessing(true);
+        } else if (data.status === "face_verified") {
+          setIsProcessing(false);
           const scorecardResult = calculateScorecardResult(data.scorecard);
 
           if (scorecardResult === null) {
@@ -91,7 +83,6 @@ export default function SavingsMalaysianFaceQRCode() {
             setVerificationError(
               `Your eKYC verification score is ${scorecardResult}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please restart verification.`
             );
-
             setIsFailed(true);
             clearInterval(checkStatus);
             return;
@@ -100,14 +91,17 @@ export default function SavingsMalaysianFaceQRCode() {
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "face_failed") {
+          setIsProcessing(false);
           setVerificationError("Face verification failed after multiple attempts. Please restart verification.");
           setIsFailed(true);
           clearInterval(checkStatus);
+        } else if (data.status === "face_failed_attempt") {
+          setIsProcessing(false);
         }
       } catch (error) {
         console.error("Error checking verification status:", error);
       }
-    }, 3000);
+    }, 500);
 
     return () => clearInterval(checkStatus);
   }, [searchParams]);
@@ -152,7 +146,7 @@ export default function SavingsMalaysianFaceQRCode() {
               {verificationError || "Face verification failed after multiple attempts. Please return to the home page to restart."}            
             </p>
             <button
-               onClick={() => router.push(`/savings/malaysian/mykad`)}
+              onClick={() => router.push(`/savings/malaysian/mykad`)}
               className="w-full py-3 px-4 bg-[#3D405B] text-white font-bold rounded-xl hover:bg-[#2c2f42] transition-colors"
             >
               Restart Verification
@@ -230,17 +224,13 @@ export default function SavingsMalaysianFaceQRCode() {
           </p>
         </div>
 
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">
-            {hostWarning}
-          </div>
-        )}
-
         <section className="flex flex-col items-center justify-center mb-8">
           <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
             <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
                 isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20"
+                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                  : isProcessing
+                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                   : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
               }`}
             >
@@ -251,9 +241,22 @@ export default function SavingsMalaysianFaceQRCode() {
                     size={220}
                     level="H"
                     className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed ? "opacity-30 blur-sm" : "opacity-100"
+                      isVerified || isFailed || isProcessing ? "opacity-30 blur-sm" : "opacity-100"
                     }`}
                   />
+
+                  {isProcessing && !isVerified && !isFailed && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                        Face Image Received
+                      </span>
+                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                        Your face image is being verified. This may take a few moments. Please do not close this window.
+                      </span>
+                    </div>
+                  )}
+
                   {isVerified && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                       <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
@@ -281,7 +284,7 @@ export default function SavingsMalaysianFaceQRCode() {
               )}
             </div>
 
-            {!isVerified && !isFailed && (
+            {!isVerified && !isFailed && !isProcessing && (
               <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />

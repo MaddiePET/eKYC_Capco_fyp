@@ -94,6 +94,16 @@ export default function CurrentMalaysianAccountCreation() {
     const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
     const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
 
+    const storedSupportingDocuments = loadFromStorage(
+      "supportingDocuments",
+      [] as any[]
+    );
+
+    const finalSupportingDocuments =
+      formData.supportingDocuments?.length
+        ? formData.supportingDocuments
+        : storedSupportingDocuments;
+
     const normalizedBusiness = {
       registration_number:
         formData.businessParticulars?.reg_no ||
@@ -169,6 +179,24 @@ export default function CurrentMalaysianAccountCreation() {
         gender: formData.personalInfo?.gender || storedPersonalInfo.gender || "", 
         dob: storedPersonalInfo.dob || storedPersonalInfo.dateOfBirth || "",
         id_type: "IC",
+
+        ph_no:
+          formData.personalInfo?.ph_no_1 ||
+          storedPersonalInfo.ph_no ||
+          storedPersonalInfo.phoneNumber ||
+          storedContactInfo.phoneNumber ||
+          storedContactInfo.ph_no ||
+          "",
+
+        email:
+          formData.personalInfo?.email ||
+          storedPersonalInfo.email ||
+          storedPersonalInfo.email_address ||
+          storedContactInfo.email ||
+          storedContactInfo.email_address ||
+          localStorage.getItem("personalEmail") ||
+          "",
+
         streetAddress: storedHomeAddress.add_1 || storedHomeAddress.streetAddress || "",
         city: storedHomeAddress.add_2 || storedHomeAddress.city || "",
         postal: storedHomeAddress.postcode || storedHomeAddress.postal || "",
@@ -203,12 +231,14 @@ export default function CurrentMalaysianAccountCreation() {
         },
       },
 
+      supportingDocuments: finalSupportingDocuments,
+
       account: {
         username: username.trim(),
         password: password,
         securityPhrase: securityPhrase,
         profilePreview: profilePreview || "",
-      },
+      },     
     };
 
     console.log("Sending Malaysian application payload verification: ", finalPayload);
@@ -363,7 +393,10 @@ export default function CurrentMalaysianAccountCreation() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-        <Link href="/" className="flex items-center gap-2">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2"
+        >
           <Image 
             src="/images/logo/logo-light.svg" 
             alt="Logo" 
@@ -657,7 +690,7 @@ export default function CurrentMalaysianAccountCreation() {
               We've sent a confirmation email to
             </p>
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
-              {userEmail}
+              {localStorage.getItem("personalEmail")}
             </p>
             <button 
               type="button" 

@@ -36,18 +36,12 @@ const CustomSelect = ({ label, value, onChange, options, required = false }: Cus
       <select 
         required={required} 
         className={`w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none ${
-          !value 
-            ? "!text-gray-400" 
-            : ""
+          !value ? "!text-gray-400" : ""
         }`} 
         value={value} 
         onChange={onChange}
       >
-        <option 
-          value="" 
-          disabled 
-          className="text-gray-400"
-        >
+        <option value="" disabled className="text-gray-400">
           Please Select
         </option>
         {options.map((opt) => (
@@ -96,11 +90,11 @@ export default function SavingsMalaysianApplication() {
   const [preferredBranch, setPreferredBranch] = useState("");
 
   const isFormValid = 
-  formData.occupation !== "" &&
-  formData.incomeRange !== "" &&
-  formData.employmentType !== "" &&
-  formData.sourceOfIncome !== "" &&
-  formData.isOfAge === true;
+    formData.occupation !== "" &&
+    formData.incomeRange !== "" &&
+    formData.employmentType !== "" &&
+    formData.sourceOfIncome !== "" &&
+    formData.isOfAge === true;
 
   useEffect(() => {
     setMounted(true);
@@ -156,7 +150,6 @@ export default function SavingsMalaysianApplication() {
         }
         setIsLocating(false);
       },
-      
       () => {
         alert("Location access denied.");
         setIsLocating(false);
@@ -183,7 +176,6 @@ export default function SavingsMalaysianApplication() {
           is18: formData.isOfAge,
         })
       );
-
       setStep(2);
     } catch (error: any) {
       console.error("Malaysian savings account application error:", error);
@@ -205,7 +197,7 @@ export default function SavingsMalaysianApplication() {
       JSON.stringify({
         branch: selectedBranchDetails.name,
       })
-    )
+    );
     router.push("/savings/malaysian/account_creation");
   };
 
@@ -232,7 +224,6 @@ export default function SavingsMalaysianApplication() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -543,7 +534,9 @@ export default function SavingsMalaysianApplication() {
                     </div>
 
                     {distance && (
-                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">{distance} km</span>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-md">
+                        {distance} km
+                      </span>
                     )}
                   </div>
                 );

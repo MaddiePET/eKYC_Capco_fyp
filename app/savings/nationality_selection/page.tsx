@@ -9,7 +9,6 @@ import Label from "@/components/form/Label";
 
 export default function SavingsNationalitySelection() {
   const router = useRouter();
-
   const [selectedNationality, setSelectedNationality] = useState<string>("");
 
   const handleNext = () => {
