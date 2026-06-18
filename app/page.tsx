@@ -282,32 +282,6 @@ export default function Home() {
           <path className="text-[#F9FAFB] dark:text-gray-950" fill="currentColor" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
         </svg>
 
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl font-extrabold mb-4 text-[#F0CA8E]">Stay Updated with Us</h2>
-          <p className="text-white/80 dark:text-gray-200 mb-10 text-base font-medium">Sign up for our newsletter to receive the latest insights and updates.</p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-            <div className="relative flex-grow">
-              <div className="relative">
-                <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 fill-gray-400 dark:fill-gray-300 z-10" viewBox="0 0 20 20">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-                <input 
-                  type="email" 
-                  className="w-full pl-12 pr-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 placeholder:text-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
-                  placeholder="Enter your email address" 
-                  required 
-                />
-              </div>
-            </div>
-            <button 
-              type="submit" 
-              className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition rounded-xl bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-0.5"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
 
         <svg className="absolute bottom-0 left-0 w-full h-12 sm:h-16 md:h-24 lg:h-32 translate-y-[2px]" preserveAspectRatio="none" viewBox="0 0 1440 320">
           <path className="text-[#F0CA8E]/10 dark:text-white/5" fill="currentColor" d="M0,192L48,186.7C96,181,192,171,288,181.3C384,192,480,224,576,234.7C672,245,768,235,864,213.3C960,192,1056,160,1152,149.3C1248,139,1344,149,1392,154.7L1440,160L1440,320L0,320Z"></path>
@@ -325,7 +299,7 @@ export default function Home() {
               return (
                 <div key={index} className={`flex-1 bg-white dark:bg-gray-900/90 rounded-3xl p-10 shadow-xl border border-[#F0CA8E] dark:border-[#F0CA8E] dark:ring-4 dark:ring-[#F0CA8E]/20 flex flex-col items-center justify-center min-h-[320px] transition-all duration-700 ease-in-out ${fadeClass}`}>
                   <div className="relative w-20 h-20 mx-auto mb-6 rounded-full ring-4 ring-[#81B29A]/30 overflow-hidden shadow-md group-hover:scale-110 transition-transform">
-                    <Image src={testimonial.image} alt={testimonial.name} fill className="object-cover" />
+                    <Image src={testimonial.image} alt={testimonial.name} fill sizes="(max-width: 768px) 80px, 80px" className="object-cover" />
                   </div>
                   <h5 className="text-lg font-bold text-[#81B29A] mb-2">{testimonial.name}</h5>
                   <div className="mb-4">{renderStars(testimonial.stars)}</div>
@@ -347,21 +321,24 @@ export default function Home() {
                 title: "Anti-Money Laundering (AML) Compliance", 
                 desc: "At DTCOB, we ensure strict adherence to AML regulations, preventing financial crimes with robust monitoring systems.", 
                 comp: "AML risk assessment, monitoring, and reporting.",
-                imgSrc: "/images/aml.svg" 
+                imgSrc: "/images/aml.svg",
+                link: "https://amlcft.bnm.gov.my/web/amlcft/what-is-money-laundering" // Bank Negara Malaysia AML Info
               },
               { 
                 tag: "GDPR", 
                 title: "General Data Protection Regulation (GDPR) Compliance", 
                 desc: "DTCOB strictly adheres to GDPR standards, guaranteeing the utmost privacy, security, and transparent processing of your personal data.", 
                 comp: "Privacy by design and robust data protection protocols.",
-                imgSrc: "/images/gdpr.svg" 
+                imgSrc: "/images/gdpr.svg",
+                link: "https://gdpr-info.eu/" // Official GDPR info portal
               },
               { 
                 tag: "PDPA", 
                 title: "Personal Data Protection Act (PDPA) Compliance", 
                 desc: "At DTCOB, we are committed to protecting personal data in accordance with the PDPA, ensuring privacy and confidentiality.", 
                 comp: "Data protection measures and secure data handling.",
-                imgSrc: "/images/pdpa.svg" 
+                imgSrc: "/images/pdpa.svg",
+                link: "https://www.pdp.gov.my/ppdpv1/en/akta/pdp-act-2010-en/" // Department of Personal Data Protection Malaysia
               }
             ].map((item, i) => (
               <div key={i} className={`flex flex-col md:flex-row bg-white dark:bg-gray-900/90 rounded-2xl p-6 md:p-8 shadow-lg items-center gap-6 md:gap-8 border border-gray-100 dark:border-[#5c6185] hover:border-[#81B29A] dark:hover:border-[#81B29A] dark:hover:ring-4 dark:hover:ring-[#81B29A]/40 hover:scale-[1.01] transition-all duration-300 ${i === 1 ? 'md:flex-row-reverse' : ''}`}>
@@ -387,9 +364,14 @@ export default function Home() {
                     <p className="text-sm text-gray-600 dark:text-gray-300">
                       <strong className="text-[#3D405B] dark:text-white">Compliance:</strong> {item.comp}
                     </p>
-                    <Link href="#" className="px-6 py-2.5 text-sm font-bold transition-all bg-[#3D405B] rounded-lg text-white hover:bg-[#2c2e42] dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d] active:scale-95 whitespace-nowrap">
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-6 py-2.5 text-sm font-bold transition-all bg-[#3D405B] rounded-lg text-white hover:bg-[#2c2e42] active:scale-95 text-center sm:text-left"
+                    >
                       Learn More
-                    </Link>
+                    </a>
                   </div>
                 </div>
 
@@ -404,22 +386,8 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="lg:w-1/2">
               <h2 className="text-3xl font-extrabold mb-8 text-[#3D405B] dark:text-white">Contact DTCOB</h2>
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
-                      Username <span className="text-error-500">*</span>
-                    </Label>
-                    <input 
-                      type="text" 
-                      className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
-                      placeholder="Enter your username" 
-                      value={contactName}
-                      onChange={(e) => setContactName(e.target.value)}
-                      required 
-                    />
-                  </div>
-                  <div>
+              <form className="space-y-6" onSubmit={handleSubmit}>       
+                <div>
                     <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
                       Email Address <span className="text-error-500">*</span>
                     </Label>
@@ -432,7 +400,6 @@ export default function Home() {
                       required 
                     />
                   </div>
-                </div>
                 <div>
                   <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
                     Message <span className="text-error-500">*</span>
