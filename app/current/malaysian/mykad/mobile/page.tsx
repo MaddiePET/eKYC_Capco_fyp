@@ -262,7 +262,6 @@ export default function CurrentMalaysianMobileMyKadCapture() {
 
       if (uploadError) throw uploadError;
 
-      // Track uploaded file for cleanup
       const { error: dbError } = await supabase
         .from("identity_documents")
         .insert({
