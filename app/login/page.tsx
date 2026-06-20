@@ -401,14 +401,16 @@ export default function LogIn() {
                 </button>
               </div>
             </form>
-
-            <div className="mt-5 text-center">
-              <Link 
-                href="/reset_password" 
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Forgot password?
-              </Link>
+            <div className="mt-6 flex justify-center items-center gap-6 text-sm">
+              <p className="text-gray-600 dark:text-gray-400">
+                Don't have an account?{' '}
+                <Link 
+                  href="/signup" 
+                  className="text-sm font-semibold text-blue-700 hover:text-blue-500 hover:underline transition-colors"
+                >
+                  Sign up
+                </Link>
+              </p>
             </div>
           </div>
         )}
@@ -466,7 +468,7 @@ export default function LogIn() {
             <div className="mt-5 text-center">
               <Link 
                 href="/reset_password" 
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-sm font-semibold text-blue-700 hover:text-blue-500 hover:underline transition-colors"
               >
                 Forgot password?
               </Link>

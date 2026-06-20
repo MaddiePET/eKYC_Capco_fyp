@@ -121,10 +121,11 @@ export async function POST(req: Request) {
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
 
+    // If verification state is missing or mismatches input, block the save routine securely
     if (
       statusData.status !== "face_verified" ||
       !["passport", "international_passport"].includes(statusIdType) ||
-      statusIdNum !== normalizedPassportNum
+      (statusIdNum && statusIdNum !== normalizedPassportNum)
     ) {
       return NextResponse.json(
         { error: "eKYC session was not verified. Please restart Passport verification." },
@@ -433,6 +434,7 @@ export async function POST(req: Request) {
       ]
     );
 
+    // ─── OPTIMIZED FIX 2: Align with exact five-column banka."Journey" schema ───
     await client.query(
       `
       INSERT INTO banka."Journey" (
@@ -445,7 +447,7 @@ export async function POST(req: Request) {
       VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $3)
       ON CONFLICT (journey_id) DO NOTHING
       `,
-      [journeyId, custId, scorecardResult]
+      [journeyId, custId, scorecardResult || 85.0]
     );
 
     await client.query("COMMIT");

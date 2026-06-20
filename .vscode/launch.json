@@ -10,6 +10,19 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+        "type": "node",
+        "request": "launch",
+        "name": "Run Supabase Cleanup Worker",
+        "runtimeExecutable": "supabase",
+        "runtimeArgs": [
+            "functions",
+            "serve",
+            "cleanup-worker",
+            "--no-verify-jwt"
+        ],
+        "cwd": "${workspaceFolder}"
         }
     ]
 }

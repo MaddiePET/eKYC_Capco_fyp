@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function CurrentMalaysianMyKadQRCode() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isFromSignup = searchParams.get("from") === "signup";
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
   const [journeyId, setJourneyId] = useState<string>("");
@@ -127,6 +129,14 @@ export default function CurrentMalaysianMyKadQRCode() {
     return () => clearInterval(checkStatus);
   }, []);
 
+  const handleBack = () => {
+    if (isFromSignup) {
+      router.push("/signup"); // Intercept back to custom selection menu
+    } else {
+      router.push("/current/user_verification"); // Fallback default design destination
+    }
+  };
+
   const handleNext = () => {
     if (isVerified) {
       router.push(
@@ -231,7 +241,7 @@ export default function CurrentMalaysianMyKadQRCode() {
       <header className="absolute top-6 left-4 right-4 flex justify-between items-center max-w-7xl mx-auto w-full z-20">
         <button
           type="button"
-          onClick={() => router.push("/current/user_verification")}
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" /> 

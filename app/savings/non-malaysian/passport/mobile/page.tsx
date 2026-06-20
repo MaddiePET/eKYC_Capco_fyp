@@ -80,6 +80,18 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
         });
 
       if (uploadError) throw uploadError;
+      
+      // Track uploaded file for cleanup
+      const { error: dbError } = await supabase
+        .from("identity_documents")
+        .insert({
+          file_path: filePath,
+          created_at: new Date().toISOString(),
+        });
+
+      if (dbError) {
+        console.error("Failed to track uploaded file:", dbError);
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from("identity-docs")
