@@ -406,7 +406,7 @@ export default function LogIn() {
                 Don't have an account?{' '}
                 <Link 
                   href="/signup" 
-                  className="text-sm font-semibold text-blue-700 hover:text-blue-500 hover:underline transition-colors"
+                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
                 >
                   Sign up
                 </Link>
@@ -468,7 +468,7 @@ export default function LogIn() {
             <div className="mt-5 text-center">
               <Link 
                 href="/reset_password" 
-                className="text-sm font-semibold text-blue-700 hover:text-blue-500 hover:underline transition-colors"
+                className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Forgot password?
               </Link>
