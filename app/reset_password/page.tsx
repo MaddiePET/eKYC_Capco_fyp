@@ -56,6 +56,8 @@ export default function ResetPassword() {
 
     const delayDebounceFn = setTimeout(async () => {
       setIsValidating(true);
+      setMessage("");
+      setMessageType("");
 
       try {
         const res = await fetch(`/api/users/${username}`);
@@ -65,6 +67,8 @@ export default function ResetPassword() {
         if (isValid) {
           const user = await res.json();
           setEmail(user.email || "");
+          setMessage("");
+          setMessageType("");
         } else {
           setEmail("");
           setMessage("Username not found. Please try again.");
@@ -232,6 +236,7 @@ export default function ResetPassword() {
           action: "reset",
           username,
           newPassword,
+          email,
         }),
       });
 
@@ -370,6 +375,8 @@ export default function ResetPassword() {
                         .replace(/[^a-zA-Z0-9]/g, "")
                         .replace(/^./, (c) => c.toUpperCase());
                       setUsername(cleanedValue);
+                      setMessage("");
+                      setMessageType("");
                     }}
                   />
                   {isUsernameValid === true && (
@@ -657,14 +664,17 @@ export default function ResetPassword() {
             <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
               Password Reset Complete
             </h1>
-            <p className="mb-8 text-sm text-gray-500 dark:text-gray-400">
-              Your password has been successfully updated. You can now log in using your new credentials.
+            <p className="mb-2 text-sm text-gray-500">
+              We've sent a confirmation email to
+            </p>
+            <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
+              {email}
             </p>
             <button
               onClick={() => router.push("/login")}
               className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
             >
-              Go to Log In
+              Finish
             </button>
           </div>
         )}

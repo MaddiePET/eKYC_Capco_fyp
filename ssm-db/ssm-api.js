@@ -18,7 +18,6 @@ function getSSMFirestore() {
 
   let serviceAccount;
 
-  // Try to read from environment variable first (for Vercel/production)
   if (process.env.FIREBASE_SSM_SERVICE_ACCOUNT_B64) {
     try {
       const decoded = Buffer.from(process.env.FIREBASE_SSM_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
@@ -35,7 +34,6 @@ function getSSMFirestore() {
       throw new Error("Invalid FIREBASE_SSM_SERVICE_ACCOUNT JSON");
     }
   } else {
-    // Fall back to local file (for local development)
     const keyPath = path.join(
       process.cwd(),
       "ssm-db",

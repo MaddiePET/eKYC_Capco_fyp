@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -132,6 +132,8 @@ export default function LogIn() {
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+  const latestUsernameRef = useRef<string>("");
+
   useEffect(() => {
     setMounted(true);
     sessionStorage.removeItem("is_authenticated");
@@ -158,14 +160,25 @@ export default function LogIn() {
       setIsUsernameValid(null); 
       return; 
     }
+    
+    latestUsernameRef.current = val;
     setIsValidating(true);
+    
     try {
       const res = await fetch(`/api/users/${val}`);
-      setIsUsernameValid(res.ok);
+      
+      if (latestUsernameRef.current === val) {
+        setIsUsernameValid(res.ok);
+      }
     } catch { 
-      setIsUsernameValid(false); 
+      if (latestUsernameRef.current === val) {
+        setIsUsernameValid(false); 
+      }
+    } finally {
+      if (latestUsernameRef.current === val) {
+        setIsValidating(false);
+      }
     }
-    setIsValidating(false);
   };
 
   const handleUsernameSubmit = async (e: React.FormEvent) => {
@@ -369,6 +382,7 @@ export default function LogIn() {
                         const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
+                        setIsUsernameValid(null);
                         checkUsername(cleanedValue);
                       }}
                     />

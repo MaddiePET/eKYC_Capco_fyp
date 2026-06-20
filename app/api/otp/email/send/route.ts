@@ -43,7 +43,7 @@ export async function POST(req: Request) {
             </div>
             <div style="padding:36px 32px 32px;">
               <p style="margin:0 0 12px; color:#2c2f42; font-size:22px; font-weight:800; text-align:center; letter-spacing:0.2px;">
-                Verify your email address
+                Verify Your Email Address
               </p>
               <p style="margin:0 auto 28px; max-width:420px; color:#374151; font-size:14px; line-height:1.7; text-align:center;">
                 Please enter the verification code below to continue your account registration.
