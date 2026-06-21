@@ -48,7 +48,7 @@ Thank you for applying with Bank A.
           </div>
           <div style="padding:36px 32px 32px;">
             <p style="margin:0 0 12px; color:#2c2f42; font-size:22px; font-weight:800; text-align:center; letter-spacing:0.2px;">
-              Your account application has been approved
+              Your Account Application Has Been Approved
             </p>
             <p style="margin:0 auto 24px; max-width:420px; color:#374151; font-size:14px; line-height:1.7; text-align:center;">
               Hi <strong>${fullName}</strong>, your <strong>${accountType}</strong> application has been approved successfully.

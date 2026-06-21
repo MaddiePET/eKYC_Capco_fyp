@@ -121,7 +121,6 @@ export async function POST(req: Request) {
     const statusIdType = statusData.id_type?.toLowerCase();
     const statusIdNum = statusData.id_num?.replace(/\s/g, "").toUpperCase().trim();
 
-    // If verification state is missing or mismatches input, block the save routine securely
     if (
       statusData.status !== "face_verified" ||
       !["passport", "international_passport"].includes(statusIdType) ||
@@ -434,7 +433,6 @@ export async function POST(req: Request) {
       ]
     );
 
-    // ─── OPTIMIZED FIX 2: Align with exact five-column banka."Journey" schema ───
     await client.query(
       `
       INSERT INTO banka."Journey" (

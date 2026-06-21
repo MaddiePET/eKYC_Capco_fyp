@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         {
           exists: true,
           hasCurrentAccount: true,
-          error: "This MyKad number is already registered for a current account. Please log in to continue.",
+          error: "This MyKad number is already registered for a current account. Please log in to your dashboard to add more current accounts.",
           redirectTo: "/login",
         },
         { status: 409 }

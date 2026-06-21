@@ -322,7 +322,7 @@ export default function Home() {
                 desc: "At DTCOB, we ensure strict adherence to AML regulations, preventing financial crimes with robust monitoring systems.", 
                 comp: "AML risk assessment, monitoring, and reporting.",
                 imgSrc: "/images/aml.svg",
-                link: "https://amlcft.bnm.gov.my/web/amlcft/what-is-money-laundering" // Bank Negara Malaysia AML Info
+                link: "https://amlcft.bnm.gov.my/web/amlcft/what-is-money-laundering"
               },
               { 
                 tag: "GDPR", 
@@ -330,7 +330,7 @@ export default function Home() {
                 desc: "DTCOB strictly adheres to GDPR standards, guaranteeing the utmost privacy, security, and transparent processing of your personal data.", 
                 comp: "Privacy by design and robust data protection protocols.",
                 imgSrc: "/images/gdpr.svg",
-                link: "https://gdpr-info.eu/" // Official GDPR info portal
+                link: "https://gdpr-info.eu/"
               },
               { 
                 tag: "PDPA", 
@@ -338,7 +338,7 @@ export default function Home() {
                 desc: "At DTCOB, we are committed to protecting personal data in accordance with the PDPA, ensuring privacy and confidentiality.", 
                 comp: "Data protection measures and secure data handling.",
                 imgSrc: "/images/pdpa.svg",
-                link: "https://www.pdp.gov.my/ppdpv1/en/akta/pdp-act-2010-en/" // Department of Personal Data Protection Malaysia
+                link: "https://www.pdp.gov.my/ppdpv1/en/akta/pdp-act-2010-en/"
               }
             ].map((item, i) => (
               <div key={i} className={`flex flex-col md:flex-row bg-white dark:bg-gray-900/90 rounded-2xl p-6 md:p-8 shadow-lg items-center gap-6 md:gap-8 border border-gray-100 dark:border-[#5c6185] hover:border-[#81B29A] dark:hover:border-[#81B29A] dark:hover:ring-4 dark:hover:ring-[#81B29A]/40 hover:scale-[1.01] transition-all duration-300 ${i === 1 ? 'md:flex-row-reverse' : ''}`}>

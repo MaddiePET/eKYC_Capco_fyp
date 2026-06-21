@@ -131,9 +131,9 @@ export default function CurrentMalaysianMyKadQRCode() {
 
   const handleBack = () => {
     if (isFromSignup) {
-      router.push("/signup"); // Intercept back to custom selection menu
+      router.push("/signup");
     } else {
-      router.push("/current/user_verification"); // Fallback default design destination
+      router.push("/current/user_verification");
     }
   };
 
