@@ -2,19 +2,26 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { journeyId, base64ImageString } = await req.json();
+    const { journeyId, supabaseImageUrl, imageFormat = "JPG" } = await req.json();
 
-    if (!journeyId || !base64ImageString) {
-      return NextResponse.json({ error: "Missing journeyId or base64ImageString" }, { status: 400 });
+    if (!journeyId || !supabaseImageUrl) {
+      return NextResponse.json({ error: "Missing journeyId or supabaseImageUrl" }, { status: 400 });
     }
 
-    console.log("Calling Innov8tif /okayid for OCR extraction - journeyId:", journeyId);
-    const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
+    const supabaseResponse = await fetch(supabaseImageUrl);
+    if (!supabaseResponse.ok) {
+      return NextResponse.json({ error: "Failed to download image from supabase storage" }, { status: 400 });
+    }
+    
+    const arrayBuffer = await supabaseResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64ImageString = buffer.toString("base64");
 
+    const okayidUrl = `${process.env.INNOVA8TIF_API_URL}/okayid`;
     const okayidBody = {
       journeyId,
       base64ImageString: base64ImageString,
-      imageFormat: "JPG",
+      imageFormat,
       imageEnabled: false,
       faceImageEnabled: false,
       cambodia: false,
@@ -31,17 +38,9 @@ export async function POST(req: Request) {
 
     try {
       okayidResult = okayidText ? JSON.parse(okayidText) : {};
-      const okayidStatus = typeof (okayidResult as { status?: unknown }).status === "string"
-        ? (okayidResult as { status?: string }).status
-        : undefined;
-
-      console.log("OkayID result - status:", okayidStatus);
-      console.log("OkayID full response:", JSON.stringify(okayidResult, null, 2));
     } catch (parseError: unknown) {
       const message = parseError instanceof Error ? parseError.message : String(parseError);
-
       console.error("Failed to parse OkayID response:", message);
-
       return NextResponse.json({
         error: "OCR extraction failed",
         details: message,
@@ -50,15 +49,13 @@ export async function POST(req: Request) {
 
     if (!okayidResponse.ok) {
       console.error("OkayID error (status " + okayidResponse.status + "):", okayidResult);
-
       return NextResponse.json({
         error: "OCR extraction failed",
         okayidError: okayidResult,
       }, { status: okayidResponse.status });
     }
 
-    const fieldMaps =
-      (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+    const fieldMaps = (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
 
     const passportNo =
       fieldMaps.find((field: any) => field.FieldType === 2)?.Field_Visual ||
@@ -67,18 +64,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        ...okayidResult,
+        status: "success",
         extracted: {
           passport_no: passportNo,
         },
+        result: okayidResult,
       },
       { status: 200 }
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-
-    console.error("OkayID route error:", message, error instanceof Error ? error.stack : "");
-    
+    console.error("OkayID route error:", message);
     return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

@@ -48,11 +48,6 @@ export default function CurrentMalaysianInfo() {
     (typeof window !== "undefined" ? localStorage.getItem("id_num") : "") ||
     "";
 
-  console.log("INFO PAGE LOADED");
-  console.log("mode:", mode);
-  console.log("custIdFromParams:", custIdFromParams);
-  console.log("idNumFromParams:", idNumFromParams);
-  
   const journeyId = searchParams.get("journeyId") || (typeof window !== "undefined" ? localStorage.getItem("journeyId") : "") || "";
 
   const formatDateForFields = (value: unknown) => {
@@ -166,8 +161,6 @@ export default function CurrentMalaysianInfo() {
           ? `/api/customer/lookup?cust_id=${encodeURIComponent(custIdFromParams)}`
           : `/api/customer/lookup?id_num=${encodeURIComponent(idNumFromParams)}`;
 
-        console.log("INFO PAGE MODE:", mode);
-        console.log("INFO PAGE CUSTOMER LOOKUP URL:", lookupUrl);
         const res = await fetch(lookupUrl);
         const data = await res.json();
 
@@ -311,7 +304,6 @@ export default function CurrentMalaysianInfo() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -362,7 +354,6 @@ export default function CurrentMalaysianInfo() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -374,7 +365,6 @@ export default function CurrentMalaysianInfo() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Verify Your Personal Information
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please make sure all information match your official documents.
           </p>
@@ -382,8 +372,7 @@ export default function CurrentMalaysianInfo() {
 
         <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-6">
-              
+            <div className="space-y-6"> 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Full Name<span className="text-red-500">*</span>
@@ -499,7 +488,6 @@ export default function CurrentMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.dobYear}
                     />
-
                   </div>
                 </div>
               </div>
@@ -516,7 +504,6 @@ export default function CurrentMalaysianInfo() {
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
                     />
-
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
@@ -560,7 +547,6 @@ export default function CurrentMalaysianInfo() {
                     className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                     value={formData.add2}
                   />
-
                 </div>
               </div>
 
@@ -577,7 +563,6 @@ export default function CurrentMalaysianInfo() {
                       className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
                       value={formData.postal}
                     />
-
                   </div>
                 </div>
 
@@ -612,7 +597,6 @@ export default function CurrentMalaysianInfo() {
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that the information provided is accurate and belongs to you.
               </p>
-              
               <button 
                 onClick={handleNext} 
                 disabled={!isFormValid}
@@ -628,7 +612,6 @@ export default function CurrentMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

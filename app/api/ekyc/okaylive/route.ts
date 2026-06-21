@@ -2,25 +2,24 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const incomingData = await req.formData();
+    const { journeyId, selfieUrl } = await req.json();
 
-    const journeyId = incomingData.get("journeyId") as string;
-    const selfieFile = incomingData.get("selfie") as File;
-    const idCardFile = incomingData.get("idCard") as File;
-
-    if (!journeyId || !selfieFile || !idCardFile) {
-      return NextResponse.json({ error: "Missing journeyId or images" }, { status: 400 });
+    if (!journeyId || !selfieUrl) {
+      return NextResponse.json({ error: "Missing journeyId or selfieUrl" }, { status: 400 });
     }
 
+    const fileResponse = await fetch(selfieUrl);
+    if (!fileResponse.ok) {
+      return NextResponse.json({ error: "Failed to download selfie from Supabase storage" }, { status: 400 });
+    }
+    
+    const selfieBlob = await fileResponse.blob();
     const okayliveUrl = `${process.env.INNOVA8TIF_API_URL}/okaylive`;
     const formData = new FormData();
 
     formData.append("journeyId", journeyId);
     formData.append("livenessDetection", "true");
-    formData.append("imageBest", selfieFile, "selfie.jpg");
-    formData.append("imageIdCard", idCardFile, "idcard.jpg");
-
-    console.log("Calling Innov8tif /okaylive for journeyId:", journeyId);
+    formData.append("imageBest", selfieBlob, "selfie.jpg");
 
     const response = await fetch(okayliveUrl, {
       method: "POST",
@@ -32,18 +31,15 @@ export async function POST(req: Request) {
 
     try {
       result = text ? JSON.parse(text) : {};
-    } catch (parseError) {
+    } catch {
       console.error("Failed to parse OkayLive response:", text);
-      
-      return NextResponse.json({ error: "Invalid JSON response from OkayLive" }, { status: 500 });
+      return NextResponse.json({ error: "Invalid JSON response from OKayLive" }, { status: 500 });
     }
 
-    console.log("OkayLive full response:", JSON.stringify(result, null, 2));
-
     return NextResponse.json(result, { status: response.status });
-  } catch (error: any) {
-    console.error("OkayLive route error:", error.message);
-
-    return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("OKayLive route error:", message);
+    return NextResponse.json({ error: "Internal Server Error", details: message }, { status: 500 });
   }
 }

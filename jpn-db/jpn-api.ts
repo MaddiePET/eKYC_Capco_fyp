@@ -9,28 +9,50 @@ let jpnDb: FirebaseFirestore.Firestore | undefined;
 function initializeJPN() {
   if (!jpnDb) {
     const appName = "jpn-api-app";
-
     const existingApp = admin.apps.find((app) => app?.name === appName);
 
     if (existingApp) {
       jpnApp = existingApp;
     } else {
-      const serviceAccountPath = path.join(
-        process.cwd(),
-        "jpn-db",
-        "serviceAccountKey-JPN.json"
-      );
+      let serviceAccount;
 
-      const serviceAccount = JSON.parse(
-        fs.readFileSync(serviceAccountPath, "utf8")
-      );
+      if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
+        try {
+          const decoded = Buffer.from(process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
+          serviceAccount = JSON.parse(decoded);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT_B64 env var:", err);
+          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT_B64");
+        }
+      } else if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
+        try {
+          serviceAccount = JSON.parse(process.env.FIREBASE_JPN_SERVICE_ACCOUNT);
+        } catch (err) {
+          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT env var:", err);
+          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT JSON");
+        }
+      } else {
+        const serviceAccountPath = path.join(
+          process.cwd(),
+          "jpn-db",
+          "serviceAccountKey-JPN.json"
+        );
+        serviceAccount = JSON.parse(
+          fs.readFileSync(serviceAccountPath, "utf8")
+        );
+      }
 
-      jpnApp = admin.initializeApp(
-        {
-          credential: admin.credential.cert(serviceAccount),
-        },
-        appName
-      );
+      try {
+        jpnApp = admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+          },
+          appName
+        );
+      } catch (err) {
+        console.error("Failed to initialize Firebase JPN app:", err);
+        throw err;
+      }
     }
 
     jpnDb = jpnApp.firestore();
@@ -93,13 +115,9 @@ async function lookupJPNIdentity(idNum: string) {
   const db = initializeJPN();
 
   if (!idNum) return null;
-  console.log(`\n[JPN API]`);
-  console.log(`Plaintext Parameter Extracted: "${idNum}"`);
 
   const normalizedId = idNum.replace(/-/g, "").trim();
   const lookupHash = hashLookup(normalizedId);
-
-  console.log(`Generated Index Hash: ${lookupHash}`);
 
   const querySnapshot = await db
     .collection(JPN_CITIZENS_COLLECTION)
@@ -108,22 +126,11 @@ async function lookupJPNIdentity(idNum: string) {
     .get();
 
   if (querySnapshot.empty) {
-    console.log(`[VERIFICATION FAILED] Record mismatch. No matching entry found for hash: ${lookupHash}`);
     return null;
   }
 
-  console.log(`[MATCH FOUND]`);
-
   const encryptedData = querySnapshot.docs[0].data();
   const decryptedData = decryptJPNData(encryptedData);
-
-  console.log(`Full Name: ${decryptedData.full_name}`);
-  console.log(`Birth Date: ${decryptedData.date_of_birth}`);
-  console.log(`Sex: ${decryptedData.sex}`);
-  console.log(`Phone Registered: ${decryptedData.phone_registered}`);
-  console.log(`Full Address: ${decryptedData.add1}, ${decryptedData.add2}`);
-  console.log(`Postcode: ${decryptedData.postcode}`);
-  console.log(`State: ${decryptedData.state}\n`);
 
   return {
     source: "jpn",

@@ -8,14 +8,31 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 import { saveToStorage } from "@/lib/storage";
 import { useFormData } from "@/context/FormContext";
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const MONTH_MAP: Record<string, string> = {
+  January: "01",
+  February: "02",
+  March: "03",
+  April: "04",
+  May: "05",
+  June: "06",
+  July: "07",
+  August: "08",
+  September: "09",
+  October: "10",
+  November: "11",
+  December: "12",
+};
+
 export default function SavingsMalaysianInfo() {
   const router = useRouter();
   const { formData: globalFormData, setFormData: setGlobalFormData } = useFormData();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [lookupStatus, setLookupStatus] = useState<"idle" | "fetching" | "done" | "not-found">("idle");
-  const [lookupError, setLookupError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     gender: "",
     fullName: "",
@@ -41,7 +58,6 @@ export default function SavingsMalaysianInfo() {
       : "") ||
     "";
 
-  // Force mode to "new_user" if a eKYC journeyId is present in the URL parameters
   const mode =
     searchParams.get("mode") ||
     (searchParams.get("journeyId") ? "new_user" : "") ||
@@ -58,23 +74,25 @@ export default function SavingsMalaysianInfo() {
   const formatDateForFields = (value: unknown) => {
     if (!value) return { day: "", month: "January", year: "" };
     const date = new Date(String(value));
+
     if (!Number.isNaN(date.getTime())) {
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",];
       return {
         day: date.getDate().toString().padStart(2, "0"),
-        month: monthNames[date.getMonth()] || "",
+        month: MONTH_NAMES[date.getMonth()] || "",
         year: date.getFullYear().toString(),
       };
     }
 
     const isoMatch = String(value).match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    
     if (isoMatch) {
       const year = isoMatch[1];
       const month = Number(isoMatch[2]);
       const day = Number(isoMatch[3]);
+
       return {
         day: day.toString().padStart(2, "0"),
-        month: ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December",][month - 1] || "",
+        month: MONTH_NAMES[month - 1] || "",
         year,
       };
     }
@@ -115,8 +133,6 @@ export default function SavingsMalaysianInfo() {
 
   const fetchIdentity = async (idType: string, idNum: string) => {
     if (!idNum) return;
-    setLookupStatus("fetching");
-    setLookupError(null);
 
     try {
       const response = await fetch(`/api/identity/lookup?id_type=${encodeURIComponent(idType)}&id_num=${encodeURIComponent(idNum)}`);
@@ -124,19 +140,13 @@ export default function SavingsMalaysianInfo() {
 
       if (response.ok && data.success && data.identity) {
         const identityData = data.formData || data.identity;
-
         setFormData((prev) => ({
           ...prev,
           ...normalizeIdentity(identityData, idType, idNum),
         }));
-        setLookupStatus("done");
-      } else {
-        setLookupStatus("not-found");
-        setLookupError(data.message || "No identity data found.");
       }
-    } catch (error: any) {
-      setLookupStatus("not-found");
-      setLookupError(error?.message || "Unable to load identity data.");
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -144,9 +154,8 @@ export default function SavingsMalaysianInfo() {
     setMounted(true);
 
     if (typeof window === "undefined") return;
-
-    // Safety check: Clear stale local storage parameters if journey transitions
     const savedJourneyId = localStorage.getItem("journeyId");
+    
     if (savedJourneyId && journeyId && savedJourneyId !== journeyId) {
       localStorage.removeItem("personalInfo");
       localStorage.removeItem("homeAddress");
@@ -172,7 +181,6 @@ export default function SavingsMalaysianInfo() {
   useEffect(() => {
     async function loadExistingCustomer() {
       if (mode !== "existing_customer") return;
-
       if (!custIdFromParams && !idNumFromParams) return;
 
       try {
@@ -208,7 +216,7 @@ export default function SavingsMalaysianInfo() {
           country: customer.country || "Malaysia",
         }));
       } catch (error) {
-        console.error("Existing customer load error:", error);
+        console.error(error);
         alert("Unable to load existing customer details.");
       }
     }
@@ -221,24 +229,8 @@ export default function SavingsMalaysianInfo() {
 
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
 
-      const monthMap: Record<string, string> = {
-        January: "01",
-        February: "02",
-        March: "03",
-        April: "04",
-        May: "05",
-        June: "06",
-        July: "07",
-        August: "08",
-        September: "09",
-        October: "10",
-        November: "11",
-        December: "12",
-      };
-
-      const dob = `${formData.dobYear}-${monthMap[formData.dobMonth]}-${formData.dobDay}`;
+      const dob = `${formData.dobYear}-${MONTH_MAP[formData.dobMonth]}-${formData.dobDay}`;
       const fullPhone = `${formData.phoneCode}${formData.phoneNumber}`;
 
       const personalInfo = {
@@ -291,8 +283,7 @@ export default function SavingsMalaysianInfo() {
         )}&journeyId=${encodeURIComponent(journeyId)}&mode=${encodeURIComponent(mode)}`
       );
     } catch (error) {
-      console.error("Submission error:", error);
-      setSubmitError("Failed to save application data.");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -323,7 +314,6 @@ export default function SavingsMalaysianInfo() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -374,7 +364,6 @@ export default function SavingsMalaysianInfo() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -386,7 +375,6 @@ export default function SavingsMalaysianInfo() {
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Verify Your Personal Information
           </h1>
-
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Please make sure all information match your official documents.
           </p>
@@ -394,8 +382,7 @@ export default function SavingsMalaysianInfo() {
 
         <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-6">
-              
+            <div className="space-y-6">  
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Full Name<span className="text-red-500">*</span>
@@ -523,11 +510,10 @@ export default function SavingsMalaysianInfo() {
                 <div className="flex mt-2">
                   <div className="flex items-center gap-2 px-4 border-2 border-r-0 rounded-l-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20">
                     <img 
-                      src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg`} 
+                      src="https://purecatamphetamine.github.io/country-flag-icons/3x2/MY.svg" 
                       alt="MY" 
                       className="w-5 h-auto rounded-sm" 
                     />
-
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{formData.phoneCode}</span>
                   </div>
 
@@ -596,13 +582,13 @@ export default function SavingsMalaysianInfo() {
                   </label>
 
                   <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
-                  <input
-                    type="text"
-                    readOnly
-                    className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
-                    value={formData.state}
-                  />
-                </div>
+                    <input
+                      type="text"
+                      readOnly
+                      className="w-full min-w-0 bg-transparent text-sm font-bold text-gray-700 dark:text-gray-200 outline-none cursor-not-allowed"
+                      value={formData.state}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -620,15 +606,14 @@ export default function SavingsMalaysianInfo() {
             <div className="md:col-span-2 pt-4 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                 By clicking continue, you confirm that the information provided is accurate and belongs to you.
-              </p>
-              
+              </p> 
               <button 
                 onClick={handleNext} 
                 disabled={!isFormValid}
                 className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
                   isFormValid 
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]" 
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                 }`}
               >
                 Continue
@@ -637,7 +622,6 @@ export default function SavingsMalaysianInfo() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link 
                     href="/contact_support" 
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

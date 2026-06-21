@@ -3,22 +3,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function SavingsNonMalaysianMobilePassportCapture() {
+export default function SavingsNonMalaysianMobilePassportCapture() {
   const MAX_ATTEMPTS = 3;
-
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [duplicateMessage, setDuplicateMessage] = useState("");
+  const [passportImage, setPassportImage] = useState<string | null>(null);
+  const [isUploadingPassport, setIsUploadingPassport] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failCount, setFailCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const searchParams = useSearchParams();
-    
   const journeyId = searchParams.get("journeyId") || "";
 
   useEffect(() => {
@@ -31,10 +33,10 @@ function SavingsNonMalaysianMobilePassportCapture() {
 
         if (data.status === "failed") {
           setFailCount(MAX_ATTEMPTS);
-
-          setErrorMessage(
-            "Too many failed attempts. Please refer to your desktop screen."
-          );
+          setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
+        } else if (data.status === "duplicate") {
+          setIsDuplicate(true);
+          setDuplicateMessage("This Passport is already registered for a savings account.");
         } else if (data.status === "verified") {
           setSuccess(true);
         }
@@ -46,55 +48,63 @@ function SavingsNonMalaysianMobilePassportCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const compressImage = (base64: string, quality = 0.6): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image(); 
-      img.src = `data:image/jpeg;base64,${base64}`;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const scale = Math.min(800 / img.width, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
-      };
-    });
-  };
-
-  const handleCapture = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const file = event.target.files?.[0];
-
     if (!file || !journeyId) return;
 
+    setIsUploadingPassport(true);
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const reader = new FileReader();
-
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onloadend = () => {
-          resolve((reader.result as string).split(",")[1]);
-        };
+      await fetch("/api/ekyc/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          status: "processing",
+        }),
       });
 
-      reader.readAsDataURL(file);
+      const fileExtension = file.name.split(".").pop();
+      const fileName = `passport_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `passports/${fileName}`;
 
-      const base64String = await base64Promise;
+      const { error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+      
+      const { error: dbError } = await supabase
+        .from("identity_documents")
+        .insert({
+          file_path: filePath,
+          created_at: new Date().toISOString(),
+        });
+
+      if (dbError) {
+        console.error("Failed to track uploaded file:", dbError);
+        throw dbError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
+
+      setPassportImage(publicUrl);
 
       const okayidResponse = await fetch("/api/ekyc/okayid", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
-          base64ImageString: base64String,
+          supabaseImageUrl: publicUrl,
         }),
       });
 
@@ -106,8 +116,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
         okayidResult?.data?.passport_no ||
         "";
 
-      console.log("Extracted passport number:", passportNo);
-
       if (!passportNo) {
         throw new Error("Passport number could not be extracted");
       }
@@ -118,15 +126,13 @@ function SavingsNonMalaysianMobilePassportCapture() {
 
       const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           type: "passport",
           country: okayidResult.country || "OTHER",
-          halfSizeImage: base64String,
-          fullSizeImage: base64String,
+          imageUrl: publicUrl,
+          fullSizeImageUrl: publicUrl
         }),
       });
 
@@ -135,25 +141,50 @@ function SavingsNonMalaysianMobilePassportCapture() {
       if (okaydocResult.status !== "success") {
         throw new Error("not meeting quality standards");
       }
-
+      
       const identityRes = await fetch(
         `/api/identity/lookup?id_type=passport&id_num=${encodeURIComponent(passportNo)}`
       );
-
       const identityData = await identityRes.json();
 
       if (!identityRes.ok || !identityData.success) {
         throw new Error("Identity was not found in government records");
       }
 
-      const compressedBase64 = await compressImage(base64String); 
-      localStorage.setItem("ekyc_id_image", compressedBase64);
+      const accountCheckRes = await fetch("/api/application/check_existing_savings_account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_num: passportNo }),
+      });
+
+      if (accountCheckRes.status === 409) {
+        const checkData = await accountCheckRes.json();
+        
+        setIsDuplicate(true);
+        setDuplicateMessage(checkData.error || "This Passport is already registered for a savings account.");
+
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            status: "duplicate",
+            id_type: "passport",
+            id_num: passportNo,
+          }),
+        });
+
+        setIsLoading(false);
+        return;
+      } else if (!accountCheckRes.ok) {
+        throw new Error("Failed to verify existing account status");
+      }
+
+      localStorage.setItem("ekyc_id_image_url", publicUrl);
       
       await fetch("/api/ekyc/status", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
           status: "verified",
@@ -161,31 +192,34 @@ function SavingsNonMalaysianMobilePassportCapture() {
           id_num: passportNo,
         }),
       });
+      
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setSuccess(true);
     } catch (error: any) {
       const newFailCount = failCount + 1;
-
       setFailCount(newFailCount);
-
       const remaining = MAX_ATTEMPTS - newFailCount;
-
       const reason = error.message.toLowerCase();
 
       if (remaining > 0) {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            status: "failed_attempt",
+          }),
+        });
       } else {
-        setErrorMessage(
-          "Too many failed attempts. Please refer to your desktop screen."
-        );
+        setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
 
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             journeyId,
             status: "failed",
@@ -197,6 +231,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
         fileInputRef.current.value = "";
       }
     } finally {
+      setIsUploadingPassport(false);
       setIsLoading(false);
     }
   };
@@ -214,14 +249,13 @@ function SavingsNonMalaysianMobilePassportCapture() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
         </svg>
       </div>
-
+      
       <div className="absolute bottom-0 left-0 w-full leading-none z-0 pointer-events-none opacity-20">
         <svg
           className="relative block w-full h-24 sm:h-32 md:h-48 lg:h-64"
@@ -244,14 +278,34 @@ function SavingsNonMalaysianMobilePassportCapture() {
           height={40}
           className="block dark:invert-0 invert"
         />
-
         <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
           DTCOB
         </h1>
       </header>
 
       <main className="relative w-full max-w-2xl z-10 flex flex-col items-center">
-        {success ? (
+        {isDuplicate ? (
+          <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 mb-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-4xl font-bold">!</span>
+            </div>
+
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Account Already Exists
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {duplicateMessage}
+              </p>
+            </div>
+
+            <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
+              <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
+                You may now close this window and proceed to your desktop screen to log in.
+              </p>
+            </div>
+          </div>
+        ) : success ? (
           <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
               <svg
@@ -273,7 +327,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Scan Successful!
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Your Passport has been securely verified.
               </p>
@@ -291,18 +344,26 @@ function SavingsNonMalaysianMobilePassportCapture() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Passport
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please take a clear photo of your Passport bio-data page for verification.
               </p>
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
                 {errorMessage}
               </div>
             )}
 
+            {isUploadingPassport && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Passport Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your Passport image is being verified. This may take a few moments. Please do not close this window.
+                </p>
+              </div>
+            )}
+            
             <input
               type="file"
               accept="image/*"
@@ -311,7 +372,7 @@ function SavingsNonMalaysianMobilePassportCapture() {
               onChange={handleCapture}
               className="hidden"
             />
-
+            
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || failCount >= MAX_ATTEMPTS}
@@ -322,13 +383,14 @@ function SavingsNonMalaysianMobilePassportCapture() {
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading
-                  ? "Verifying..."
+                {isUploadingPassport
+                  ? "Verifying"
+                  : passportImage
+                  ? "Verified"
                   : failCount > 0
                   ? "Try Again"
                   : "Open Camera"}
               </span>
-
               {isLoading ? (
                 <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
               ) : (
@@ -344,7 +406,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
                     strokeWidth="1.5"
                     d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
                   />
-
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -361,7 +422,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
           <div className="text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link
                 href="/contact_support"
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -391,7 +451,6 @@ function SavingsNonMalaysianMobilePassportCapture() {
                 <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">
                   Important Notice:
                 </p>
-
                 <ul className="list-disc ml-4 space-y-1">
                   <li>Ensure mobile and desktop tabs are open.</li>
                   <li>Ensure your internet connection is fast and stable.</li>
@@ -409,19 +468,5 @@ function SavingsNonMalaysianMobilePassportCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function SavingsNonMalaysianMobilePassportCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <SavingsNonMalaysianMobilePassportCapture />
-    </React.Suspense>
   );
 }

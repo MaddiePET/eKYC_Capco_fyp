@@ -19,10 +19,10 @@ export async function POST(req: Request) {
     }
 
     const normalizedIdNum = String(idNum)
-    .replace(/-/g, "")
-    .replace(/\s/g, "")
-    .toUpperCase()
-    .trim();
+      .replace(/-/g, "")
+      .replace(/\s/g, "")
+      .toUpperCase()
+      .trim();
 
     const idNumHash = hashLookup(normalizedIdNum);
 
@@ -44,23 +44,35 @@ export async function POST(req: Request) {
 
     const custId = existingCustomerResult.rows[0].cust_id;
 
-    const existingSavingsResult = await client.query(
+    const existingAccountsResult = await client.query(
       `
-      SELECT s.account_no
-      FROM banka."Savings_account" s
-      JOIN banka."User" u ON s.user_id = u.user_id
-      WHERE u.cust_id = $1
-      LIMIT 1
+      SELECT 
+        EXISTS(SELECT 1 FROM banka."Savings_account" s JOIN banka."User" u ON s.user_id = u.user_id WHERE u.cust_id = $1) as has_savings,
+        EXISTS(SELECT 1 FROM banka."Current_account" c JOIN banka."User" u ON c.user_id = u.user_id WHERE u.cust_id = $1) as has_current
       `,
       [custId]
     );
 
-    if (existingSavingsResult.rows.length > 0) {
+    const { has_savings, has_current } = existingAccountsResult.rows[0];
+
+    if (has_savings) {
       return NextResponse.json(
         {
           exists: true,
           hasSavingsAccount: true,
-          error: "You already have a savings account with us. Please log in to continue.",
+          error: "This MyKad/Passport number is already registered for a savings account. Please log in to continue.",
+          redirectTo: "/login",
+        },
+        { status: 409 }
+      );
+    }
+
+    if (has_current) {
+      return NextResponse.json(
+        {
+          exists: true,
+          hasCurrentAccount: true,
+          error: "You already have an existing current account. Please log in to your dashboard to add a savings account.",
           redirectTo: "/login",
         },
         { status: 409 }

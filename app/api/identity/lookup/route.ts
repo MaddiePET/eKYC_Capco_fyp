@@ -3,6 +3,8 @@ import { lookupJPNIdentity } from "../../../../jpn-db/jpn-api";
 import { lookupJIMIdentity } from "../../../../jim-db/jim-api";
 import { lookupSSMBusinesses } from "../../../../ssm-db/ssm-api";
 
+export const runtime = "nodejs";
+
 async function lookupIdentity(idType: string, idNum: string) {
   if (!idNum) return null;
 

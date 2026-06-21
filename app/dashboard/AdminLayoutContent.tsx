@@ -45,7 +45,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
   const router = useRouter();
 
   const { isExpanded, isHovered, isMobileOpen, toggleMobileSidebar, toggleSidebar, setIsHovered } = useSidebar();
-
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [currentAccountName, setCurrentAccountName] = useState<string>("");
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(true);
@@ -134,6 +133,17 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
   useEffect(() => {
     setMounted(true);
+    const isAuthenticated = sessionStorage.getItem("is_authenticated");
+
+    if (!isAuthenticated && !pathname.startsWith("/login") && !pathname.startsWith("/reset_password")) {
+      localStorage.removeItem("currentAccount");
+      localStorage.removeItem("currentUsername");
+      localStorage.removeItem("currentUserAvatar");
+      localStorage.removeItem("currentUserEmail");
+      router.push("/login");
+      return;
+    }
+
     const name = localStorage.getItem("currentAccount");
     const username = localStorage.getItem("currentUsername") || name;
     setCurrentUsername(username || "");
@@ -155,33 +165,31 @@ export default function AdminLayoutContent({ children }: { children: React.React
 
       if (username) {
         fetch(`/api/profile/${username}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch profile");
-          return res.json();
-        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to fetch profile");
+            return res.json();
+          })
+          .then((data) => {
+            if (data && data.avatar) {
+              setLoggedInUser(prev => prev ? { ...prev, avatar: data.avatar } : null);
+              localStorage.setItem("currentUserAvatar", data.avatar);
+            }
 
-        .then((data) => {
-          if (data && data.avatar) {
-            setLoggedInUser(prev => prev ? { ...prev, avatar: data.avatar } : null);
-            localStorage.setItem("currentUserAvatar", data.avatar);
-          }
+            if (data?.id_num && data.id_num !== "undefined") {
+              localStorage.setItem("currentIdNum", data.id_num);
+            }
 
-          if (data?.id_num && data.id_num !== "undefined") {
-            localStorage.setItem("currentIdNum", data.id_num);
-          }
+            if (data?.cust_id) {
+              localStorage.setItem("currentCustId", String(data.cust_id));
+            }
 
-          if (data?.cust_id) {
-            localStorage.setItem("currentCustId", String(data.cust_id));
-          }
-
-          if (data?.user_id) {
-            localStorage.setItem("currentUserId", String(data.user_id));
-          }
-        })
-
-        .catch((err) => {
-          console.error("Failed to fetch updated avatar:", err);
-        });
+            if (data?.user_id) {
+              localStorage.setItem("currentUserId", String(data.user_id));
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to fetch updated avatar:", err);
+          });
       }
     }
 
@@ -190,29 +198,26 @@ export default function AdminLayoutContent({ children }: { children: React.React
     const fetchUrl = username ? `/api/user?username=${encodeURIComponent(username)}` : "/api/user";
 
     fetch(fetchUrl)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`Failed to load user list. Back-end status: ${res.status}`);
-      }
-      return res.json();
-    })
-
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setAccounts(data);
-        if (!name && data.length > 0) {
-          setCurrentAccountName(data[0].name);
-          localStorage.setItem("currentAccount", data[0].name);
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load user list. Back-end status: ${res.status}`);
         }
-      }
-    })
-
-    .catch((err) => {
-      console.error("Database profile initialization error:", err);
-    })
-      
-    .finally(() => setIsLoadingAccounts(false));
-  }, []);
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAccounts(data);
+          if (!name && data.length > 0) {
+            setCurrentAccountName(data[0].name);
+            localStorage.setItem("currentAccount", data[0].name);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Database profile initialization error:", err);
+      })
+      .finally(() => setIsLoadingAccounts(false));
+  }, [pathname, router]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -297,7 +302,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
     }
 
     const idNumToUse = idNum || localStorage.getItem("currentIdNum") || "";
-
     const journeyId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 
     if (!idNumToUse) {
@@ -530,7 +534,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <button
                   type="button"
                   className={`menu-item group w-full cursor-pointer ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
-                  suppressHydrationWarning
                 >
                   <span>{nav.icon}</span>
                   {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">{nav.name}</span>}
@@ -544,7 +547,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClick={handleOpenAccountModal} 
                     className="w-full text-left"
                     type="button"
-                    suppressHydrationWarning
                   >
                     <div className="menu-item group cursor-pointer menu-item-inactive">
                       <span className="menu-item-icon-inactive">{nav.icon}</span>
@@ -605,27 +607,23 @@ export default function AdminLayoutContent({ children }: { children: React.React
           onMouseLeave={() => setIsHovered(false)}
         >
           <div
-            className={`py-8 flex items-center justify-between ${
+            className={`py-8 gap-3 flex items-center justify-between ${
               !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
             }`}
           >
-            <Link 
-              href="/" 
-              className="flex items-center gap-2"
-            >
-              <Image 
-                src="/images/logo/logo-light.svg" 
-                alt="Logo" 
-                width={40} 
-                height={40} className="block" 
-              />
+            <Image 
+              src="/images/logo/logo-light.svg" 
+              alt="Logo" 
+              width={40} 
+              height={40} 
+              className="block" 
+            />
 
-              {(isExpanded || isHovered || isMobileOpen) && 
-                <h1 className="text-2xl font-bold uppercase tracking-tight text-white">
-                  DTCOB
-                </h1>
-              }
-            </Link>
+            {(isExpanded || isHovered || isMobileOpen) && 
+              <h1 className="text-2xl font-bold uppercase tracking-tight text-white">
+                DTCOB
+              </h1>
+            }
           </div>
           
           <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
@@ -661,7 +659,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 className="items-center justify-center w-10 h-10 text-white rounded-lg z-[99999] lg:flex lg:h-11 lg:w-11 lg:border border-white/20"
                 onClick={handleHeaderToggle}
                 type="button"
-                suppressHydrationWarning
               >
                 <NavigationIcon
                   className={`w-7 h-7 transition-transform duration-300 ${
@@ -669,28 +666,10 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   } text-white`}
                 />
               </button>
-
-              <Link 
-                href="/" 
-                className="lg:hidden flex items-center gap-1"
-              >
-                <Image 
-                  width={40} 
-                  height={32} 
-                  src="/images/logo/logo-light.svg" 
-                  alt="Logo" 
-                />
-
-                <h1 className="font-semibold text-white text-lg">
-                  DTCOB
-                </h1>
-              </Link>
-
               <button
                 onClick={() => setApplicationMenuOpen(!isApplicationMenuOpen)}
                 className="lg:hidden flex items-center justify-center w-10 h-10 text-white rounded-lg hover:bg-white/10 transition-all"
                 type="button"
-                suppressHydrationWarning
               >
                 <MoreDotIcon className="w-6 h-6" />
               </button>
@@ -713,19 +692,15 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         />
                       </svg>
                     </span>
-
                     <input
                       ref={inputRef}
                       type="text"
                       placeholder="Search..."
                       className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
-                      suppressHydrationWarning
                     />
-
                     <button 
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 px-[7px] py-[4.5px] text-xs font-medium text-gray-500 dark:text-white/70"
                       type="button"
-                      suppressHydrationWarning
                     >
                       <span>⌘</span>
                       <span>K</span>
@@ -739,7 +714,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
               <div className="flex items-center justify-between w-full lg:w-auto gap-3">
                 <div className="relative z-[99999] flex items-center gap-2 2xsm:gap-3 overflow-visible">
                   <ThemeToggleButton />
-
                   <NotificationDropdown
                     isOpen={isNotificationOpen}
                     setIsOpen={setIsNotificationOpen}
@@ -764,13 +738,11 @@ export default function AdminLayoutContent({ children }: { children: React.React
                           />
                         </svg>
                       </span>
-
                       <input
                         ref={inputRef}
                         type="text"
                         placeholder="Search..."
                         className="w-[240px] xl:w-[340px] py-2.5 pl-12 pr-14 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 shadow-theme-xs"
-                        suppressHydrationWarning
                       />
                     </div>
                   </form>
@@ -781,7 +753,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onClick={toggleUserDropdown} 
                     className="flex items-center text-white dropdown-toggle"
                     type="button"
-                    suppressHydrationWarning
                   >
                     <div className="mr-3 overflow-hidden rounded-full h-11 w-11 shrink-0 border border-white/20 bg-gray-700">
                       <img 
@@ -823,7 +794,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                           Switch Account
                         </p>
-
                         {isProfilePage && 
                           <p className="mb-3 text-xs text-error-500 dark:text-error-400">
                             Account switching is disabled on this page.
@@ -841,37 +811,35 @@ export default function AdminLayoutContent({ children }: { children: React.React
                               .map((account) => {
                                 const displayAvatar = typeof account.avatar === "string" && account.avatar.trim() !== "" ? account.avatar : null;
 
-                              return (
-                                <li key={account.id}>
-                                  <button
-                                    onClick={() => switchAccount(account.name)}
-                                    disabled={isProfilePage}
-                                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-                                    type="button"
-                                    suppressHydrationWarning
-                                  >
-                                    <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
-                                      <img 
-                                        className="w-full h-full object-cover" 
-                                        src={displayAvatar ?? undefined} 
-                                        alt={account.name} 
-                                        onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
-                                      />
-                                    </div>
+                                return (
+                                  <li key={account.id}>
+                                    <button
+                                      onClick={() => switchAccount(account.name)}
+                                      disabled={isProfilePage}
+                                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-theme-sm transition-colors text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+                                      type="button"
+                                    >
+                                      <div className="overflow-hidden rounded-full h-9 w-9 shrink-0 border border-gray-200 dark:border-gray-700">
+                                        <img 
+                                          className="w-full h-full object-cover" 
+                                          src={displayAvatar ?? undefined} 
+                                          alt={account.name} 
+                                          onError={(e) => {(e.target as HTMLImageElement).src = "owner.jpg";}}
+                                        />
+                                      </div>
 
-                                    <div className="text-left">
-                                      <p className="text-xs font-medium">
-                                        {account.username} ({account.type})
-                                      </p>
-
-                                      <p className="text-[11px] opacity-75">
-                                        {account.email}
-                                      </p>
-                                    </div>
-                                  </button>
-                                </li>
-                              );
-                            })
+                                      <div className="text-left">
+                                        <p className="text-xs font-medium">
+                                          {account.username} ({account.type})
+                                        </p>
+                                        <p className="text-[11px] opacity-75">
+                                          {account.email}
+                                        </p>
+                                      </div>
+                                    </button>
+                                  </li>
+                                );
+                              })
                           )}
                         </ul>
                       </div>
@@ -922,7 +890,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                         </DropdownItem>
                       </li>
                     </ul>
-                    
                     <Link 
                       href="/login" 
                       className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
@@ -964,7 +931,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   Select Account Type
                 </h1>
-
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Please select the type of account you would like to create.
                 </p>
@@ -1006,7 +972,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     >
                       Savings Account
                     </h3>
-
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                       Create a new savings banking account
                     </p>
@@ -1048,7 +1013,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     >
                       Current Account
                     </h3>
-
                     <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                       Create a new business current account
                     </p>
@@ -1066,7 +1030,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
                   type="button"
-                  suppressHydrationWarning
                 >
                   {isSendingOtp ? "Loading..." : "Continue"}
                 </button>
@@ -1078,7 +1041,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   Confirm Account Creation
                 </h1>
-
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Would you like to proceed with creating this account?
                 </p>
@@ -1088,7 +1050,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
                   {selectedType}
                 </p>
-
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Selected Account Type
                 </p>
@@ -1099,16 +1060,13 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={() => setModalStep(1)} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   type="button"
-                  suppressHydrationWarning
                 >
                   No, go back
                 </button>
-
                 <button 
                   onClick={handleConfirmCreation} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                   type="button"
-                  suppressHydrationWarning
                 >
                   Yes, continue
                 </button>
@@ -1119,7 +1077,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -1147,7 +1104,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   Select Verification Method
                 </h1>
-
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   A security code is required to switch to the account: <span className="font-bold text-gray-800 dark:text-white">{targetAccount}</span>. Please select your method.
                 </p>
@@ -1188,7 +1144,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   >
                     Via Email
                   </h3>
-
                   <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                     Receive code at your registered email address.
                   </p>
@@ -1228,7 +1183,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   >
                     Via Phone Number
                   </h3>
-
                   <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                     Receive code via SMS to your registered phone number.
                   </p>
@@ -1240,12 +1194,11 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={() => handleSendCode(verificationMethod!)} 
                   disabled={!verificationMethod || isSendingOtp} 
                   className={`inline-flex items-center justify-center w-full max-w-md px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  verificationMethod
+                    verificationMethod
                       ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
                       : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
                   type="button"
-                  suppressHydrationWarning
                 >
                   {isSendingOtp ? "Sending Code..." : "Send Code"}
                 </button>
@@ -1257,7 +1210,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                 <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                   {verificationMethod === "Email" ? "Verify Your Email" : "Verify Your Phone Number"}
                 </h1>
-
                 {verificationMethod === "Email" ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{targetAccountDetails?.email}</span>. Please provide the code to proceed.
@@ -1281,7 +1233,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     onChange={(e) => handleOtpInputChange(e.target.value, index)} 
                     onKeyDown={(e) => handleOtpKeyDown(e as React.KeyboardEvent<HTMLInputElement>, index)} 
                     className="w-12 h-14 text-center text-xl font-bold transition-all border-2 rounded-xl outline-none border-gray-200 bg-white focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
-                    suppressHydrationWarning
                   />
                 ))}
               </div>
@@ -1296,7 +1247,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                     type="button"
                     onClick={handleResendOtp}
                     className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity"
-                    suppressHydrationWarning
                   >
                     Resend Code
                   </button>
@@ -1308,11 +1258,9 @@ export default function AdminLayoutContent({ children }: { children: React.React
                   onClick={() => { setOtpStep(1); setOtpCode(''); setOtpDigits(new Array(6).fill('')); }} 
                   className="inline-flex items-center justify-center flex-1 px-4 py-3 text-sm font-bold transition bg-transparent border-2 rounded-lg text-gray-700 border-gray-200 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-800 dark:hover:bg-gray-900"
                   type="button"
-                  suppressHydrationWarning
                 >
                   No, go back
                 </button>
-                
                 <button 
                   onClick={handleVerifyOtp} 
                   disabled={otpCode.length !== 6} 
@@ -1322,7 +1270,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
                   type="button"
-                  suppressHydrationWarning
                 >
                   Verify
                 </button>
@@ -1333,7 +1280,6 @@ export default function AdminLayoutContent({ children }: { children: React.React
           <div className="mt-5 text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

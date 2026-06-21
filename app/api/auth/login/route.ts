@@ -26,11 +26,9 @@ export async function POST(req: Request) {
       WHERE LOWER(u.username) = LOWER($1)
     `;
 
-    console.log("PROBING AUTHENTICATION SUITE FOR USERNAME:", username);
     const result = await pool.query(query, [username]);
 
     if (result.rows.length === 0) {
-      console.log(`[AUTH FAILED] Username not found in DB: ${username}`);
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
@@ -41,7 +39,6 @@ export async function POST(req: Request) {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(`[AUTH DIAGNOSTIC] BCrypt evaluation result for ${username}:`, isMatch);
 
     if (!isMatch) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
@@ -53,16 +50,13 @@ export async function POST(req: Request) {
     try {
       plainName = user.full_name ? decrypt(user.full_name, "banka") : "";
     } catch (err) {
-      console.warn("[DECRYPT WARN] Failed to decrypt full_name, returning raw string.");
       plainName = user.full_name || "";
     }
 
     try {
       plainEmail = user.email ? decrypt(user.email, "banka") : "";
     } catch (err) {
-      console.warn("[DECRYPT WARN] Failed to decrypt email, returning raw string.");
       plainEmail = user.email || "";
-    
     }
 
     let plainIdNum = "";
@@ -70,7 +64,6 @@ export async function POST(req: Request) {
     try {
       plainIdNum = user.id_num ? decrypt(user.id_num, "banka") : "";
     } catch (err) {
-      console.warn("[DECRYPT WARN] Failed to decrypt id_num, returning empty string.");
       plainIdNum = "";
     }
 
@@ -95,7 +88,7 @@ export async function POST(req: Request) {
       avatar: avatarBase64,
     });
   } catch (err) {
-    console.error("CRITICAL EXCEPTION IN LOGIN HANDLER:", err);
+    console.error("Database or authentication exception:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

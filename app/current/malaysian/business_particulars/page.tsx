@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -89,8 +90,6 @@ export default function CurrentMalaysianBusinessParticulars() {
       country: "Malaysia",
     },
   });
-
-  const ACCOUNT_CREATION_PATH = "/current/malaysian/account_creation";
 
   useEffect(() => {
     setMounted(true);
@@ -440,7 +439,6 @@ export default function CurrentMalaysianBusinessParticulars() {
             className="fill-[#3D405B]/80" 
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path 
             className="fill-[#3D405B]" 
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -471,7 +469,6 @@ export default function CurrentMalaysianBusinessParticulars() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-
         <Link 
           href="/" 
           className="flex items-center gap-2"
@@ -483,21 +480,19 @@ export default function CurrentMalaysianBusinessParticulars() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
         </Link>
       </div>
 
-      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-4xl"}`}>
+      <div className={`relative w-full z-10 ${step === 1 ? "max-w-md" : "max-w-2xl"}`}>
         {step === 1 && (
           <div>
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Your Registered Business
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Which of the following business would you like to register an account for?
               </p>
@@ -509,13 +504,11 @@ export default function CurrentMalaysianBusinessParticulars() {
                   Loading linked businesses...
                 </p>
               )}
-
               {businessError && (
                 <p className="text-sm text-center text-red-500">
                   {businessError}
                 </p>
               )}
-
               {!loadingBusinesses && !businessError && linkedBusinesses.length === 0 && (
                 <p className="text-sm text-center text-gray-500 dark:text-gray-400">
                   No registered business linked with your MyKad number.
@@ -550,7 +543,6 @@ export default function CurrentMalaysianBusinessParticulars() {
                       <h3 className="text-sm font-bold text-gray-800 dark:text-white">
                         {business.name}
                       </h3>
-
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">
                         BRN: {business.brn}
                       </p>
@@ -601,7 +593,6 @@ export default function CurrentMalaysianBusinessParticulars() {
               <div className="mt-5 text-center">
                 <p className="text-sm">
                   <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                   <Link
                     href="/contact_support"
                     className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -620,19 +611,18 @@ export default function CurrentMalaysianBusinessParticulars() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Business Particulars
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 The below is the registered business particulars with SSM.
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-900 p-6 sm:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
+            <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm backdrop-blur-sm bg-white/90 dark:bg-gray-900/90">
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                   {businessAlreadyRegistered && (
-                    <div className="md:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/40 dark:bg-blue-900/20 dark:text-blue-200">
-                      This business already has a registered current account. Business address and
-                      contact verification will be skipped.
+                    <div className="md:col-span-2 rounded-xl text-center border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-500/40 dark:bg-green-900/20 dark:text-green-200">
+                      <p>An existing business current account has been registered for this business.</p>
+                      <p>Business address and contact verification are not required.</p>  
                     </div>
                   )}
 
@@ -644,7 +634,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                   <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      Business Name
+                      Business Name<span className="text-red-500">*</span>
                     </label>
 
                     <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -659,7 +649,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                   <div className="md:col-span-2">
                     <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                      Business Registration Number (BRN)
+                      Business Registration Number (BRN)<span className="text-red-500">*</span>
                     </label>
 
                     <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -673,10 +663,10 @@ export default function CurrentMalaysianBusinessParticulars() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                          MSIC Code                     
+                          MSIC Code<span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -691,7 +681,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
-                          MSIC Name                    
+                          MSIC Name<span className="text-red-500">*</span>
                         </label>
 
                         <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
@@ -742,7 +732,7 @@ export default function CurrentMalaysianBusinessParticulars() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                           Business Type<span className="text-red-500">*</span>
@@ -837,7 +827,6 @@ export default function CurrentMalaysianBusinessParticulars() {
                   <div className="mt-5 text-center">
                     <p className="text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-
                       <Link
                         href="/contact_support"
                         className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

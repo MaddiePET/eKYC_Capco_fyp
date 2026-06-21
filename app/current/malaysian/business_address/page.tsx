@@ -105,7 +105,6 @@ export default function CurrentMalaysianBusinessAddress() {
 
   const [step, setStep] = useState<number>(1);
   const [mounted, setMounted] = useState<boolean>(false);
-
   const [businessAddress, setBusinessAddress] = useState<Address>({
     addressLine1: "",
     addressLine2: "",
@@ -464,7 +463,6 @@ export default function CurrentMalaysianBusinessAddress() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -495,7 +493,6 @@ export default function CurrentMalaysianBusinessAddress() {
           <ChevronLeftIcon className="w-5 h-5" />
           Back
         </button>
-
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/logo/logo-light.svg"
@@ -504,7 +501,6 @@ export default function CurrentMalaysianBusinessAddress() {
             height={40}
             className="block dark:invert-0 invert"
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -522,7 +518,6 @@ export default function CurrentMalaysianBusinessAddress() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Verify Your Business Address
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
                 If your business address is different from the registered
                 business address below, please update it.
@@ -532,7 +527,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
                   {registeredSSMAddress || "Registered address not available"}
                 </p>
-
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Registered SSM Business Address
                 </p>
@@ -544,7 +538,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 1<span className="text-red-500">*</span>
                 </label>
-
                 <input
                   type="text"
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -570,7 +563,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 2<span className="text-red-500">*</span>
                 </label>
-
                 <input
                   type="text"
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -597,7 +589,6 @@ export default function CurrentMalaysianBusinessAddress() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Postal Code<span className="text-red-500">*</span>
                   </label>
-
                   <input
                     type="text"
                     maxLength={5}
@@ -617,7 +608,6 @@ export default function CurrentMalaysianBusinessAddress() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     State<span className="text-red-500">*</span>
                   </label>
-
                   <input
                     type="text"
                     className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -644,7 +634,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Country<span className="text-red-500">*</span>
                 </label>
-
                 <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400">
                   <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
                     Malaysia
@@ -670,7 +659,6 @@ export default function CurrentMalaysianBusinessAddress() {
                       />
                       Yes
                     </label>
-
                     <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
                       <input
                         type="radio"
@@ -685,10 +673,8 @@ export default function CurrentMalaysianBusinessAddress() {
                 </div>
 
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the information provided
-                  is accurate and belongs to you.
+                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
                 </p>
-
                 <button
                   type="button"
                   onClick={handleStep1Submit}
@@ -712,7 +698,6 @@ export default function CurrentMalaysianBusinessAddress() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Verify Your Mailing Address
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
                 Please enter your mailing address.
               </p>
@@ -721,7 +706,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400 text-center">
                   {verifiedBusinessAddress || "Address not available"}
                 </p>
-
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Registered Business Address
                 </p>
@@ -733,7 +717,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 1<span className="text-red-500">*</span>
                 </label>
-
                 <input
                   type="text"
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -759,7 +742,6 @@ export default function CurrentMalaysianBusinessAddress() {
                 <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Address 2<span className="text-red-500">*</span>
                 </label>
-
                 <input
                   type="text"
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -786,7 +768,6 @@ export default function CurrentMalaysianBusinessAddress() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     Postal Code<span className="text-red-500">*</span>
                   </label>
-
                   <input
                     type="text"
                     maxLength={5}
@@ -806,7 +787,6 @@ export default function CurrentMalaysianBusinessAddress() {
                   <label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                     State<span className="text-red-500">*</span>
                   </label>
-
                   <input
                     type="text"
                     className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
@@ -843,10 +823,8 @@ export default function CurrentMalaysianBusinessAddress() {
 
               <div className="pt-4 flex flex-col items-center">
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                  By clicking continue, you confirm that the information provided
-                  is accurate and belongs to you.
+                  By clicking continue, you confirm that the information provided is accurate and belongs to you.
                 </p>
-
                 <button
                   type="button"
                   onClick={handleStep2Submit}
@@ -870,7 +848,6 @@ export default function CurrentMalaysianBusinessAddress() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Select Your Preferred Branch
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Select a branch based on your current location.
               </p>
@@ -892,7 +869,6 @@ export default function CurrentMalaysianBusinessAddress() {
                         strokeWidth="2"
                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                       />
-
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -905,11 +881,9 @@ export default function CurrentMalaysianBusinessAddress() {
                   <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">
                     Enable Location Services
                   </h3>
-
                   <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
                     To suggest the nearest branches to you.
                   </p>
-
                   <button
                     type="button"
                     onClick={handleRequestLocation}
@@ -941,7 +915,6 @@ export default function CurrentMalaysianBusinessAddress() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Current Location
                     </p>
-
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                       {userAddressLabel}
                     </p>
@@ -1011,7 +984,6 @@ export default function CurrentMalaysianBusinessAddress() {
                       <h4 className="text-sm font-bold text-gray-800 dark:text-white">
                         {branch.name}
                       </h4>
-
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {branch.address}
                       </p>
@@ -1029,10 +1001,8 @@ export default function CurrentMalaysianBusinessAddress() {
 
             <div className="pt-10 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                By clicking continue, you confirm that the information provided
-                is accurate and belongs to you.
+                By clicking continue, you confirm that the information provided is accurate and belongs to you.
               </p>
-
               <button
                 type="button"
                 onClick={handleFinalSubmit}
@@ -1051,10 +1021,7 @@ export default function CurrentMalaysianBusinessAddress() {
 
         <div className="mt-5 text-center">
           <p className="text-sm font-normal">
-            <span className="text-gray-500 dark:text-gray-400">
-              Having trouble?{" "}
-            </span>
-
+            <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
             <Link
               href="/contact_support"
               className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"

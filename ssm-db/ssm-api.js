@@ -16,13 +16,32 @@ function getSSMFirestore() {
     return existingApp.firestore();
   }
 
-  const keyPath = path.join(
-    process.cwd(),
-    "ssm-db",
-    "serviceAccountKey-SSM.json"
-  );
+  let serviceAccount;
 
-  const serviceAccount = JSON.parse(fs.readFileSync(keyPath, "utf8"));
+  if (process.env.FIREBASE_SSM_SERVICE_ACCOUNT_B64) {
+    try {
+      const decoded = Buffer.from(process.env.FIREBASE_SSM_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
+      serviceAccount = JSON.parse(decoded);
+    } catch (err) {
+      console.error("Failed to parse FIREBASE_SSM_SERVICE_ACCOUNT_B64 env var:", err);
+      throw new Error("Invalid FIREBASE_SSM_SERVICE_ACCOUNT_B64");
+    }
+  } else if (process.env.FIREBASE_SSM_SERVICE_ACCOUNT) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SSM_SERVICE_ACCOUNT);
+    } catch (err) {
+      console.error("Failed to parse FIREBASE_SSM_SERVICE_ACCOUNT env var:", err);
+      throw new Error("Invalid FIREBASE_SSM_SERVICE_ACCOUNT JSON");
+    }
+  } else {
+    const keyPath = path.join(
+      process.cwd(),
+      "ssm-db",
+      "serviceAccountKey-SSM.json"
+    );
+
+    serviceAccount = JSON.parse(fs.readFileSync(keyPath, "utf8"));
+  }
 
   const ssmApp = admin.initializeApp(
     {

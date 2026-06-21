@@ -22,15 +22,10 @@ function getKey(source: CryptoSource) {
 }
 
 function encrypt(value: string | null | undefined, source: CryptoSource) {
-  if (!value) return ""; 
+  if (!value) return "";
 
   const iv = crypto.randomBytes(12);
-
-  const cipher = crypto.createCipheriv(
-    ALGORITHM,
-    getKey(source),
-    iv
-  );
+  const cipher = crypto.createCipheriv(ALGORITHM, getKey(source), iv);
 
   const encrypted = Buffer.concat([
     cipher.update(String(value), "utf8"),
@@ -69,15 +64,12 @@ function decrypt(payload: string | null | undefined, source: CryptoSource) {
     ]);
 
     return decrypted.toString("utf8");
-
   } catch (error) {
-
     console.error("[CRYPTO ERROR] Failed decrypt:", {
       payload,
       source,
       error: error instanceof Error ? error.message : String(error),
     });
-
     return "[DECRYPT_FAILED]";
   }
 }
@@ -89,6 +81,6 @@ function hashLookup(value: string | null | undefined) {
     .createHash("sha256")
     .update(value.replace(/-/g, "").trim())
     .digest("hex");
-} 
+}
 
 export { encrypt, decrypt, hashLookup };

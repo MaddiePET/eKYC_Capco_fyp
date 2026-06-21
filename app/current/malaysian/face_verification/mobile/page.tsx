@@ -3,9 +3,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function CurrentMalaysianMobileFaceCapture() {
+export default function CurrentMalaysianMobileFaceCapture() {
   const MAX_ATTEMPTS = 3;
 
   const router = useRouter();
@@ -15,11 +16,35 @@ function CurrentMalaysianMobileFaceCapture() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [failCount, setFailCount] = useState(0);
 
+  const [thresholdFailed, setThresholdFailed] = useState(false);
+  const [thresholdMessage, setThresholdMessage] = useState("");
+
+  const [faceImage, setFaceImage] = useState<string | null>(null);
+  const [isUploadingFace, setIsUploadingFace] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const searchParams = useSearchParams();
-  
   const journeyId = searchParams.get("journeyId") || "";
+
+  const SCORECARD_PASS_THRESHOLD = 70;
+
+  const calculateScorecardResult = (scorecard: any) => {
+    const scorecardLists = scorecard?.scorecardResultList || [];
+    let totalChecks = 0;
+    let passedChecks = 0;
+
+    for (const scorecardItem of scorecardLists) {
+      const checks = scorecardItem.checkResultList || [];
+      for (const check of checks) {
+        totalChecks++;
+        if (check.checkStatus === "P") {
+          passedChecks++;
+        }
+      }
+    }
+    if (totalChecks === 0) return null;
+    return Number(((passedChecks / totalChecks) * 100).toFixed(2));
+  };
 
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -31,7 +56,6 @@ function CurrentMalaysianMobileFaceCapture() {
 
         if (data.status === "face_failed") {
           setFailCount(MAX_ATTEMPTS);
-
           setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
         } else if (data.status === "face_verified") {
           setSuccess(true);
@@ -44,105 +68,144 @@ function CurrentMalaysianMobileFaceCapture() {
     checkInitialStatus();
   }, [journeyId]);
 
-  const base64ToBlob = (base64: string, mimeType = 'image/jpeg') => {
-    const byteCharacters = atob(base64);
-    const byteArrays = [];
-    for (let i = 0; i < byteCharacters.length; i += 512) {
-      const slice = byteCharacters.slice(i, i + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let j = 0; j < slice.length; j++) {
-        byteNumbers[j] = slice.charCodeAt(j);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-    return new Blob(byteArrays, { type: mimeType });
-  };
-
   const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (failCount >= MAX_ATTEMPTS) return;
 
     const selfieFile = event.target.files?.[0];
     if (!selfieFile || !journeyId) return;
 
-    const idCardBase64 = localStorage.getItem("ekyc_id_image");
-    if (!idCardBase64) {
+    const idCardUrl = localStorage.getItem("ekyc_id_image_url");
+    if (!idCardUrl) {
       setErrorMessage("ID Document not found. Please rescan your MyKad first.");
       return;
     }
 
+    setIsUploadingFace(true);
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("journeyId", journeyId);
-      formData.append("selfie", selfieFile);
-      formData.append("idCard", base64ToBlob(idCardBase64), "idcard.jpg");
-
-      const faceApiRes = await fetch("/api/ekyc/okayface", {
+      await fetch("/api/ekyc/status", {
         method: "POST",
-        body: formData,
-      });
-
-      const faceResult = await faceApiRes.json();
-
-      console.log("OkayFace output:", faceResult);
-
-      if (faceResult.status === "success") {
-      const liveApiRes = await fetch("/api/ekyc/okaylive", {
-        method: "POST",
-        body: formData,
-      });
-
-        const liveResult = await liveApiRes.json();
-
-        if (!liveApiRes.ok) {
-          throw new Error(liveResult.message || "OkayLive failed");
-        }
-
-      const scorecardRes = await fetch(
-        `/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`
-      );
-
-      const scorecardResult = await scorecardRes.json();
-      console.log("Scorecard result:", scorecardResult);
-
-      if (!scorecardRes.ok || scorecardResult.status !== "success") {
-        throw new Error(scorecardResult.error || "Scorecard check failed");
-      }
-
-      const scorecardList = scorecardResult.scorecardResultList as any[] | undefined;
-      const hasFailedFacialVerification = scorecardList?.some((item) =>
-        item.checkResultList?.some(
-         (check: any) =>
-           check.checkType === "facialVerification" &&
-           check.checkStatus === "F"
-        )
-      );
-
-      if (hasFailedFacialVerification) {
-        throw new Error ("Face does not match the MyKad photo");
-      }
-
-      await fetch("/api/ekyc/status" , {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           journeyId,
-          status:"face_verified",
-          scorecard: scorecardResult,
+          status: "face_processing",
         }),
       });
 
-      setSuccess(true);
+      const fileExtension = selfieFile.name.split(".").pop();
+      const fileName = `selfie_${journeyId}_${Date.now()}.${fileExtension}`;
+      const filePath = `selfies/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("identity-docs")
+        .upload(filePath, selfieFile, { cacheControl: "3600", upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data, error: dbError } = await supabase
+        .from("identity_documents")
+        .insert({
+          file_path: filePath,
+          created_at: new Date().toISOString(),
+        })
+        .select();
+      console.log("DB INSERT RESULT:", { data, dbError });
+
+      const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
+        .from("identity-docs")
+        .getPublicUrl(filePath);
+
+      setFaceImage(selfiePublicUrl);
+
+      const faceApiRes = await fetch("/api/ekyc/okayface", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          journeyId,
+          selfieUrl: selfiePublicUrl,
+          idCardUrl: idCardUrl
+        })
+      });
+      const faceResult = await faceApiRes.json();
+
+      if (faceResult.status === "success") {
+        const liveApiRes = await fetch("/api/ekyc/okaylive", { 
+          method: "POST", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            journeyId,
+            selfieUrl: selfiePublicUrl,
+            idCardUrl,
+          }) 
+        });
+        const liveResult = await liveApiRes.json();
+        if (!liveApiRes.ok) throw new Error(liveResult.message || "OkayLive failed");
+
+        const scorecardRes = await fetch(`/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`);
+        const scorecardResult = await scorecardRes.json();
+  
+        if (!scorecardRes.ok || scorecardResult.status !== "success") {
+          throw new Error(scorecardResult.error || "Scorecard check failed");
+        }
+
+        const scorecardList = scorecardResult.scorecardResultList as any[] | undefined;
+        const hasFailedFacialVerification = scorecardList?.some((item) =>
+          item.checkResultList?.some(
+           (check: any) =>
+             check.checkType === "facialVerification" &&
+             check.checkStatus === "F"
+          )
+        );
+
+        if (hasFailedFacialVerification) {
+          throw new Error ("Face does not match the MyKad photo");
+        }
+
+        const score = calculateScorecardResult(scorecardResult);
+
+        await fetch("/api/ekyc/status" , {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            journeyId,
+            status:"face_verified",
+            scorecard: scorecardResult,
+          }),
+        });
+
+        if (score === null || score < SCORECARD_PASS_THRESHOLD) {
+          setThresholdMessage(
+            score === null 
+            ? "No scorecard checks were found. Please proceed to the desktop page." 
+            : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
+          );
+          setThresholdFailed(true);
+          return;
+        }
+
+        const cleanupRes = await fetch("/api/ekyc/purge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selfieUrl: selfiePublicUrl, idCardUrl }),
+        });
+
+        if (!cleanupRes.ok) {
+          console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        setSuccess(true);
 
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
     } catch (error: any) {
+      setFaceImage(null);
       const newFailCount = failCount + 1;
       setFailCount(newFailCount);
       const remaining = MAX_ATTEMPTS - newFailCount;
@@ -152,6 +215,12 @@ function CurrentMalaysianMobileFaceCapture() {
         setErrorMessage(
           `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
         );
+        
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "face_failed_attempt" }),
+        });
       } else {
         setErrorMessage(
           "Too many failed attempts. Please refer to your desktop screen."
@@ -161,11 +230,11 @@ function CurrentMalaysianMobileFaceCapture() {
           method: "POST",
           headers: { 
             "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({ 
-              journeyId, 
-              status: "face_failed" 
-            }),
+          },
+          body: JSON.stringify({ 
+            journeyId, 
+            status: "face_failed" 
+          }),
         });
       }
 
@@ -174,6 +243,7 @@ function CurrentMalaysianMobileFaceCapture() {
       }
     } finally {
       setIsLoading(false);
+      setIsUploadingFace(false);
     }
   };
 
@@ -190,7 +260,6 @@ function CurrentMalaysianMobileFaceCapture() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -220,14 +289,46 @@ function CurrentMalaysianMobileFaceCapture() {
           height={40} 
           className="block dark:invert-0 invert" 
         />
-      
         <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
           DTCOB
         </h1>
       </header>
 
       <main className="relative w-full max-w-2xl z-10 flex flex-col items-center">
-        {success ? (
+        {thresholdFailed || failCount >= MAX_ATTEMPTS ? (
+          <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 mb-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-md">
+              <svg 
+                className="w-10 h-10" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="3" 
+                  d="M6 18L18 6M6 6l12 12" 
+                />
+              </svg>
+            </div>
+
+            <div className="mb-6 text-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Verification Failed
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {thresholdFailed ? thresholdMessage : "Too many failed attempts. Please refer to your desktop screen."}
+              </p>
+            </div>
+
+            <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
+              <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
+                You may now close this window and return to your desktop screen to restart.
+              </p>
+            </div>
+          </div>
+        ) : success ? (
           <div className="flex flex-col items-center w-full max-w-md animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
               <svg 
@@ -249,7 +350,6 @@ function CurrentMalaysianMobileFaceCapture() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Scan Successful!
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Your face has been securely matched with your MyKad.
               </p>
@@ -267,7 +367,6 @@ function CurrentMalaysianMobileFaceCapture() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your Face
               </h1>
-              
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please position your face clearly in the frame.
               </p>
@@ -279,6 +378,15 @@ function CurrentMalaysianMobileFaceCapture() {
               </div>
             )}
 
+            {isUploadingFace && !success && !errorMessage && (
+              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+                <p className="text-sm font-semibold text-center">Face Image Received</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                  Your face image is being verified. This may take a few moments. Please do not close this window.
+                </p>
+              </div>
+            )}
+
             <input
               type="file"
               accept="image/*"
@@ -287,7 +395,6 @@ function CurrentMalaysianMobileFaceCapture() {
               onChange={handleCapture}
               className="hidden"
             />
-
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || failCount >= MAX_ATTEMPTS}
@@ -298,7 +405,13 @@ function CurrentMalaysianMobileFaceCapture() {
               }`}
             >
               <span className="font-semibold text-sm">
-                {isLoading ? "Verifying..." : failCount > 0 ? "Try Again" : "Open Camera"}
+                {isUploadingFace 
+                  ? "Verifying" 
+                  : faceImage 
+                  ? "Verified" 
+                  : failCount > 0 
+                  ? "Try Again" 
+                  : "Open Camera"}
               </span>
 
               {isLoading ? (
@@ -316,7 +429,6 @@ function CurrentMalaysianMobileFaceCapture() {
                     strokeWidth="1.5" 
                     d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" 
                   />
-
                   <path 
                     strokeLinecap="round" 
                     strokeLinejoin="round" 
@@ -333,7 +445,6 @@ function CurrentMalaysianMobileFaceCapture() {
           <div className="text-center">
             <p className="text-sm font-normal">
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-              
               <Link 
                 href="/contact_support" 
                 className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
@@ -362,8 +473,7 @@ function CurrentMalaysianMobileFaceCapture() {
               <div className="text-xs leading-relaxed text-amber-900 dark:text-amber-100">
                 <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">
                   Important Notice:
-                </p>
-                
+                </p> 
                 <ul className="list-disc ml-4 space-y-1">
                   <li>Ensure mobile and desktop tabs are open.</li>
                   <li>Ensure your internet connection is fast and stable.</li>
@@ -380,19 +490,5 @@ function CurrentMalaysianMobileFaceCapture() {
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>
-  );
-}
-
-export default function CurrentMalaysianMobileFaceCapturePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-[100dvh] flex items-center justify-center bg-[#F9FAFB] dark:bg-gray-950">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      }
-    >
-      <CurrentMalaysianMobileFaceCapture />
-    </React.Suspense>
   );
 }

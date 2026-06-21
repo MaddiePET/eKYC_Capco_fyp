@@ -9,31 +9,55 @@ let jimDb: FirebaseFirestore.Firestore | undefined;
 function initializeJIM() {
   if (!jimDb) {
     const appName = "jim-api-app";
-
     const existingApp = admin.apps.find((app) => app?.name === appName);
 
     if (existingApp) {
       jimApp = existingApp;
     } else {
-      const serviceAccountPath = path.join(
-        process.cwd(),
-        "jim-db",
-        "serviceAccountKey-JIM.json"
-      );
+      let serviceAccount;
 
-      const serviceAccount = JSON.parse(
-        fs.readFileSync(serviceAccountPath, "utf8")
-      );
+      if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64) {
+        try {
+          const decoded = Buffer
+            .from(process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64, "base64")
+            .toString("utf8");
 
-      jimApp = admin.initializeApp(
-        {
-          credential: admin.credential.cert(serviceAccount),
-        },
-        appName
-      );
+          serviceAccount = JSON.parse(decoded);
+        } catch (err) {
+          console.error("Failed parsing B64:", err);
+          throw err;
+        }
+      } else if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_JIM_SERVICE_ACCOUNT);
+      } else {
+        const serviceAccountPath = path.join(
+          process.cwd(),
+          "jim-db",
+          "serviceAccountKey-JIM.json"
+        );
+
+        serviceAccount = JSON.parse(
+          fs.readFileSync(serviceAccountPath, "utf8")
+        );
+      }
+
+      try {
+        jimApp = admin.initializeApp(
+          {
+            credential: admin.credential.cert(serviceAccount),
+          },
+          appName
+        );
+      } catch (err) {
+        console.error("Failed to initialize Firebase app:", err);
+        throw err;
+      }
     }
-
+    
     jimDb = jimApp.firestore();
+    if (!jimDb) {
+      throw new Error("Firestore initialization failed");
+    }
   }
 
   return jimDb;
@@ -95,13 +119,8 @@ async function lookupJIMIdentity(idNum: string) {
 
   if (!idNum) return null;
 
-  console.log(`\n[JIM API]`);
-  console.log(`Plaintext Parameter Extracted: "${idNum}"`);
-
   const normalizedPassport = idNum.trim();
   const lookupHash = hashLookup(normalizedPassport);
-
-  console.log(`Generated Index Hash: ${lookupHash}`);
 
   const querySnapshot = await db
     .collection(JIM_NONRESIDENTS_COLLECTION)
@@ -110,24 +129,11 @@ async function lookupJIMIdentity(idNum: string) {
     .get();
 
   if (querySnapshot.empty) {
-    console.log(`[VERIFICATION FAILED] Record mismatch. No matching entry found for hash: ${lookupHash}`);
     return null;
   }
 
-  console.log(`[MATCH FOUND]`);
-
   const encryptedData = querySnapshot.docs[0].data();
   const decryptedData = decryptJIMData(encryptedData);
-
-  console.log(`Full Name: ${decryptedData.full_name}`);
-  console.log(`Birth Date: ${decryptedData.date_of_birth}`);
-  console.log(`Sex: ${decryptedData.sex}`);
-  console.log(`Nationality: ${decryptedData.nationality}`);
-  console.log(`Country: ${decryptedData.country}`);
-  console.log(`Issue Date: ${decryptedData.issue_date}`);
-  console.log(`Expiry Date: ${decryptedData.exp_date}`);
-  console.log(`Issuing Office: ${decryptedData.issue_office}`);
-  console.log(`Visa Type: ${decryptedData.visa_type}\n`);
 
   return {
     source: "jim",

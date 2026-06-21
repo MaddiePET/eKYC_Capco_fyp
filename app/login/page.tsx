@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,105 @@ interface User {
   securityPhrase: string;
 }
 
+function convertBase64ToDataUrl(base64: string): string {
+  let mimeType = "image/jpeg";
+  
+  if (base64.startsWith("PHN2Zy") || base64.startsWith("PD94bWw")) {
+    mimeType = "image/svg+xml";
+  } else if (base64.startsWith("iVBORw0KGg")) {
+    mimeType = "image/png";
+  } else if (base64.startsWith("R0lGODlh")) {
+    mimeType = "image/gif";
+  } else if (base64.startsWith("/9j/")) {
+    mimeType = "image/jpeg";
+  }
+
+  return `data:${mimeType};base64,${base64}`;
+}
+
+function formatAvatarSrc(avatar: any): string {
+  if (!avatar) return "/owner.jpg";
+
+  if (typeof avatar === "string") {
+    if (
+      avatar.startsWith("http://") || 
+      avatar.startsWith("https://") || 
+      avatar.startsWith("data:image/")
+    ) {
+      return avatar;
+    }
+
+    if (avatar.startsWith("{") && avatar.includes('"type"')) {
+      try {
+        const parsed = JSON.parse(avatar);
+        return formatAvatarSrc(parsed);
+      } catch {}
+    }
+
+    if (avatar.startsWith("\\x") || avatar.startsWith("\\\\x") || avatar.startsWith("x")) {
+      const cleanHex = avatar.replace(/^\\\\x|^\\x|^x/, "");
+      try {
+        let binary = "";
+        for (let i = 0; i < cleanHex.length; i += 2) {
+          binary += String.fromCharCode(parseInt(cleanHex.substring(i, i + 2), 16));
+        }
+        
+        if (
+          binary.startsWith("http://") || 
+          binary.startsWith("https://") || 
+          binary.startsWith("data:image/")
+        ) {
+          return binary;
+        }
+        return convertBase64ToDataUrl(btoa(binary));
+      } catch (err) {
+        console.error("Failed parsing hex image data:", err);
+      }
+    }
+
+    const cleanBase64 = avatar.replace(/[\r\n\s]+/g, "");
+    return convertBase64ToDataUrl(cleanBase64);
+  }
+
+  if (avatar && typeof avatar === "object") {
+    if (avatar.type === "Buffer" && Array.isArray(avatar.data)) {
+      const uintArray = new Uint8Array(avatar.data);
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+
+    if (avatar instanceof Uint8Array || Array.isArray(avatar)) {
+      const uintArray = Array.isArray(avatar) ? new Uint8Array(avatar) : avatar;
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+  }
+
+  return "/owner.jpg";
+}
+
 export default function LogIn() {
   const router = useRouter();
 
@@ -30,11 +129,16 @@ export default function LogIn() {
   const [cooldown, setCooldown] = useState(0);
   const [isValidating, setIsValidating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
-    const [usernameError, setUsernameError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  const latestUsernameRef = useRef<string>("");
 
   useEffect(() => {
     setMounted(true);
+    sessionStorage.removeItem("is_authenticated");
+    localStorage.removeItem("currentUsername");
+    localStorage.removeItem("currentAccount");
   }, []);
 
   useEffect(() => {
@@ -52,18 +156,29 @@ export default function LogIn() {
   }, [cooldown, attempts]);
 
   const checkUsername = async (val: string) => {
-    if (val.length < 3) { 
+    if (val.length < 5) { 
       setIsUsernameValid(null); 
       return; 
     }
+    
+    latestUsernameRef.current = val;
     setIsValidating(true);
+    
     try {
       const res = await fetch(`/api/users/${val}`);
-      setIsUsernameValid(res.ok);
+      
+      if (latestUsernameRef.current === val) {
+        setIsUsernameValid(res.ok);
+      }
     } catch { 
-      setIsUsernameValid(false); 
+      if (latestUsernameRef.current === val) {
+        setIsUsernameValid(false); 
+      }
+    } finally {
+      if (latestUsernameRef.current === val) {
+        setIsValidating(false);
+      }
     }
-    setIsValidating(false);
   };
 
   const handleUsernameSubmit = async (e: React.FormEvent) => {
@@ -80,15 +195,7 @@ export default function LogIn() {
       }
 
       const user = await res.json();
-
-      if (
-        user.avatar && 
-        !user.avatar.startsWith("http") && 
-        !user.avatar.startsWith("data:image/")
-      ) {
-        const cleanBase64 = user.avatar.replace(/[\r\n]+/g, "");
-        user.avatar = `data:image/jpeg;base64,${cleanBase64}`;
-      }
+      user.avatar = formatAvatarSrc(user.avatar);
 
       setCurrentUser(user);
       setStep("confirm");
@@ -148,6 +255,8 @@ export default function LogIn() {
       const data = await res.json();
 
       try {
+        sessionStorage.setItem("is_authenticated", "true");
+
         localStorage.setItem("currentUsername", data.username || "");
         localStorage.setItem("currentAccount", data.name || "");
         localStorage.setItem("currentUserAvatar", data.avatar || ""); 
@@ -185,7 +294,6 @@ export default function LogIn() {
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
           />
-
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -214,7 +322,6 @@ export default function LogIn() {
           className="inline-flex items-center text-sm text-gray-600 dark:text-white/80 transition-colors hover:text-gray-900 dark:hover:text-white"
         >
           <ChevronLeftIcon className="w-5 h-5" />
-
           {step === "username" ? "Home" : "Back"}
         </button>
 
@@ -229,7 +336,6 @@ export default function LogIn() {
             height={40} 
             className="block dark:invert-0 invert" 
           />          
-          
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -243,7 +349,6 @@ export default function LogIn() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Log In
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please enter your username to log in.
               </p>
@@ -277,10 +382,10 @@ export default function LogIn() {
                         const cleanedValue = e.target.value.replace(/[^a-zA-Z0-9]/g, "").replace(/^./, (c) => c.toUpperCase());
                         setUsername(cleanedValue);
                         setUsernameError("");
+                        setIsUsernameValid(null);
                         checkUsername(cleanedValue);
                       }}
                     />
-                    
                     {isUsernameValid === true && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
                     )}
@@ -296,14 +401,16 @@ export default function LogIn() {
                 </button>
               </div>
             </form>
-
-            <div className="mt-5 text-center">
-              <Link 
-                href="/reset_password" 
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Forgot password?
-              </Link>
+            <div className="mt-6 flex justify-center items-center gap-6 text-sm">
+              <p className="text-gray-600 dark:text-gray-400">
+                Don't have an account?{' '}
+                <Link 
+                  href="/signup" 
+                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                >
+                  Sign up
+                </Link>
+              </p>
             </div>
           </div>
         )}
@@ -328,7 +435,6 @@ export default function LogIn() {
                   <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">
                     {currentUser.name}
                   </h2>
-
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {currentUser.email}
                   </p>
@@ -350,7 +456,6 @@ export default function LogIn() {
               >
                 Yes, that's me
               </button>
-
               <button 
                 type="button" 
                 onClick={handleBack} 
@@ -396,11 +501,7 @@ export default function LogIn() {
             {passwordError && (
               <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
                 {passwordError}
-                {cooldown > 0 && (
-                  <span>
-                    Please retry in {cooldown}s.
-                  </span>
-                )}
+                {cooldown > 0 && (<span>Please retry in {cooldown}s.</span>)}
               </div>
             )}
             
@@ -424,7 +525,6 @@ export default function LogIn() {
                       }}
                       required
                     />
-
                     <span 
                       onClick={() => setShowPassword(!showPassword)} 
                       className="absolute z-30 cursor-pointer -translate-y-1/2 right-4 top-1/2"

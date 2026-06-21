@@ -73,6 +73,7 @@ export default function SavingsMalaysianOTP() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
     if (timer > 0) {
       interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     }
@@ -134,6 +135,7 @@ export default function SavingsMalaysianOTP() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -168,7 +170,6 @@ export default function SavingsMalaysianOTP() {
     try {
       const statusRes = await fetch(`/api/ekyc/status?journeyId=${encodeURIComponent(journeyId)}`);
       const statusData = await statusRes.json();
-      
       const icNo = statusData?.id_num || statusData?.data?.id_num || statusData?.identity?.id_num || "";
 
       if (!icNo) {
@@ -268,8 +269,7 @@ export default function SavingsMalaysianOTP() {
           <path
             className="fill-[#3D405B]/80"
             d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,117.3C672,117,768,171,864,192C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-          />
-          
+          />  
           <path
             className="fill-[#3D405B]"
             d="M0,128L48,138.7C96,149,192,171,288,176C384,181,480,171,576,144C672,117,768,75,864,69.3C960,64,1056,96,1152,112C1248,128,1344,128,1392,128L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
@@ -312,7 +312,6 @@ export default function SavingsMalaysianOTP() {
             height={40} 
             className="block dark:invert-0 invert" 
           />
-
           <h1 className="text-lg sm:text-2xl font-bold uppercase tracking-tight text-gray-800 dark:text-white truncate">
             DTCOB
           </h1>
@@ -326,7 +325,6 @@ export default function SavingsMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Select Verification Method
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 To proceed with the registration securely, please select your preferred method for OTP verification.
               </p>
@@ -361,7 +359,6 @@ export default function SavingsMalaysianOTP() {
                 <h3 className={`text-lg font-bold mb-2 ${method === "Email" ? 'text-[#3D405B] dark:text-white' : 'text-gray-800 dark:text-white'}`}>
                   Via Email
                 </h3>
-
                 <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                   Receive code at your personal email address.
                 </p>
@@ -400,7 +397,6 @@ export default function SavingsMalaysianOTP() {
                 >
                   Via Phone Number
                 </h3>
-
                 <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                   Receive code via SMS to your mobile number.
                 </p>
@@ -431,7 +427,6 @@ export default function SavingsMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Enter Your Email
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your email address to proceed with the registration.
               </p>
@@ -445,7 +440,6 @@ export default function SavingsMalaysianOTP() {
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Email Address<span className="text-red-500">*</span>
                 </Label>
-
                 <input 
                   type="email" 
                   required 
@@ -459,11 +453,7 @@ export default function SavingsMalaysianOTP() {
               <button 
                 type="submit" 
                 disabled={isLoading || !email} 
-                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
-                  isLoading || !email
-                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]' 
-                    : 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
-                }`}
+                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
               >
                 {isLoading ? "Sending Code..." : "Send Code"}
               </button>
@@ -477,7 +467,6 @@ export default function SavingsMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Phone Number Verification
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Is this still your current mobile number?
               </p>
@@ -487,7 +476,6 @@ export default function SavingsMalaysianOTP() {
               <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
                 +60 ****** {originalPhoneNumber ? originalPhoneNumber.slice(-4) : ""}
               </p>
-
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Registered Mobile Number
               </p>
@@ -509,7 +497,6 @@ export default function SavingsMalaysianOTP() {
               >
                 {isLoading ? "Sending Code..." : "Yes, send code"}
               </button>
-
               <button
                 type="button"
                 onClick={handleChangeNumber}
@@ -527,7 +514,6 @@ export default function SavingsMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Update Your Phone Number
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Please provide your new mobile number to proceed with the registration.
               </p>
@@ -584,7 +570,6 @@ export default function SavingsMalaysianOTP() {
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Verify Your {method === "Email" ? "Email" : "Phone Number"}
               </h1>
-
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{method === "Email" ? email : `+60 ${activePhoneNumber}`}</span>. Please provide the code to proceed.
               </p>
@@ -647,75 +632,36 @@ export default function SavingsMalaysianOTP() {
           </div>
         )}
 
-        {step !== "option" && (
-          <div className="max-w-md mx-auto animate-in fade-in duration-500">
-            <div className="mt-5 text-center">
-              <p className="text-sm font-normal">
-                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                
-                <Link 
-                  href="/contact_support" 
-                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                >
-                  Contact Support
-                </Link>
-              </p>
-            </div>
-
-            <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg 
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                fill="currentColor" 
-                viewBox="0 0 20 20"
+        <div className="max-w-md mx-auto animate-in fade-in duration-500">
+          <div className="mt-5 text-center">
+            <p className="text-sm font-normal">
+              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span> 
+              <Link 
+                href="/contact_support" 
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
               >
-                <path 
-                  fillRule="evenodd" 
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
-                  clipRule="evenodd"
-                />
-              </svg>
-
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
-              </p>
-            </div>
+                Contact Support
+              </Link>
+            </p>
           </div>
-        )}
-        
-        {step === "option" && (
-           <div className="max-w-md mx-auto animate-in fade-in duration-500">
-             <div className="mt-5 text-center">
-                <p className="text-sm font-normal">
-                  <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-                  
-                  <Link 
-                    href="/contact_support" 
-                    className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                  >
-                    Contact Support
-                  </Link>
-                </p>
-              </div>
 
-              <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                <svg 
-                  className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                >
-                  <path 
-                    fillRule="evenodd" 
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
-                    clipRule="evenodd" 
-                  />
-                </svg>
-
-                <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                  Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
-                </p>
-              </div>
-           </div>
-        )}
+          <div className="mt-5 p-4 rounded-xl flex gap-3 border transition-all text-left backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <svg 
+              className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
+              fill="currentColor" 
+              viewBox="0 0 20 20"
+            >
+              <path 
+                fillRule="evenodd" 
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                clipRule="evenodd"
+              />
+            </svg>
+            <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
+              Standard rates may apply. Your contact detail is used solely for <span className="font-bold text-blue-700 dark:text-blue-300">secure account registration</span> and <span className="font-bold text-blue-700 dark:text-blue-300">identity verification</span>.
+            </p>
+          </div>
+        </div>
       </div>
 
       <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">

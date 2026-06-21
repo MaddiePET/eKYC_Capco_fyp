@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
 
@@ -22,34 +23,126 @@ interface ProfileData {
   address2?: string;
   address?: string;
   location: string;
-
   accountNo?: string;
   accountNumber?: string;
   account_no?: string;
   account_number?: string;
-
   accountType?: string;
   account_type?: string;
   type?: string;
-
   isMalaysian?: boolean;
   is_malaysian?: boolean;
-
   businessName?: string;
   business_name?: string;
   bus_name?: string;
-
   registrationNumber?: string;
   registration_number?: string;
   regNo?: string;
   reg_no?: string;
   brn?: string;
-
   businessType?: string;
   business_type?: string;
   bus_type?: string;
-
   role?: string;
+}
+
+function convertBase64ToDataUrl(base64: string): string {
+  let mimeType = "image/jpeg";
+  
+  if (base64.startsWith("PHN2Zy") || base64.startsWith("PD94bWw")) {
+    mimeType = "image/svg+xml";
+  } else if (base64.startsWith("iVBORw0KGg")) {
+    mimeType = "image/png";
+  } else if (base64.startsWith("R0lGODlh")) {
+    mimeType = "image/gif";
+  } else if (base64.startsWith("/9j/")) {
+    mimeType = "image/jpeg";
+  }
+
+  return `data:${mimeType};base64,${base64}`;
+}
+
+function formatAvatarSrc(avatar: any): string {
+  if (!avatar) return "/owner.jpg";
+
+  if (typeof avatar === "string") {
+    if (
+      avatar.startsWith("http://") || 
+      avatar.startsWith("https://") || 
+      avatar.startsWith("data:image/")
+    ) {
+      return avatar;
+    }
+
+    if (avatar.startsWith("{") && avatar.includes('"type"')) {
+      try {
+        const parsed = JSON.parse(avatar);
+        return formatAvatarSrc(parsed);
+      } catch {}
+    }
+
+    if (avatar.startsWith("\\x") || avatar.startsWith("\\\\x") || avatar.startsWith("x")) {
+      const cleanHex = avatar.replace(/^\\\\x|^\\x|^x/, "");
+      try {
+        let binary = "";
+        for (let i = 0; i < cleanHex.length; i += 2) {
+          binary += String.fromCharCode(parseInt(cleanHex.substring(i, i + 2), 16));
+        }
+        
+        if (
+          binary.startsWith("http://") || 
+          binary.startsWith("https://") || 
+          binary.startsWith("data:image/")
+        ) {
+          return binary;
+        }
+        return convertBase64ToDataUrl(btoa(binary));
+      } catch (err) {
+        console.error("Failed parsing hex image data:", err);
+      }
+    }
+
+    const cleanBase64 = avatar.replace(/[\r\n\s]+/g, "");
+    return convertBase64ToDataUrl(cleanBase64);
+  }
+
+  if (avatar && typeof avatar === "object") {
+    if (avatar.type === "Buffer" && Array.isArray(avatar.data)) {
+      const uintArray = new Uint8Array(avatar.data);
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+
+    if (avatar instanceof Uint8Array || Array.isArray(avatar)) {
+      const uintArray = Array.isArray(avatar) ? new Uint8Array(avatar) : avatar;
+      let binary = "";
+      for (let i = 0; i < uintArray.length; i++) {
+        binary += String.fromCharCode(uintArray[i]);
+      }
+      
+      if (
+        binary.startsWith("http://") || 
+        binary.startsWith("https://") || 
+        binary.startsWith("data:image/")
+      ) {
+        return binary;
+      }
+      return convertBase64ToDataUrl(btoa(binary));
+    }
+  }
+
+  return "/owner.jpg";
 }
 
 const getSplitAddress = (profile: ProfileData) => {
@@ -84,6 +177,8 @@ const getSplitAddress = (profile: ProfileData) => {
 };
 
 export default function DashboardProfile() {
+  const router = useRouter();
+
   const {
     isOpen: isMetaModalOpen,
     openModal: openMetaModal,
@@ -100,6 +195,7 @@ export default function DashboardProfile() {
 
         if (!username) {
           setLoading(false);
+          router.push("/login");
           return;
         }
 
@@ -110,6 +206,11 @@ export default function DashboardProfile() {
         }
 
         const data = await res.json();
+        
+        if (data) {
+          data.avatar = formatAvatarSrc(data.avatar);
+        }
+        
         setProfile(data);
       } catch (err) {
         console.error("Profile fetch error:", err);
@@ -119,10 +220,9 @@ export default function DashboardProfile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   const handleMetaSave = () => {
-    console.log("Saving meta changes...");
     closeMetaModal();
   };
 
@@ -247,7 +347,6 @@ export default function DashboardProfile() {
                     d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
                   />
                 </svg>
-
                 Edit
               </button>
             </div>
