@@ -277,6 +277,10 @@ export default function CurrentMalaysianBusinessParticulars() {
       country: (biz as any).country || "Malaysia",
     };
 
+    const isSoleProp = (biz.type || "")
+      .toLowerCase()
+      .includes("sole proprietorship");
+
     setFormData({
       businessName: biz.name || "",
       brn: biz.brn || "",
@@ -286,7 +290,7 @@ export default function CurrentMalaysianBusinessParticulars() {
       month: m || "",
       year: y || "",
       businessType: biz.type || "",
-      role: "",
+      role: isSoleProp ? "Checker & Maker" : "",
       businessAddress: extractedAddress,
     });
 
@@ -413,6 +417,14 @@ export default function CurrentMalaysianBusinessParticulars() {
     !solePropBlockedMessage &&
     !sameCustomerBlockedMessage;
 
+  const isSoleProprietorship = formData.businessType
+    .toLowerCase()
+    .includes("sole proprietorship");
+
+  const roleOptions = isSoleProprietorship
+    ? ["Checker & Maker"]
+    : ["Checker", "Maker"];
+
   if (!mounted) return null;
 
   return (
@@ -510,8 +522,10 @@ export default function CurrentMalaysianBusinessParticulars() {
                 </p>
               )}
 
+
               {linkedBusinesses.map((business) => {
                 const isSelected = selectedBusinessBrn === business.brn;
+                
                 return (
                   <div
                     key={business.brn}
@@ -749,44 +763,52 @@ export default function CurrentMalaysianBusinessParticulars() {
                           Role<span className="text-red-500">*</span>
                         </label>
 
-                        <div className="relative">
-                          <select
-                            value={formData.role}
-                            onChange={(e) =>
-                              setFormData({ ...formData, role: e.target.value })
-                            }
-                            className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                          >
-                            <option 
-                              value="" 
-                              disabled
-                            >
-                              Select Role
-                            </option>
-
-                            {["Checker", "Maker", "Both"].map((role) => (
-                              <option key={role} value={role}>
-                                {role}
-                              </option>
-                            ))}
-                          </select>
-
-                          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                            <svg
-                              className="w-4 h-4 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
+                        {isSoleProprietorship ? (
+                          <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                            <input
+                              type="text"
+                              readOnly
+                              className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                              value={formData.role}
+                            />
                           </div>
-                        </div>
+                        ) : (
+                          <div className="relative">
+                            <select
+                              value={formData.role}
+                              onChange={(e) =>
+                                setFormData({ ...formData, role: e.target.value })
+                              }
+                              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                            >
+                              <option value="" disabled>
+                                Select Role
+                              </option>
+
+                              {roleOptions.map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+
+                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
