@@ -5,7 +5,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const CUT_OFF_MINUTES = 5; // e.g. 5 minutes
+const CUT_OFF_MINUTES = 60; // 1 hour
 
 const BUCKET = "identity-docs";
 
