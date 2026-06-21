@@ -105,6 +105,18 @@ export default function SavingsNonMalaysianMobileFaceCapture() {
 
       if (uploadError) throw uploadError;
 
+      const { error: dbError } = await supabase
+        .from("identity_documents")
+        .insert({
+          file_path: filePath,
+          created_at: new Date().toISOString(),
+        });
+
+      if (dbError) {
+        console.error("Failed to track uploaded file:", dbError);
+        throw dbError;
+      }
+
       const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
         .from("identity-docs")
         .getPublicUrl(filePath);

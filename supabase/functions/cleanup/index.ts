@@ -5,7 +5,9 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
-const CUT_OFF_MINUTES = 30; // change anytime for testing
+const CUT_OFF_MINUTES = 5; // e.g. 5 minutes
+
+const BUCKET = "identity-docs";
 
 Deno.serve(async () => {
   try {
@@ -14,39 +16,48 @@ Deno.serve(async () => {
     ).toISOString();
 
     // 1. Get expired files
-    const { data, error } = await supabase
+    const { data: records, error } = await supabase
       .from("identity_documents")
-      .select("file_path")
+      .select("id, file_path")
       .lt("created_at", cutoff);
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
 
-    if (!data || data.length === 0) {
-      return Response.json({
-        message: "No files to delete",
-        cutoff,
-      });
+    if (!records?.length) {
+      return Response.json({ message: "Nothing to delete" });
     }
 
-    // SAFE TEST MODE: DO NOT DELETE ANYTHING
-const { error: updateError } = await supabase
-  .from("identity_documents")
-  .update({ status: "expired_test" })
-  .lt("created_at", cutoff);
+    const ids = records.map(r => r.id);
+    const paths = records.map(r => r.file_path);
+    console.log("BUCKET:", BUCKET);
+    console.log("PATHS:", paths);
+    await supabase.storage.from(BUCKET).list();
 
-if (updateError) {
-  return Response.json(
-    { error: updateError.message },
-    { status: 500 }
-  );
-}
+    // 2. Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from(BUCKET)
+      .remove(paths);
 
-return Response.json({
-  message: "TEST MODE: marked records only (no deletion)",
-  cutoff,
-});
+    if (storageError) {
+      return Response.json(
+        { error: "Storage delete failed", details: storageError.message },
+        { status: 500 }
+      );
+    }
+
+    // 3. Delete DB rows
+    await supabase
+      .from("identity_documents")
+      .delete()
+      .in("id", ids);
+
+    return Response.json({
+      message: "Cleanup completed",
+      deleted: ids.length
+    });
+
   } catch (err) {
     return Response.json(
       { error: String(err) },
