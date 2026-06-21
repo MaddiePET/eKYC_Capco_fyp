@@ -1,14 +1,20 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "jsr:@supabase/server@^1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-console.info("cleanup worker started");
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
-export default {
-  fetch: withSupabase({ auth: false }, async (_req, ctx) => {
-    const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+const CUT_OFF_MINUTES = 30; // change anytime for testing
 
-    // 1. get expired files
-    const { data, error } = await ctx.supabase
+Deno.serve(async () => {
+  try {
+    const cutoff = new Date(
+      Date.now() - CUT_OFF_MINUTES * 60 * 1000
+    ).toISOString();
+
+    // 1. Get expired files
+    const { data, error } = await supabase
       .from("identity_documents")
       .select("file_path")
       .lt("created_at", cutoff);
@@ -18,29 +24,33 @@ export default {
     }
 
     if (!data || data.length === 0) {
-      return Response.json({ message: "No files to delete" });
+      return Response.json({
+        message: "No files to delete",
+        cutoff,
+      });
     }
 
-    const paths = data.map((f: any) => f.file_path);
+    // SAFE TEST MODE: DO NOT DELETE ANYTHING
+const { error: updateError } = await supabase
+  .from("identity_documents")
+  .update({ status: "expired_test" })
+  .lt("created_at", cutoff);
 
-    // 2. delete from storage (correct API)
-    const { error: storageError } = await ctx.supabase.storage
-      .from("identity-docs")
-      .remove(paths);
+if (updateError) {
+  return Response.json(
+    { error: updateError.message },
+    { status: 500 }
+  );
+}
 
-    if (storageError) {
-      return Response.json({ error: storageError.message }, { status: 500 });
-    }
-
-    // 3. delete DB records
-    await ctx.supabase
-      .from("identity_documents")
-      .delete()
-      .lt("created_at", cutoff);
-
-    return Response.json({
-      deleted: paths.length,
-      cutoff,
-    });
-  }),
-};
+return Response.json({
+  message: "TEST MODE: marked records only (no deletion)",
+  cutoff,
+});
+  } catch (err) {
+    return Response.json(
+      { error: String(err) },
+      { status: 500 }
+    );
+  }
+});

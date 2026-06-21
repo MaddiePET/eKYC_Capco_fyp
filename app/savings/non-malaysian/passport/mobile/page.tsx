@@ -91,6 +91,7 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
 
       if (dbError) {
         console.error("Failed to track uploaded file:", dbError);
+        throw dbError;
       }
 
       const { data: { publicUrl } } = supabase.storage
