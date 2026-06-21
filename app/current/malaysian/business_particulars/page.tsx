@@ -54,7 +54,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
   const [mounted, setMounted] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
+  const [selectedBusinessBrn, setSelectedBusinessBrn] = useState<string>("");
 
   const [linkedBusinesses, setLinkedBusinesses] = useState<Business[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState<boolean>(true);
@@ -69,12 +69,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
   const [solePropBlockedMessage, setSolePropBlockedMessage] = useState("");
 
-  //UI for form
-  const inputClasses =
-  "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none";
-
-  const readOnlyClasses =
-    "w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400";
+  const [sameCustomerBlockedMessage, setSameCustomerBlockedMessage] = useState("");
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -177,11 +172,16 @@ export default function CurrentMalaysianBusinessParticulars() {
     fetchLinkedBusinesses();
   }, [idNum]);
 
-  const checkExistingCurrentAccount = async (regNo: string, businessType: string) => {
+  const checkExistingCurrentAccount = async (
+    regNo: string,
+    businessType: string
+  ) => {
+    setBusinessAlreadyRegistered(false);
+    setExistingAccountNo("");
+    setSolePropBlockedMessage("");
+    setSameCustomerBlockedMessage("");
+
     if (!regNo) {
-      setBusinessAlreadyRegistered(false);
-      setExistingAccountNo("");
-      setSolePropBlockedMessage("");
       return;
     }
 
@@ -189,46 +189,83 @@ export default function CurrentMalaysianBusinessParticulars() {
       setCheckingExistingBusiness(true);
 
       const response = await fetch(
-        `/api/current_account/check_business?reg_no=${encodeURIComponent(regNo)}`
+        `/api/current_account/check_business?reg_no=${encodeURIComponent(
+          regNo
+        )}&id_num=${encodeURIComponent(idNum)}`
       );
 
       const data = await response.json();
 
-      const isSoleProp =
-        businessType.toLowerCase().includes("sole proprietorship");
+      const currentSelectedBiz = linkedBusinesses.find(
+        (b) => b.brn === selectedBusinessBrn
+      );
 
-      if (response.ok && data.success && data.exists) {
-        setBusinessAlreadyRegistered(true);
-        setExistingAccountNo(data.account_no || "");
+      if (!currentSelectedBiz || currentSelectedBiz.brn !== regNo) {
+        return;
+      }
 
-        if (isSoleProp) {
-          setSolePropBlockedMessage(
-            "A current account already exists for this sole proprietorship."
-          );
-        } else {
-          setSolePropBlockedMessage("");
-        }
-      } else {
+      const isSoleProp = businessType
+        .toLowerCase()
+        .includes("sole proprietorship");
+
+      console.log("CHECKING REG NO:", regNo);
+      console.log("CURRENT SELECTED BRN:", currentSelectedBiz.brn);
+      console.log("CHECK BUSINESS DATA:", data);
+      console.log("IS SOLE PROP:", isSoleProp);
+
+      if (!response.ok || !data.success) {
+        setBusinessAlreadyRegistered(false);
+        setExistingAccountNo("");
+        return;
+      }
+
+      if (!data.exists) {
         setBusinessAlreadyRegistered(false);
         setExistingAccountNo("");
         setSolePropBlockedMessage("");
+        setSameCustomerBlockedMessage("");
+        return;
       }
+
+      setBusinessAlreadyRegistered(true);
+      setExistingAccountNo(data.account_no || "");
+
+      if (isSoleProp) {
+        setSolePropBlockedMessage(
+          "A current account already exists for this sole proprietorship."
+        );
+        setSameCustomerBlockedMessage("");
+        return;
+      }
+
+      if (data.same_customer_linked === true) {
+        setSameCustomerBlockedMessage(
+          "You already have a registered current account for this business. Your partner may create a current account using their IC number."
+        );
+        setSolePropBlockedMessage("");
+        return;
+      }
+
+      setSolePropBlockedMessage("");
+      setSameCustomerBlockedMessage("");
     } catch (error) {
       console.error("Failed to check existing current account:", error);
+
       setBusinessAlreadyRegistered(false);
       setExistingAccountNo("");
       setSolePropBlockedMessage("");
+      setSameCustomerBlockedMessage("");
     } finally {
       setCheckingExistingBusiness(false);
     }
   };
 
   useEffect(() => {
-    if (!selectedBusinessId) return;
+  if (!selectedBusinessBrn) return;
 
-    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
+  const biz = linkedBusinesses.find((b) => b.brn === selectedBusinessBrn);
 
-    if (!biz) return;
+  if (!biz) return;
 
     const [y = "", m = "", d = ""] = (biz.start_date || "").split("-");
 
@@ -256,7 +293,7 @@ export default function CurrentMalaysianBusinessParticulars() {
     if (biz.brn) {
       checkExistingCurrentAccount(biz.brn, biz.type || "");
     }
-  }, [selectedBusinessId, linkedBusinesses]);
+  }, [selectedBusinessBrn, linkedBusinesses]);
 
   const handleBack = () => {
     if (step === 1) {
@@ -277,7 +314,7 @@ export default function CurrentMalaysianBusinessParticulars() {
   };
 
   const handleFinalSubmit = () => {
-    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
+    const biz = linkedBusinesses.find((b) => b.brn === selectedBusinessBrn);
 
     if (!biz) {
       setBusinessError("Please select a business before continuing.");
@@ -372,7 +409,9 @@ export default function CurrentMalaysianBusinessParticulars() {
     formData.year.trim() !== "" &&
     formData.businessType.trim() !== "" &&
     formData.role.trim() !== "" &&
-    !checkingExistingBusiness;
+    !checkingExistingBusiness &&
+    !solePropBlockedMessage &&
+    !sameCustomerBlockedMessage;
 
   if (!mounted) return null;
 
@@ -472,11 +511,11 @@ export default function CurrentMalaysianBusinessParticulars() {
               )}
 
               {linkedBusinesses.map((business) => {
-                const isSelected = selectedBusinessId === business.id;
+                const isSelected = selectedBusinessBrn === business.brn;
                 return (
                   <div
-                    key={business.id}
-                    onClick={() => setSelectedBusinessId(business.id)}
+                    key={business.brn}
+                    onClick={() => setSelectedBusinessBrn(business.brn)}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
                       isSelected
                         ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"
@@ -511,6 +550,12 @@ export default function CurrentMalaysianBusinessParticulars() {
                   {solePropBlockedMessage}
                 </p>
               )}
+
+              {sameCustomerBlockedMessage && (
+                <p className="text-sm text-center text-red-500 font-medium">
+                  {sameCustomerBlockedMessage}
+                </p>
+              )}
             </div>
 
             <div className="mt-8 flex flex-col items-center">
@@ -526,7 +571,13 @@ export default function CurrentMalaysianBusinessParticulars() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={!selectedBusinessId || loadingBusinesses || !!solePropBlockedMessage}
+                  disabled={
+                    !selectedBusinessBrn ||
+                    loadingBusinesses ||
+                    checkingExistingBusiness ||
+                    !!solePropBlockedMessage ||
+                    !!sameCustomerBlockedMessage
+                  }
                   className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
                 >
                   Continue
