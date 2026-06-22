@@ -399,21 +399,12 @@ export default function CurrentMalaysianBusinessAddress() {
       businessAddress: finalBusinessAddress,
     });
 
-    if (mode === "existing_customer") {
-      router.push(
-        `/current/malaysian/account_creation?id_type=${encodeURIComponent(
-          idType
-        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-          journeyId
-        )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
-          currentAccountExists ? "true" : "false"
-        )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
-      );
-      return;
-    }
+    const nextPath = currentAccountExists
+    ? "/current/malaysian/account_creation"
+    : "/current/malaysian/business_otp";
 
     router.push(
-      `/current/malaysian/business_otp?id_type=${encodeURIComponent(
+      `${nextPath}?id_type=${encodeURIComponent(
         idType
       )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
         journeyId
