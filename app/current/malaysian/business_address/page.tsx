@@ -846,10 +846,10 @@ export default function CurrentMalaysianBusinessAddress() {
           <div>
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
-                Select Your Preferred Branch
+                Select Your Preferred Branch Location
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Select a branch based on your current location.
+                Select your primary branch location for in-person services.
               </p>
             </div>
 
@@ -882,13 +882,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     Enable Location Services
                   </h3>
                   <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
-                    To suggest the nearest branches to you.
+                    Find the nearest branches to you.
                   </p>
                   <button
                     type="button"
                     onClick={handleRequestLocation}
                     disabled={isLocating}
-                    className="text-sm font-bold text-blue-700 hover:text-blue-800 dark:text-blue-400"
+                    className="text-sm font-bold text-blue-700 underline hover:text-blue-800 dark:text-blue-400"
                   >
                     {isLocating ? "Locating..." : "Use My Current Location"}
                   </button>

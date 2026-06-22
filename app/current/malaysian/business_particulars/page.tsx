@@ -231,7 +231,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
       if (isSoleProp) {
         setSolePropBlockedMessage(
-          "A current account already exists for this sole proprietorship."
+          "You have already registered a current account for this business. "
         );
         setSameCustomerBlockedMessage("");
         return;
@@ -239,7 +239,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
       if (data.same_customer_linked === true) {
         setSameCustomerBlockedMessage(
-          "You already have a registered current account for this business. Your partner may create a current account using their IC number."
+          "You have already registered a current account for this business. Your partner may create a current account using their IC number."
         );
         setSolePropBlockedMessage("");
         return;
@@ -491,10 +491,10 @@ export default function CurrentMalaysianBusinessParticulars() {
           <div>
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-                Select Your Registered Business
+                Select a Business for Account Registration
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Which of the following business would you like to register an account for?
+                The following businesses are found linked to your IC number.
               </p>
             </div>
 
