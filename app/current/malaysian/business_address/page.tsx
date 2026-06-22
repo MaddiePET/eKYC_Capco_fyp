@@ -951,7 +951,17 @@ export default function CurrentMalaysianBusinessAddress() {
                 return (
                   <div
                     key={branch.id}
-                    onClick={() => setPreferredBranch(branch.id)}
+                    onClick={() => {
+                      setPreferredBranch(branch.id);
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        businessAddress: {
+                          ...prev.businessAddress,
+                          preferredBranch: branch.id,
+                        },
+                      }));
+                    }}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
                       isSelected
                         ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"

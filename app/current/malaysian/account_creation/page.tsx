@@ -93,6 +93,7 @@ export default function CurrentMalaysianAccountCreation() {
     const storedHomeAddress = loadFromStorage("homeAddress", {} as any);
     const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
     const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
+    const storedBusinessAddress = loadFromStorage("businessAddress", {} as any);
 
     const storedSupportingDocuments = loadFromStorage(
       "supportingDocuments",
@@ -168,6 +169,11 @@ export default function CurrentMalaysianAccountCreation() {
       userEmail || 
       localStorage.getItem("currentUserEmail") || 
       "";
+
+    const finalPreferredBranch =
+      formData.businessAddress?.preferredBranch ||
+      storedBusinessAddress.preferredBranch ||
+      "";
       
     const finalPayload = {
       journeyId: formData.journeyId || localStorage.getItem("journeyId") || "",
@@ -213,7 +219,7 @@ export default function CurrentMalaysianAccountCreation() {
       },
 
       businessAddress: {
-        preferredBranch: formData.businessAddress?.preferredBranch || "Main Corporate Branch",
+        preferredBranch: finalPreferredBranch,
         isMailingSameAsBusiness: formData.businessAddress?.isMailingSameAsBusiness ?? true,
         businessAddress: {
           addressLine1: addressLine1,
