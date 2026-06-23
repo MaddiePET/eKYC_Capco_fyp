@@ -267,10 +267,10 @@ export default function CurrentMalaysianMyKadQRCode() {
       <main className="relative w-full max-w-2xl z-10">
         <div className="mb-10 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-            Scan Your MyKad
+            MyKad Verification
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Open your mobile phone camera and scan the QR code below to securely capture your MyKad.
+            Please use your mobile device camera to scan the QR code below and securely capture your MyKad.
           </p>
         </div>
 

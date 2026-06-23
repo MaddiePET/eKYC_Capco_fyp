@@ -339,7 +339,7 @@ export async function POST(req: Request) {
           hashedPassword,
           profileBuffer,
           account.securityPhrase,
-          businessAddressData.preferredBranch || "Main Branch",
+          businessAddressData.preferredBranch,
         ]
       );
 

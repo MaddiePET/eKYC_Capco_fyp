@@ -173,7 +173,7 @@ export default function SavingsUserVerification() {
               Existing User
             </h3>
             <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-              Log in to your existing savings account
+              I have previously registered for an account.
             </p>
           </div>
 
@@ -233,7 +233,7 @@ export default function SavingsUserVerification() {
               New User
             </h3>
             <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-              Create a new savings account
+              This is my first time registering. 
             </p>
           </div>
         </div>

@@ -93,6 +93,7 @@ export default function CurrentMalaysianAccountCreation() {
     const storedHomeAddress = loadFromStorage("homeAddress", {} as any);
     const selectedBusiness = loadFromStorage("selectedBusiness", {} as any);
     const ssmData = loadFromStorage("ssmCompanyData", loadFromStorage("companyData", {} as any));
+    const storedBusinessAddress = loadFromStorage("businessAddress", {} as any);
 
     const storedSupportingDocuments = loadFromStorage(
       "supportingDocuments",
@@ -168,6 +169,11 @@ export default function CurrentMalaysianAccountCreation() {
       userEmail || 
       localStorage.getItem("currentUserEmail") || 
       "";
+
+    const finalPreferredBranch =
+      formData.businessAddress?.preferredBranch ||
+      storedBusinessAddress.preferredBranch ||
+      "";
       
     const finalPayload = {
       journeyId: formData.journeyId || localStorage.getItem("journeyId") || "",
@@ -213,7 +219,7 @@ export default function CurrentMalaysianAccountCreation() {
       },
 
       businessAddress: {
-        preferredBranch: formData.businessAddress?.preferredBranch || "Main Corporate Branch",
+        preferredBranch: finalPreferredBranch,
         isMailingSameAsBusiness: formData.businessAddress?.isMailingSameAsBusiness ?? true,
         businessAddress: {
           addressLine1: addressLine1,
@@ -684,10 +690,10 @@ export default function CurrentMalaysianAccountCreation() {
             </div>
 
             <h1 className="mb-4 font-bold text-gray-800 text-title-sm dark:text-white">
-              Verification Pending
+              You've successfully created your account.
             </h1>
             <p className="mb-2 text-sm text-gray-500">
-              We've sent a confirmation email to
+              We've sent a confirmation email to your personal email
             </p>
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
               {localStorage.getItem("personalEmail")}

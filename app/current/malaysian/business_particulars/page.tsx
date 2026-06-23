@@ -55,7 +55,7 @@ export default function CurrentMalaysianBusinessParticulars() {
 
   const [mounted, setMounted] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
+  const [selectedBusinessBrn, setSelectedBusinessBrn] = useState<string>("");
 
   const [linkedBusinesses, setLinkedBusinesses] = useState<Business[]>([]);
   const [loadingBusinesses, setLoadingBusinesses] = useState<boolean>(true);
@@ -69,6 +69,8 @@ export default function CurrentMalaysianBusinessParticulars() {
     useState<boolean>(false);
 
   const [solePropBlockedMessage, setSolePropBlockedMessage] = useState("");
+
+  const [sameCustomerBlockedMessage, setSameCustomerBlockedMessage] = useState("");
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -169,11 +171,16 @@ export default function CurrentMalaysianBusinessParticulars() {
     fetchLinkedBusinesses();
   }, [idNum]);
 
-  const checkExistingCurrentAccount = async (regNo: string, businessType: string) => {
+  const checkExistingCurrentAccount = async (
+    regNo: string,
+    businessType: string
+  ) => {
+    setBusinessAlreadyRegistered(false);
+    setExistingAccountNo("");
+    setSolePropBlockedMessage("");
+    setSameCustomerBlockedMessage("");
+
     if (!regNo) {
-      setBusinessAlreadyRegistered(false);
-      setExistingAccountNo("");
-      setSolePropBlockedMessage("");
       return;
     }
 
@@ -181,46 +188,83 @@ export default function CurrentMalaysianBusinessParticulars() {
       setCheckingExistingBusiness(true);
 
       const response = await fetch(
-        `/api/current_account/check_business?reg_no=${encodeURIComponent(regNo)}`
+        `/api/current_account/check_business?reg_no=${encodeURIComponent(
+          regNo
+        )}&id_num=${encodeURIComponent(idNum)}`
       );
 
       const data = await response.json();
 
-      const isSoleProp =
-        businessType.toLowerCase().includes("sole proprietorship");
+      const currentSelectedBiz = linkedBusinesses.find(
+        (b) => b.brn === selectedBusinessBrn
+      );
 
-      if (response.ok && data.success && data.exists) {
-        setBusinessAlreadyRegistered(true);
-        setExistingAccountNo(data.account_no || "");
+      if (!currentSelectedBiz || currentSelectedBiz.brn !== regNo) {
+        return;
+      }
 
-        if (isSoleProp) {
-          setSolePropBlockedMessage(
-            "A current account already exists for this sole proprietorship."
-          );
-        } else {
-          setSolePropBlockedMessage("");
-        }
-      } else {
+      const isSoleProp = businessType
+        .toLowerCase()
+        .includes("sole proprietorship");
+
+      console.log("CHECKING REG NO:", regNo);
+      console.log("CURRENT SELECTED BRN:", currentSelectedBiz.brn);
+      console.log("CHECK BUSINESS DATA:", data);
+      console.log("IS SOLE PROP:", isSoleProp);
+
+      if (!response.ok || !data.success) {
+        setBusinessAlreadyRegistered(false);
+        setExistingAccountNo("");
+        return;
+      }
+
+      if (!data.exists) {
         setBusinessAlreadyRegistered(false);
         setExistingAccountNo("");
         setSolePropBlockedMessage("");
+        setSameCustomerBlockedMessage("");
+        return;
       }
+
+      setBusinessAlreadyRegistered(true);
+      setExistingAccountNo(data.account_no || "");
+
+      if (isSoleProp) {
+        setSolePropBlockedMessage(
+          "You have already registered a current account for this business. "
+        );
+        setSameCustomerBlockedMessage("");
+        return;
+      }
+
+      if (data.same_customer_linked === true) {
+        setSameCustomerBlockedMessage(
+          "You have already registered a current account for this business. Your partner may create a current account using their IC number."
+        );
+        setSolePropBlockedMessage("");
+        return;
+      }
+
+      setSolePropBlockedMessage("");
+      setSameCustomerBlockedMessage("");
     } catch (error) {
       console.error("Failed to check existing current account:", error);
+
       setBusinessAlreadyRegistered(false);
       setExistingAccountNo("");
       setSolePropBlockedMessage("");
+      setSameCustomerBlockedMessage("");
     } finally {
       setCheckingExistingBusiness(false);
     }
   };
 
   useEffect(() => {
-    if (!selectedBusinessId) return;
+  if (!selectedBusinessBrn) return;
 
-    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
+  const biz = linkedBusinesses.find((b) => b.brn === selectedBusinessBrn);
 
-    if (!biz) return;
+  if (!biz) return;
 
     const [y = "", m = "", d = ""] = (biz.start_date || "").split("-");
 
@@ -232,6 +276,10 @@ export default function CurrentMalaysianBusinessParticulars() {
       country: (biz as any).country || "Malaysia",
     };
 
+    const isSoleProp = (biz.type || "")
+      .toLowerCase()
+      .includes("sole proprietorship");
+
     setFormData({
       businessName: biz.name || "",
       brn: biz.brn || "",
@@ -241,14 +289,14 @@ export default function CurrentMalaysianBusinessParticulars() {
       month: m || "",
       year: y || "",
       businessType: biz.type || "",
-      role: "",
+      role: isSoleProp ? "Checker & Maker" : "",
       businessAddress: extractedAddress,
     });
 
     if (biz.brn) {
       checkExistingCurrentAccount(biz.brn, biz.type || "");
     }
-  }, [selectedBusinessId, linkedBusinesses]);
+  }, [selectedBusinessBrn, linkedBusinesses]);
 
   const handleBack = () => {
     if (step === 1) {
@@ -269,7 +317,7 @@ export default function CurrentMalaysianBusinessParticulars() {
   };
 
   const handleFinalSubmit = () => {
-    const biz = linkedBusinesses.find((b) => b.id === selectedBusinessId);
+    const biz = linkedBusinesses.find((b) => b.brn === selectedBusinessBrn);
 
     if (!biz) {
       setBusinessError("Please select a business before continuing.");
@@ -364,7 +412,17 @@ export default function CurrentMalaysianBusinessParticulars() {
     formData.year.trim() !== "" &&
     formData.businessType.trim() !== "" &&
     formData.role.trim() !== "" &&
-    !checkingExistingBusiness;
+    !checkingExistingBusiness &&
+    !solePropBlockedMessage &&
+    !sameCustomerBlockedMessage;
+
+  const isSoleProprietorship = formData.businessType
+    .toLowerCase()
+    .includes("sole proprietorship");
+
+  const roleOptions = isSoleProprietorship
+    ? ["Checker & Maker"]
+    : ["Checker", "Maker"];
 
   if (!mounted) return null;
 
@@ -433,10 +491,10 @@ export default function CurrentMalaysianBusinessParticulars() {
           <div>
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-                Select Your Registered Business
+                Select a Business for Account Registration
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Which of the following business would you like to register an account for?
+                The following businesses are found linked to your IC number.
               </p>
             </div>
 
@@ -456,12 +514,15 @@ export default function CurrentMalaysianBusinessParticulars() {
                   No registered business linked with your MyKad number.
                 </p>
               )}
+
+
               {linkedBusinesses.map((business) => {
-                const isSelected = selectedBusinessId === business.id;
+                const isSelected = selectedBusinessBrn === business.brn;
+                
                 return (
                   <div
-                    key={business.id}
-                    onClick={() => setSelectedBusinessId(business.id)}
+                    key={business.brn}
+                    onClick={() => setSelectedBusinessBrn(business.brn)}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
                       isSelected
                         ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"
@@ -495,6 +556,12 @@ export default function CurrentMalaysianBusinessParticulars() {
                   {solePropBlockedMessage}
                 </p>
               )}
+
+              {sameCustomerBlockedMessage && (
+                <p className="text-sm text-center text-red-500 font-medium">
+                  {sameCustomerBlockedMessage}
+                </p>
+              )}
             </div>
 
             <div className="mt-8 flex flex-col items-center">
@@ -510,7 +577,13 @@ export default function CurrentMalaysianBusinessParticulars() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={!selectedBusinessId || loadingBusinesses || !!solePropBlockedMessage}
+                  disabled={
+                    !selectedBusinessBrn ||
+                    loadingBusinesses ||
+                    checkingExistingBusiness ||
+                    !!solePropBlockedMessage ||
+                    !!sameCustomerBlockedMessage
+                  }
                   className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 active:scale-[0.98]"
                 >
                   Continue
@@ -680,43 +753,52 @@ export default function CurrentMalaysianBusinessParticulars() {
                           Role<span className="text-red-500">*</span>
                         </label>
 
-                        <div className="relative">
-                          <select
-                            value={formData.role}
-                            onChange={(e) =>
-                              setFormData({ ...formData, role: e.target.value })
-                            }
-                            className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                          >
-                            <option 
-                              value="" 
-                              disabled
-                            >
-                              Select Role
-                            </option>
-                            {["Checker", "Maker", "Both"].map((role) => (
-                              <option key={role} value={role}>
-                                {role}
-                              </option>
-                            ))}
-                          </select>
-
-                          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                            <svg
-                              className="w-4 h-4 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
+                        {isSoleProprietorship ? (
+                          <div className="flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl bg-gray-50 border-gray-200 dark:bg-gray-900/90 dark:border-[#5c6185]/20 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                            <input
+                              type="text"
+                              readOnly
+                              className="w-full text-sm font-bold text-gray-700 dark:text-gray-200 bg-transparent outline-none cursor-not-allowed"
+                              value={formData.role}
+                            />
                           </div>
-                        </div>
+                        ) : (
+                          <div className="relative">
+                            <select
+                              value={formData.role}
+                              onChange={(e) =>
+                                setFormData({ ...formData, role: e.target.value })
+                              }
+                              className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
+                            >
+                              <option value="" disabled>
+                                Select Role
+                              </option>
+
+                              {roleOptions.map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+
+                            <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                              <svg
+                                className="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
