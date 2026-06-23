@@ -466,12 +466,15 @@ export default function LogIn() {
             </div>
             
             <div className="mt-5 text-center">
-              <Link 
-                href="/reset_password" 
-                className="text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Forgot password?
-              </Link>
+              <p className="text-sm font-normal">
+                <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
+                <Link
+                  href="/contact_support"
+                  className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                >
+                  Contact Support
+                </Link>
+              </p>
             </div>
           </div>
         )}
