@@ -12,7 +12,6 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentWord, setCurrentWord] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +68,7 @@ export default function Home() {
     event.preventDefault();
     setFormStatus(null);
 
-    if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
+    if (!contactEmail.trim() || !contactMessage.trim()) {
       setFormStatus({ type: 'error', message: 'Please fill in all required fields.' });
       return;
     }
@@ -80,7 +79,7 @@ export default function Home() {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: contactName, email: contactEmail, message: contactMessage }),
+        body: JSON.stringify({ email: contactEmail, message: contactMessage }),
       });
 
       const data = await response.json();
@@ -90,7 +89,6 @@ export default function Home() {
       }
 
       setFormStatus({ type: 'success', message: data.message || 'Your message has been sent successfully.' });
-      setContactName('');
       setContactEmail('');
       setContactMessage('');
     } catch (error) {
