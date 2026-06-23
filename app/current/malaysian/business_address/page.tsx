@@ -399,21 +399,12 @@ export default function CurrentMalaysianBusinessAddress() {
       businessAddress: finalBusinessAddress,
     });
 
-    if (mode === "existing_customer") {
-      router.push(
-        `/current/malaysian/account_creation?id_type=${encodeURIComponent(
-          idType
-        )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
-          journeyId
-        )}&mode=${encodeURIComponent(mode)}&current_account_exists=${encodeURIComponent(
-          currentAccountExists ? "true" : "false"
-        )}&existing_account_no=${encodeURIComponent(existingAccountNo || "")}`
-      );
-      return;
-    }
+    const nextPath = currentAccountExists
+    ? "/current/malaysian/account_creation"
+    : "/current/malaysian/business_otp";
 
     router.push(
-      `/current/malaysian/business_otp?id_type=${encodeURIComponent(
+      `${nextPath}?id_type=${encodeURIComponent(
         idType
       )}&id_num=${encodeURIComponent(idNum)}&journeyId=${encodeURIComponent(
         journeyId
@@ -846,10 +837,10 @@ export default function CurrentMalaysianBusinessAddress() {
           <div>
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
-                Select Your Preferred Branch
+                Select Your Preferred Branch Location
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Select a branch based on your current location.
+                Select your primary branch location for in-person services.
               </p>
             </div>
 
@@ -882,13 +873,13 @@ export default function CurrentMalaysianBusinessAddress() {
                     Enable Location Services
                   </h3>
                   <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
-                    To suggest the nearest branches to you.
+                    Find the nearest branches to you.
                   </p>
                   <button
                     type="button"
                     onClick={handleRequestLocation}
                     disabled={isLocating}
-                    className="text-sm font-bold text-blue-700 hover:text-blue-800 dark:text-blue-400"
+                    className="text-sm font-bold text-blue-700 underline hover:text-blue-800 dark:text-blue-400"
                   >
                     {isLocating ? "Locating..." : "Use My Current Location"}
                   </button>
@@ -951,7 +942,17 @@ export default function CurrentMalaysianBusinessAddress() {
                 return (
                   <div
                     key={branch.id}
-                    onClick={() => setPreferredBranch(branch.id)}
+                    onClick={() => {
+                      setPreferredBranch(branch.id);
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        businessAddress: {
+                          ...prev.businessAddress,
+                          preferredBranch: branch.id,
+                        },
+                      }));
+                    }}
                     className={`relative cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
                       isSelected
                         ? "border-[#F0CA8E] bg-white shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#3D405B]/40"

@@ -323,7 +323,7 @@ export default function SavingsMalaysianOTP() {
           <div className="animate-in fade-in duration-500">
             <div className="mb-10 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
-                Select Verification Method
+                Select Contact Verification Method
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 To proceed with the registration securely, please select your preferred method for OTP verification.

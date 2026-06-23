@@ -19,6 +19,11 @@ function enc(value: any) {
 }
 
 function getBaseUrl(req: Request): string {
+  const host = req.headers.get("host");
+  if (host) {
+    const protocol = host.includes("localhost") ? "http" : "https";
+    return `${protocol}://${host}`;
+  }
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }

@@ -12,7 +12,6 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentWord, setCurrentWord] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +68,7 @@ export default function Home() {
     event.preventDefault();
     setFormStatus(null);
 
-    if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
+    if (!contactEmail.trim() || !contactMessage.trim()) {
       setFormStatus({ type: 'error', message: 'Please fill in all required fields.' });
       return;
     }
@@ -80,7 +79,7 @@ export default function Home() {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: contactName, email: contactEmail, message: contactMessage }),
+        body: JSON.stringify({ email: contactEmail, message: contactMessage }),
       });
 
       const data = await response.json();
@@ -90,7 +89,6 @@ export default function Home() {
       }
 
       setFormStatus({ type: 'success', message: data.message || 'Your message has been sent successfully.' });
-      setContactName('');
       setContactEmail('');
       setContactMessage('');
     } catch (error) {
@@ -226,6 +224,32 @@ export default function Home() {
                   })}
                 </span>
               </h2>
+              <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
+
+              <h3 className="text-4xl lg:text-xl font-bold animate-fade-in">
+                No account yet? Register with us now.
+              </h3>
+
+              <div className="relative group">
+                <div className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-bold cursor-pointer dark:bg-gray-700 dark:text-gray-300">
+                  i
+                </div>
+
+                <div className="absolute left-1/2 top-7 -translate-x-1/2 z-20 w-72 p-4 rounded-xl shadow-xl bg-white border border-gray-200 text-sm text-gray-600 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
+                  <p className="font-bold mb-2 text-[#3D405B]">
+                    Which account should I choose?
+                  </p>
+
+                  <p className="mb-2">
+                    <span className="font-semibold">Savings Account</span> is designed for personal banking, and everyday spending.
+                  </p>
+
+                  <p>
+                    <span className="font-semibold">Current Account</span> is intended for businesses and companies to manage business transactions and operations.
+                  </p>
+                </div>
+              </div>
+            </div>
               <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                 <Link href="/savings/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-[#3D405B] transition-all rounded-lg bg-[#F0CA8E] shadow-lg hover:bg-[#e2bc80] hover:-translate-y-1 active:scale-95">Savings Account</Link>
                 <Link href="/current/user_verification" className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold transition-all bg-transparent border-2 rounded-lg text-[#F0CA8E] border-[#F0CA8E] hover:bg-[#F0CA8E]/10 hover:-translate-y-1 active:scale-95">Current Account</Link>

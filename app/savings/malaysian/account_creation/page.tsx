@@ -564,10 +564,10 @@ export default function SavingsMalaysianAccountCreation() {
             </div>
 
             <h1 className="mb-4 font-bold text-gray-800 text-title-sm dark:text-white">
-              Verification Pending
+              You've successfully created your account.
             </h1>
             <p className="mb-2 text-sm text-gray-500">
-              We've sent a confirmation email to
+              We've sent a confirmation email to your personal email
             </p>
             <p className="mb-6 font-bold text-blue-700 dark:text-blue-400">
               {userEmail}

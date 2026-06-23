@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SavingsNonMalaysianMobileFaceCapture() {
-  const MAX_ATTEMPTS = 10;
+  const MAX_ATTEMPTS = 3;
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);

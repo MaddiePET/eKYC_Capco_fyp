@@ -120,7 +120,7 @@ export default function CurrentUserVerification() {
             Current Account User Verification
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Please verify your identity to proceed with account creation or login.
+            Please verify your user type to proceed with account creation or login.
           </p>
         </div>
 
@@ -176,7 +176,7 @@ export default function CurrentUserVerification() {
               Existing User
             </h3>
             <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-              Log in to your existing business current account
+              I have previously registered for an account.
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export default function CurrentUserVerification() {
               New User
             </h3>
             <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-              Create a new business current account
+              This is my first time registering. 
             </p>
           </div>
         </div>
