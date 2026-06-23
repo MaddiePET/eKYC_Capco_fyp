@@ -19,6 +19,7 @@ export default function ResetPassword() {
   const [step, setStep] = useState<Step>("request");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [expectedEmail, setExpectedEmail] = useState(""); // Holds the real email from the DB
   const [isValidating, setIsValidating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -48,7 +49,7 @@ export default function ResetPassword() {
   useEffect(() => {
     if (username.length < 5) {
       setIsUsernameValid(null);
-      setEmail("");
+      setExpectedEmail("");
       return;
     }
 
@@ -66,17 +67,17 @@ export default function ResetPassword() {
 
         if (isValid) {
           const user = await res.json();
-          setEmail(user.email || "");
+          setExpectedEmail(user.email || "");
           setMessage("");
           setMessageType("");
         } else {
-          setEmail("");
+          setExpectedEmail("");
           setMessage("Username not found. Please try again.");
           setMessageType("error");
         }
       } catch {
         setIsUsernameValid(false);
-        setEmail("");
+        setExpectedEmail("");
         setMessage("Username not found. Please try again.");
         setMessageType("error");
       } finally {
@@ -109,11 +110,19 @@ export default function ResetPassword() {
     setMessage("");
     setMessageType("");
 
+    // Verify if typed email matches the database email
+    if (email.trim().toLowerCase() !== expectedEmail.trim().toLowerCase()) {
+      setMessage("The entered email does not match our records for this username.");
+      setMessageType("error");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/reset_password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "send_otp", username, email }),
+        body: JSON.stringify({ action: "send_otp", username, email: email.trim() }),
       });
 
       if (!res.ok) {
@@ -396,9 +405,15 @@ export default function ResetPassword() {
                 </Label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2.5 pr-10 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 cursor-not-allowed"
+                  placeholder="Enter your registered email"
+                  required
+                  className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none dark:bg-gray-900/90 dark:text-white dark:placeholder-gray-400 border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:border-[#5c6185] dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40"
                   value={email}
-                  readOnly
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setMessage("");
+                    setMessageType("");
+                  }}
                 />
               </div>
 
