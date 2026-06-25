@@ -88,7 +88,7 @@ export default function ResetPassword() {
     return () => clearTimeout(delayDebounceFn);
   }, [username]);
 
-  const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(newPassword);
+  const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.* ).{8,}/.test(newPassword);
 
   const score =
     (newPassword.length >= 8 ? 1 : 0) +
@@ -349,18 +349,6 @@ export default function ResetPassword() {
               </p>
             </div>
 
-            {message && (
-              <div
-                className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                  messageType === "success"
-                    ? "bg-green-50 border-green-200 text-green-600"
-                    : "bg-red-50 border-red-200 text-red-600"
-                }`}
-              >
-                {message}
-              </div>
-            )}
-
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -416,6 +404,17 @@ export default function ResetPassword() {
                 />
               </div>
 
+              {message && (
+                <div className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success"
+                    ? "bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600" 
+                    : "bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-600"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={
@@ -452,18 +451,6 @@ export default function ResetPassword() {
               </p>
             </div>
 
-            {message && (
-              <div
-                className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                  messageType === "success"
-                    ? "bg-green-50 border-green-200 text-green-600"
-                    : "bg-red-50 border-red-200 text-red-600"
-                }`}
-              >
-                {message}
-              </div>
-            )}
-
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div className="flex justify-center gap-2">
                 {otp.map((digit, index) => (
@@ -487,6 +474,17 @@ export default function ResetPassword() {
                   />
                 ))}
               </div>
+
+              {message && (
+                <div className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success"
+                    ? "bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600" 
+                    : "bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-600"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -530,18 +528,6 @@ export default function ResetPassword() {
               </p>
             </div>
 
-            {message && (
-              <div
-                className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                  messageType === "success"
-                    ? "bg-green-50 border-green-200 text-green-600"
-                    : "bg-red-50 border-red-200 text-red-600"
-                }`}
-              >
-                {message}
-              </div>
-            )}
-
             <form onSubmit={handleReset} className="space-y-5">
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -574,22 +560,26 @@ export default function ResetPassword() {
                 </div>
 
                 {newPassword.length > 0 && !isPasswordValid && (
-                  <div className="mt-2 text-[10px] space-y-1 animate-in slide-in-from-top-1 fade-in duration-300">
-                    <p className={newPassword.length >= 8 ? "text-green-500" : "text-gray-400"}>
-                      {newPassword.length >= 8 ? "✓" : "○"} At least 8 characters
-                    </p>
-                    <p className={/[0-9]/.test(newPassword) ? "text-green-500" : "text-gray-400"}>
-                      {/[0-9]/.test(newPassword) ? "✓" : "○"} At least one number
-                    </p>
-                    <p className={/[A-Z]/.test(newPassword) ? "text-green-500" : "text-gray-400"}>
-                      {/[A-Z]/.test(newPassword) ? "✓" : "○"} At least one capital letter
-                    </p>
-                    <p className={/[a-z]/.test(newPassword) ? "text-green-500" : "text-gray-400"}>
-                      {/[a-z]/.test(newPassword) ? "✓" : "○"} At least one lowercase letter
-                    </p>
-                    <p className={/[^A-Za-z0-9]/.test(newPassword) ? "text-green-500" : "text-gray-400"}>
-                      {/[^A-Za-z0-9]/.test(newPassword) ? "✓" : "○"} At least one special character
-                    </p>
+                  <div className="mt-3 flex-wrap gap-x-3 gap-y-2 animate-in slide-in-from-top-1 fade-in duration-300">
+                    {[
+                      { label: "At least 8 characters", isValid: newPassword.length >= 8 },
+                      { label: "At least one number", isValid: /[0-9]/.test(newPassword) },
+                      { label: "At least one capital letter", isValid: /[A-Z]/.test(newPassword) },
+                      { label: "At least one lowercase letter", isValid: /[a-z]/.test(newPassword) },
+                      { label: "At least one special character", isValid: /[^A-Za-z0-9]/.test(newPassword) },
+                    ].map((criterion, idx) => (
+                      <div
+                        key={idx}
+                        className={`text-[12px] font-medium flex items-center gap-1 transition-colors ${
+                          criterion.isValid 
+                            ? "text-green-500 dark:text-green-400" 
+                            : "text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
+                        <span>{criterion.isValid ? "✓" : "○"}</span>
+                        {criterion.label}
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -630,7 +620,7 @@ export default function ResetPassword() {
                 </Label>
                 <input
                   className="w-full px-4 py-2.5 text-sm font-medium transition-all border-2 rounded-xl outline-none bg-white border-gray-200 text-gray-800 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 appearance-none"
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   placeholder="Confirm new password"
                   value={confirmPassword}
                   onChange={(e) =>
@@ -639,6 +629,17 @@ export default function ResetPassword() {
                   required
                 />
               </div>
+
+              {message && (
+                <div className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success"
+                    ? "bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600" 
+                    : "bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-600"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
 
               <button
                 type="submit"

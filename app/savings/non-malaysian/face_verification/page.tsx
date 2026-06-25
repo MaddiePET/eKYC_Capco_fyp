@@ -10,16 +10,16 @@ import ChevronLeftIcon from "@/icons/chevron-left.svg";
 
 export default function SavingsNonMalaysianFaceQRCode() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
-  const [journeyId, setJourneyId] = useState<string | null>(null);
+  const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [verificationError, setVerificationError] = useState("");
   const [shouldShake, setShouldShake] = useState<boolean>(false);
 
-  const searchParams = useSearchParams();
   const SCORECARD_PASS_THRESHOLD = 70;
 
   const triggerFailure = (errorMessage: string) => {
@@ -68,8 +68,11 @@ export default function SavingsNonMalaysianFaceQRCode() {
       localStorage.setItem("journeyId", jId);
     }
 
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    const activeTheme = isDarkMode ? "dark" : "light";
+
     const origin = window.location.origin;
-    const targetUrl = `${origin}/savings/non-malaysian/face_verification/mobile?journeyId=${jId}`;
+    const targetUrl = `${origin}/savings/non-malaysian/face_verification/mobile?journeyId=${jId}&theme=${activeTheme}`;
 
     setMobileUrl(targetUrl);
 
@@ -130,20 +133,6 @@ export default function SavingsNonMalaysianFaceQRCode() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-20 bg-[#F9FAFB] dark:bg-gray-950 overflow-hidden">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes shakeBlur {
-          0%, 100% { transform: translateX(0); filter: blur(0px); }
-          15% { transform: translateX(-8px); filter: blur(1.5px); }
-          30% { transform: translateX(6px); filter: blur(1px); }
-          45% { transform: translateX(-6px); filter: blur(1.5px); }
-          60% { transform: translateX(4px); filter: blur(0.5px); }
-          75% { transform: translateX(-2px); filter: blur(0px); }
-        }
-        .animate-shake-blur {
-          animation: shakeBlur 0.6s cubic-bezier(.36, .07, .19, .97) both;
-        }
-      `}} />
-
       {isFailed && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-200 dark:border-gray-800 animate-in fade-in zoom-in duration-300">
@@ -256,7 +245,7 @@ export default function SavingsNonMalaysianFaceQRCode() {
                   shouldShake ? "animate-shake-blur" : ""
                 } ${
                   isVerified 
-                    ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                    ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E]/20" 
                     : isProcessing
                     ? "border-green-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-green-800"
                     : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
@@ -329,14 +318,14 @@ export default function SavingsNonMalaysianFaceQRCode() {
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-xl shadow-theme-xs ${
                     isVerified
                       ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B]"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-650"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
                   }`}
                 >
                   Continue
                 </button>
                 <div className="mt-4 text-center">
                   <p className="text-xs">
-                    <span className="text-gray-500 dark:text-gray-455">Having trouble? </span>
+                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
                     <Link 
                       href="/contact_support" 
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-350 transition-colors"
@@ -386,14 +375,14 @@ export default function SavingsNonMalaysianFaceQRCode() {
                     <span className="text-xs font-bold text-green-600">Fits Corner Guides</span>
                   </div>
 
-                  <div className="w-full h-52 bg-gray-50 dark:bg-gray-950 rounded-2xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-300/40">
+                  <div className="w-full h-52 bg-gray-950/40 rounded-2xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-300/40">
                     <div className="absolute inset-4">  
                       <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-green-500 z-10"></div>
                       <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-green-500 z-10"></div>
                       <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-green-500 z-10"></div>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-green-500 z-10"></div>
                       
-                      <div className="relative w-full h-full overflow-hidden rounded-2-xl">
+                      <div className="relative w-full h-full overflow-hidden">
                         <Image
                           src="/images/fake_selfie.png"
                           alt="Correctly centered face selfie"
@@ -434,14 +423,14 @@ export default function SavingsNonMalaysianFaceQRCode() {
                     <span className="text-xs font-bold text-red-600">Cropped / Blurry / Backlight</span>
                   </div>
                   
-                  <div className="w-full h-52 bg-gray-50 dark:bg-gray-950 rounded-2xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-300/40">
+                  <div className="w-full h-52 bg-gray-950/40 rounded-2xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-300/40">
                     <div className="absolute inset-4">  
                       <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-red-500 z-10"></div>
                       <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-red-500 z-10"></div>
                       <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-red-500 z-10"></div>
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-red-500 z-10"></div>
                       
-                      <div className="relative w-full h-full overflow-hidden rounded-2-xl">
+                      <div className="relative w-full h-full overflow-hidden">
                         <Image
                           src="/images/fake_selfie.png"
                           alt="Incorrect face selfie - far off and tilted"
@@ -482,7 +471,7 @@ export default function SavingsNonMalaysianFaceQRCode() {
         </div>
       </main>
 
-      <footer className="relative mt-12 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>

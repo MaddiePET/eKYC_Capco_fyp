@@ -8,8 +8,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SavingsMalaysianMobileFaceCapture() {
   const MAX_ATTEMPTS = 3;
-  const router = useRouter();
 
+  const router = useRouter();
+  
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,13 +47,25 @@ export default function SavingsMalaysianMobileFaceCapture() {
   };
 
   useEffect(() => {
+    const theme = searchParams.get("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     const checkInitialStatus = async () => {
       if (!journeyId) return;
+
       try {
         const res = await fetch(`/api/ekyc/status?journeyId=${journeyId}`);
         const data = await res.json();
+
         if (data.status === "face_failed") {
           setFailCount(MAX_ATTEMPTS);
+          setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
         } else if (data.status === "face_verified") {
           setSuccess(true);
         }
@@ -60,6 +73,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
         console.error("Status check failed", e);
       }
     };
+
     checkInitialStatus();
   }, [journeyId]);
 
@@ -107,7 +121,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
         })
         .select();
       console.log("DB INSERT RESULT:", { data, dbError });
-        
+
       const { data: { publicUrl: selfiePublicUrl } } = supabase.storage
         .from("identity-docs")
         .getPublicUrl(filePath);
@@ -140,39 +154,43 @@ export default function SavingsMalaysianMobileFaceCapture() {
 
         const scorecardRes = await fetch(`/api/ekyc/scorecard?journeyId=${encodeURIComponent(journeyId)}`);
         const scorecardResult = await scorecardRes.json();
-
+  
         if (!scorecardRes.ok || scorecardResult.status !== "success") {
           throw new Error(scorecardResult.error || "Scorecard check failed");
         }
 
-        const scorecardList = scorecardResult.scorecardResultList as any[];
+        const scorecardList = scorecardResult.scorecardResultList as any[] | undefined;
         const hasFailedFacialVerification = scorecardList?.some((item) =>
           item.checkResultList?.some(
-            (check: any) => check.checkType === "facialVerification" && check.checkStatus === "F"
+           (check: any) =>
+             check.checkType === "facialVerification" &&
+             check.checkStatus === "F"
           )
         );
 
         if (hasFailedFacialVerification) {
-          throw new Error("Face does not match the MyKad photo");
+          throw new Error ("Face does not match the MyKad photo");
         }
 
         const score = calculateScorecardResult(scorecardResult);
 
-        await fetch("/api/ekyc/status", {
+        await fetch("/api/ekyc/status" , {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
             journeyId,
             status: "face_verified",
             scorecard: scorecardResult,
           }),
-        });  
+        });
 
         if (score === null || score < SCORECARD_PASS_THRESHOLD) {
           setThresholdMessage(
             score === null 
-              ? "No scorecard checks were found. Please proceed to the desktop page." 
-              : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
+            ? "No scorecard checks were found. Please proceed to the desktop page." 
+            : `Your verification score is ${score}%, which is below the required threshold of ${SCORECARD_PASS_THRESHOLD}%. Please proceed to the desktop page.`
           );
           setThresholdFailed(true);
           return;
@@ -187,10 +205,11 @@ export default function SavingsMalaysianMobileFaceCapture() {
         if (!cleanupRes.ok) {
           console.warn("Cleanup after scorecard returned non-ok:", cleanupRes.status);
         }
-              
+
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         setSuccess(true);
+
       } else {
         throw new Error(faceResult.message || "Face could not be verified");
       }
@@ -202,7 +221,9 @@ export default function SavingsMalaysianMobileFaceCapture() {
       const reason = error.message.toLowerCase();
 
       if (remaining > 0) {
-        setErrorMessage(`Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`);
+        setErrorMessage(
+          `Verification failed: ${reason}. You have ${remaining} attempt${remaining > 1 ? "s" : ""} remaining.`
+        );
         
         await fetch("/api/ekyc/status", {
           method: "POST",
@@ -210,14 +231,25 @@ export default function SavingsMalaysianMobileFaceCapture() {
           body: JSON.stringify({ journeyId, status: "face_failed_attempt" }),
         });
       } else {
+        setErrorMessage(
+          "Too many failed attempts. Please refer to your desktop screen."
+        );
+
         await fetch("/api/ekyc/status", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ journeyId, status: "face_failed" }),
+          headers: { 
+            "Content-Type": "application/json" 
+          },
+          body: JSON.stringify({ 
+            journeyId, 
+            status: "face_failed" 
+          }),
         });
       }
 
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } finally {
       setIsLoading(false);
       setIsUploadingFace(false);
@@ -322,6 +354,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
                 />
               </svg>
             </div>
+
             <div className="mb-6 text-center">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Scan Successful!
@@ -330,6 +363,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
                 Your face has been securely matched with your MyKad.
               </p>
             </div>
+
             <div className="w-full max-w-xs py-3 px-4 rounded-xl border backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600">
               <p className="font-semibold text-sm text-center text-gray-900 dark:text-gray-100">
                 You may now close this window and return to your desktop screen to continue.
@@ -348,45 +382,44 @@ export default function SavingsMalaysianMobileFaceCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                 {errorMessage}
               </div>
             )}
 
             {isUploadingFace && !success && !errorMessage && (
-              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+              <div className="mb-4 w-full p-3 rounded-lg border bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">Face Image Received</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                <p className="mt-1 text-xs leading-5 text-green-600 text-center">
                   Your face image is being verified. This may take a few moments. Please do not close this window.
                 </p>
               </div>
             )}
-            
-            <input 
-              type="file" 
-              accept="image/*" 
-              capture="user" 
-              ref={fileInputRef} 
-              onChange={handleCapture} 
-              className="hidden" 
+
+            <input
+              type="file"
+              accept="image/*"
+              capture="user"
+              ref={fileInputRef}
+              onChange={handleCapture}
+              className="hidden"
             />
-            
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || failCount >= MAX_ATTEMPTS}
               className={`w-full max-w-xs py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600 ${
                 isLoading || failCount >= MAX_ATTEMPTS
-                  ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed" 
+                  ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}
             >
-              <span className="font-semibold text-sm">
-                {isUploadingFace
-                  ? "Verifying"
-                  : faceImage
-                  ? "Verified"
-                  : failCount > 0
-                  ? "Try Again"
+              <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
+                {isUploadingFace 
+                  ? "Verifying" 
+                  : faceImage 
+                  ? "Verified" 
+                  : failCount > 0 
+                  ? "Try Again" 
                   : "Open Camera"}
               </span>
 
@@ -394,7 +427,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
                 <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
               ) : (
                 <svg 
-                  className="w-6 h-6 text-[#3D405B] dark:text-gray-300" 
+                  className="w-6 h-6 text-gray-500 dark:text-gray-300" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -423,7 +456,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
               <Link 
                 href="/contact_support" 
-                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-355 transition-colors"
               >
                 Contact Support
               </Link>
@@ -449,7 +482,7 @@ export default function SavingsMalaysianMobileFaceCapture() {
               <div className="text-xs leading-relaxed text-amber-900 dark:text-amber-100">
                 <p className="font-bold mb-1 text-amber-800 dark:text-amber-300">
                   Important Notice:
-                </p>
+                </p> 
                 <ul className="list-disc ml-4 space-y-1">
                   <li>Ensure mobile and desktop tabs are open.</li>
                   <li>Ensure your internet connection is fast and stable.</li>

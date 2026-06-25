@@ -3,8 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SavingsNonMalaysianMobilePassportCapture() {
   const MAX_ATTEMPTS = 3;
@@ -22,6 +22,15 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchParams = useSearchParams();
   const journeyId = searchParams.get("journeyId") || "";
+
+  useEffect(() => {
+    const theme = searchParams.get("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -46,6 +55,12 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
     };
 
     checkInitialStatus();
+  }, [journeyId]);
+
+  useEffect(() => {
+    if (!journeyId) {
+      alert("Invalid link. Please scan the QR code again from your desktop.");
+    }
   }, [journeyId]);
 
   const handleCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,6 +242,7 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
         });
       }
 
+      setPassportImage(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -350,15 +366,15 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                 {errorMessage}
               </div>
             )}
 
-            {isUploadingPassport && !success && !errorMessage && (
-              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+            {passportImage && !success && !errorMessage && (
+              <div className="mb-4 w-full p-3 rounded-lg border bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">Passport Image Received</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                <p className="mt-1 text-xs leading-5 text-green-650 text-center">
                   Your Passport image is being verified. This may take a few moments. Please do not close this window.
                 </p>
               </div>
@@ -376,26 +392,29 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || failCount >= MAX_ATTEMPTS}
-              className={`w-full max-w-xs py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600 ${
-                isLoading || failCount >= MAX_ATTEMPTS
+              className={`w-full max-w-xs py-3 px-4 rounded-xl flex items-center justify-between border transition-all backdrop-blur-sm bg-white/60 dark:bg-gray-800/40 border-gray-300 dark:border-gray-600 
+                ${passportImage ? 'ring-1 shadow-sm' : 'border-gray-300 dark:border-gray-600'}
+                ${isLoading || failCount >= MAX_ATTEMPTS
                   ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}
             >
-              <span className="font-semibold text-sm">
+              <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                 {isUploadingPassport
-                  ? "Verifying"
+                  ? "Uploading..."
+                  : isLoading
+                  ? "Verifying..."
                   : passportImage
-                  ? "Verified"
-                  : failCount > 0
+                  ? "Uploaded"
+                  : failCount > 0 && failCount < MAX_ATTEMPTS
                   ? "Try Again"
-                  : "Open Camera"}
+                  : "Capture Passport"}
               </span>
               {isLoading ? (
                 <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
               ) : (
                 <svg
-                  className="w-6 h-6 text-[#3D405B] dark:text-gray-300"
+                  className={`w-6 h-6 ${passportImage ? 'text-[#3D405B]' : 'text-[#3D405B] dark:text-gray-300'}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -404,13 +423,13 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
-                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
                   />
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="1.5"
-                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
               )}

@@ -27,6 +27,15 @@ export default function SavingsMalaysianMobileMyKadCapture() {
   const journeyId = searchParams.get('journeyId');
 
   useEffect(() => {
+    const theme = searchParams.get("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     const checkInitialStatus = async () => {
       if (!journeyId) return;
 
@@ -39,12 +48,12 @@ export default function SavingsMalaysianMobileMyKadCapture() {
           setErrorMessage("Too many failed attempts. Please refer to your desktop screen.");
         } else if (data.status === "duplicate") {
           setIsDuplicate(true);
-          setDuplicateMessage("You already have an existing account with this MyKad.");
+          setDuplicateMessage("You already have an existing savings account with this MyKad.");
         } else if (data.status === "verified") {
           setSuccess(true);
         }
       } catch (e) {
-        console.error(e);
+        console.error("Status check failed", e);
       }
     };
 
@@ -157,15 +166,13 @@ export default function SavingsMalaysianMobileMyKadCapture() {
       if (accountCheckRes.status === 409) {
         const checkData = await accountCheckRes.json();
         setIsDuplicate(true);
-        setDuplicateMessage(checkData.error || "You already have an existing account with this MyKad.");
+        setDuplicateMessage(checkData.error || "You already have an existing savings account with this MyKad.");
 
-        if (icNo) {
-          await fetch("/api/ekyc/status", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ journeyId, status: "duplicate", id_type: "ic", id_num: icNo }),
-          });
-        }
+        await fetch("/api/ekyc/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ journeyId, status: "duplicate", id_type: "ic", id_num: icNo }),
+        });
 
         setIsLoading(false);
         return;
@@ -187,7 +194,6 @@ export default function SavingsMalaysianMobileMyKadCapture() {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 500));
-
       setSuccess(true);
 
     } catch (error: any) {
@@ -238,7 +244,7 @@ export default function SavingsMalaysianMobileMyKadCapture() {
       setUploadingSide(type);
       setIsLoading(true);
       const fileExtension = file.name.split(".").pop();
-      const fileName = `${type}_mykad_${journeyId}_${Date.now()}.${fileExtension}`;
+      const fileName = `savings_${type}_mykad_${journeyId}_${Date.now()}.${fileExtension}`;
       const filePath = `mykad/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -266,7 +272,8 @@ export default function SavingsMalaysianMobileMyKadCapture() {
       else setBackImage(publicUrl);
 
     } catch (e: any) {
-      setErrorMessage("Image streaming connection failure. Please retry capture.");
+      console.error("Supabase storage sync failed:", e.message);
+      setErrorMessage("Network asset upload error. Please snap the picture again.");
     } finally {
       setUploadingSide(null);
       setIsLoading(false);
@@ -387,17 +394,17 @@ export default function SavingsMalaysianMobileMyKadCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                 {errorMessage}
               </div>
             )}
 
             {(frontImage || backImage) && !success && !errorMessage && (
-              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+              <div className="mb-4 w-full p-3 rounded-lg border bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">
                   {frontImage && backImage ? "MyKad Images Received" : "MyKad Photo Captured"}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                <p className="mt-1 text-xs leading-5 text-green-600 text-center">
                   {frontImage && backImage 
                     ? "Your MyKad images are being verified. This may take a few moments. Please do not close this window."
                     : "Please capture the remaining side to begin verification."
@@ -434,7 +441,7 @@ export default function SavingsMalaysianMobileMyKadCapture() {
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}
               >
-                <span className="font-semibold text-sm">
+                <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                   {isLoading && frontImage && backImage 
                     ? "Verifying..." 
                     : uploadingSide === 'front'
@@ -479,7 +486,7 @@ export default function SavingsMalaysianMobileMyKadCapture() {
                   ? "bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed"
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}              >
-                <span className="font-semibold text-sm">
+                <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                   {isLoading && frontImage && backImage 
                     ? "Verifying..." 
                     : uploadingSide === 'back'

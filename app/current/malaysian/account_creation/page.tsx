@@ -495,12 +495,6 @@ export default function CurrentMalaysianAccountCreation() {
                   ))}
                 </div>
               </div>
-              
-              {usernameError && (
-                <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                  {usernameError}
-                </div>
-              )}
 
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
@@ -516,6 +510,12 @@ export default function CurrentMalaysianAccountCreation() {
                   }}
                 />
               </div>
+
+              {usernameError && (
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                  {usernameError}
+                </div>
+              )}
 
               <button
                 type="button"
@@ -535,7 +535,7 @@ export default function CurrentMalaysianAccountCreation() {
 
         {step === "password" && (
           <div className="animate-in fade-in duration-500">
-            <div className="mb-10 text-center">
+            <div className="mb-5 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Secure Your Account
               </h1>
@@ -543,12 +543,6 @@ export default function CurrentMalaysianAccountCreation() {
                 Set a strong password and a security phrase.
               </p>
             </div>
-
-            {submitError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
-                {submitError}
-              </div>
-            )}
 
             <div className="space-y-5">
               <div>
@@ -656,6 +650,12 @@ export default function CurrentMalaysianAccountCreation() {
                   onChange={(e) => setConfirmPassword(e.target.value.replace(/\s/g, ""))}
                 />
               </div>
+
+              {submitError && (
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                  {submitError}
+                </div>
+              )}
 
               <button
                 type="button"

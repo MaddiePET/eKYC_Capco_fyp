@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -132,8 +132,6 @@ export default function LogIn() {
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  const latestUsernameRef = useRef<string>("");
-
   useEffect(() => {
     setMounted(true);
     sessionStorage.removeItem("is_authenticated");
@@ -155,34 +153,41 @@ export default function LogIn() {
     return () => clearInterval(interval);
   }, [cooldown, attempts]);
 
-  const checkUsername = async (val: string) => {
-    if (val.length < 5) { 
-      setIsUsernameValid(null); 
-      return; 
+  useEffect(() => {
+    if (username.length < 5) {
+      setIsUsernameValid(null);
+      setUsernameError("");
+      return;
     }
-    
-    latestUsernameRef.current = val;
-    setIsValidating(true);
-    
-    try {
-      const res = await fetch(`/api/users/${val}`);
-      
-      if (latestUsernameRef.current === val) {
-        setIsUsernameValid(res.ok);
-      }
-    } catch { 
-      if (latestUsernameRef.current === val) {
-        setIsUsernameValid(false); 
-      }
-    } finally {
-      if (latestUsernameRef.current === val) {
+
+    setIsUsernameValid(null);
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsValidating(true);
+      setUsernameError("");
+
+      try {
+        const res = await fetch(`/api/users/${username}`);
+        const isValid = res.ok;
+        setIsUsernameValid(isValid);
+
+        if (!isValid) {
+          setUsernameError("Username not found. Please try again.");
+        }
+      } catch {
+        setIsUsernameValid(false);
+        setUsernameError("Username not found. Please try again.");
+      } finally {
         setIsValidating(false);
       }
-    }
-  };
+    }, 800);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [username]);
 
   const handleUsernameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUsernameValid !== true || isValidating) return;
     setUsernameError("");
 
     try {
@@ -310,7 +315,7 @@ export default function LogIn() {
         >
           <path
             className="fill-[#F0CA8E]"
-            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"
+            d="M0,224L34.3,192C68.6,160,137,96,206,90.7C274.3,85,343,139,411,144C480,149,549,107,617,122.7C685.7,139,754,213,823,240C891.4,267,960,245,1029,224C1097.1,203,1166,181,1234,160C1302.9,139,1371,117,1406,106.7L1440,96L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320L0,320Z"
           />
         </svg>
       </div>
@@ -353,12 +358,6 @@ export default function LogIn() {
                 Please enter your username to log in.
               </p>
             </div>
-            
-            {usernameError && (
-              <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                {usernameError}
-              </div>
-            )}
 
             <form onSubmit={handleUsernameSubmit}>
               <div className="space-y-6">
@@ -383,19 +382,31 @@ export default function LogIn() {
                         setUsername(cleanedValue);
                         setUsernameError("");
                         setIsUsernameValid(null);
-                        checkUsername(cleanedValue);
                       }}
                     />
                     {isUsernameValid === true && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">✓</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 font-bold">✓</span>
+                    )}
+                    {isValidating && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-gray-400 border-t-[#3D405B] rounded-full animate-spin"></div>
                     )}
                   </div>
                 </div>
+
+                {usernameError && (
+                  <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                    {usernameError}
+                  </div>
+                )}
                 
                 <button
                   type="submit"
-                  disabled={isValidating || username.length === 0}
-                  className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition rounded-lg bg-[#3D405B] shadow-theme-xs hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"                
+                  disabled={isValidating || isUsernameValid !== true || username.length < 5}
+                  className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                    !isValidating && isUsernameValid === true && username.length >= 5
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                      : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                  }`}                
                 >
                   Continue
                 </button>
@@ -500,13 +511,6 @@ export default function LogIn() {
                 </p>
               </div>
             </div>
-
-            {passwordError && (
-              <div className="mb-4 p-3 text-xs text-center text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                {passwordError}
-                {cooldown > 0 && (<span>Please retry in {cooldown}s.</span>)}
-              </div>
-            )}
             
             <form onSubmit={handlePasswordSubmit}>
               <div className="space-y-6">
@@ -536,6 +540,13 @@ export default function LogIn() {
                     </span>
                   </div>
                 </div>
+                
+                {passwordError && (
+                  <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                    {passwordError}
+                    {cooldown > 0 && (<span>Please retry in <strong>{cooldown}s</strong>.</span>)}
+                  </div>
+                )}
 
                 <button 
                   disabled={cooldown > 0} 

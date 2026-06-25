@@ -505,14 +505,14 @@ export default function CurrentMalaysianBusinessParticulars() {
                 </p>
               )}
               {businessError && (
-                <p className="text-sm text-center text-red-500">
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                   {businessError}
-                </p>
+                </div>
               )}
               {!loadingBusinesses && !businessError && linkedBusinesses.length === 0 && (
-                <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                  No registered business linked with your MyKad number.
-                </p>
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                  <p>No registered business linked with your MyKad number.</p>
+                </div>
               )}
 
 

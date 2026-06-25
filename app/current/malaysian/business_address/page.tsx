@@ -123,7 +123,7 @@ export default function CurrentMalaysianBusinessAddress() {
 
   const [useBusinessAsMailing, setUseBusinessAsMailing] = useState<boolean | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [userAddressLabel, setUserAddressLabel] = useState<string>("");
+  const [userAddress, setUserAddress] = useState<string>("");
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [preferredBranch, setPreferredBranch] = useState<string>("");
 
@@ -289,11 +289,11 @@ export default function CurrentMalaysianBusinessAddress() {
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
-          setUserAddressLabel(
+          setUserAddress(
             data.display_name.split(",").slice(0, 3).join(",")
           );
         } catch {
-          setUserAddressLabel(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setUserAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
         }
 
         setIsLocating(false);
@@ -883,9 +883,24 @@ export default function CurrentMalaysianBusinessAddress() {
                     disabled={isLocating}
                     className="flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition-all bg-blue-600 border border-transparent rounded-xl shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-500"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg 
+                      className="w-5 h-5 mr-2" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
+                      />
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
+                      />
                     </svg>
                     {isLocating ? "Locating..." : "Use My Current Location"}
                   </button>
@@ -919,14 +934,14 @@ export default function CurrentMalaysianBusinessAddress() {
                       Current Location
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {userAddressLabel}
+                      {userAddress}
                     </p>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setUserLocation(null)}
-                    className="text-sm font-bold text-[#3D405B] dark:text-blue-400"
+                    className="text-sm font-bold text-blue-600 dark:text-blue-400"
                   >
                     Change
                   </button>

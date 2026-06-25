@@ -453,7 +453,11 @@ export default function SavingsMalaysianOTP() {
               <button 
                 type="submit" 
                 disabled={isLoading || !email} 
-                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs ${
+                  email && !isLoading
+                    ? 'bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                }`}
               >
                 {isLoading ? "Sending Code..." : "Send Code"}
               </button>
@@ -574,14 +578,6 @@ export default function SavingsMalaysianOTP() {
                 We've sent a 6-digit code to <span className="font-bold text-gray-900 dark:text-white">{method === "Email" ? email : `+60 ${activePhoneNumber}`}</span>. Please provide the code to proceed.
               </p>
             </div>
-
-            {message && (
-              <div className={`mb-4 w-full p-4 rounded-lg border text-xs text-center font-medium shadow-sm ${
-                messageType === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
-              }`}>
-                {message}
-              </div>
-            )}
             
             <div className="space-y-6">
               <div className="flex justify-center gap-2">
@@ -599,6 +595,17 @@ export default function SavingsMalaysianOTP() {
                   />
                 ))}
               </div>
+
+              {message && (
+                <div className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  messageType === "success" 
+                    ? "bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600" 
+                    : "bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-600"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
               
               <button 
                 type="button" 

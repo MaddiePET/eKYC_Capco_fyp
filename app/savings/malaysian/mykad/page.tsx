@@ -15,7 +15,6 @@ export default function SavingsMalaysianMyKadQRCode() {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [hostWarning, setHostWarning] = useState<string | null>(null);
   const [duplicateAccountPopup, setDuplicateAccountPopup] = useState(false);
   const [duplicateAccountMessage, setDuplicateAccountMessage] = useState("");
 
@@ -59,14 +58,11 @@ export default function SavingsMalaysianMyKadQRCode() {
 
     setJourneyId(jId);
 
-    const origin = window.location.origin;
-    const targetUrl = `${origin}/savings/malaysian/mykad/mobile?journeyId=${jId}`;
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    const activeTheme = isDarkMode ? "dark" : "light";
 
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      setHostWarning(
-        "This app is loaded from localhost, which is not reachable from your phone. Open the app from your laptop IP or tunnel URL and refresh."
-      );
-    }
+    const origin = window.location.origin;
+    const targetUrl = `${origin}/savings/malaysian/mykad/mobile?journeyId=${jId}&theme=${activeTheme}`;
 
     setMobileUrl(targetUrl);
 
@@ -260,12 +256,6 @@ export default function SavingsMalaysianMyKadQRCode() {
           </p>
         </div>
 
-        {hostWarning && (
-          <div className="mb-6 w-full max-w-md mx-auto p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400 whitespace-pre-line">            
-            {hostWarning}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-6">
           <div className="lg:col-span-5 flex flex-col">
             <div className="w-full bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl flex flex-col justify-center h-full">
@@ -355,7 +345,7 @@ export default function SavingsMalaysianMyKadQRCode() {
                 </button>
                 <div className="mt-4 text-center">
                   <p className="text-xs">
-                    <span className="text-gray-500 dark:text-gray-450">Having trouble? </span>
+                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
                     <Link
                       href="/contact_support"
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-350 transition-colors"
@@ -393,7 +383,7 @@ export default function SavingsMalaysianMyKadQRCode() {
                 MyKad Capture Guidelines
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-                To pass mandatory identity verification, your MyKad capture must comply with the framing requirements below:
+                To pass mandatory MyKad verification, make sure your document adheres to the following capture parameters:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6"> 
@@ -405,7 +395,7 @@ export default function SavingsMalaysianMyKadQRCode() {
                     <span className="text-xs font-bold text-green-600">Fits Corner Guides</span>
                   </div>
                   
-                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-200">
+                  <div className="w-full h-32 bg-gray-950/40 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-200">
                     <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-green-200"></div>
                     <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-green-200"></div>
                     <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-green-200"></div>
@@ -445,7 +435,7 @@ export default function SavingsMalaysianMyKadQRCode() {
                     <span className="text-xs font-bold text-red-600">Cropped / Blurry / Glare Spot</span>
                   </div>
 
-                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-200">
+                  <div className="w-full h-32 bg-gray-950/40 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-200">
                     <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-red-200"></div>
                     <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-red-200"></div>
                     <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-red-200"></div>
@@ -462,7 +452,7 @@ export default function SavingsMalaysianMyKadQRCode() {
                       
                       <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-black/10 to-transparent pointer-events-none" />
                       <div className="absolute inset-0 bg-gradient-to-bl from-white/90 via-white/20 to-transparent pointer-events-none" />
-                      <div className="absolute -top-4 -right-4 w-16 h-16 bg-white rounded-full blur-md opacity-80 pointer-events-none" />
+                      <div className="absolute -top-2 -right-1 w-20 h-16 bg-white rounded-full blur-md opacity-80 pointer-events-none" />
                     </div>
                   </div>
 

@@ -27,6 +27,15 @@ export default function CurrentMalaysianMobileMyKadCapture() {
   const searchParams = useSearchParams();
 
   const journeyId = searchParams.get('journeyId');
+
+  useEffect(() => {
+    const theme = searchParams.get("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [searchParams]);
   
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -402,17 +411,17 @@ export default function CurrentMalaysianMobileMyKadCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full max-w-xs p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                 {errorMessage}
               </div>
             )}
 
             {(frontImage || backImage) && !success && !errorMessage && (
-              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+              <div className="mb-4 w-full p-3 rounded-lg border bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">
                   {frontImage && backImage ? "MyKad Images Received" : "MyKad Photo Captured"}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                <p className="mt-1 text-xs leading-5 text-green-600 text-center">
                   {frontImage && backImage 
                     ? "Your MyKad images are being verified. This may take a few moments. Please do not close this window."
                     : "Please capture the remaining side to begin verification."
@@ -449,7 +458,7 @@ export default function CurrentMalaysianMobileMyKadCapture() {
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
                 }`}
               >
-                <span className="font-semibold text-sm">
+                <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                   {isLoading && frontImage && backImage 
                     ? "Verifying..." 
                     : uploadingSide === 'front'
@@ -495,7 +504,7 @@ export default function CurrentMalaysianMobileMyKadCapture() {
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
                 }`}
               >
-                <span className="font-semibold text-sm">
+                <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                   {isLoading && frontImage && backImage 
                     ? "Verifying..." 
                     : uploadingSide === 'back'

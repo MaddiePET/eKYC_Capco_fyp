@@ -47,6 +47,15 @@ export default function CurrentMalaysianMobileFaceCapture() {
   };
 
   useEffect(() => {
+    const theme = searchParams.get("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     const checkInitialStatus = async () => {
       if (!journeyId) return;
 
@@ -373,15 +382,15 @@ export default function CurrentMalaysianMobileFaceCapture() {
             </div>
 
             {errorMessage && (
-              <div className="mb-4 w-full p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium shadow-sm">
+              <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                 {errorMessage}
               </div>
             )}
 
             {isUploadingFace && !success && !errorMessage && (
-              <div className="mb-4 w-full max-w-xs rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm flex flex-col items-center">
+              <div className="mb-4 w-full mb-4 w-full p-3 rounded-lg border bg-green-50/80 border-green-200 dark:bg-green-900/30 dark:border-green-500/50 text-green-600 shadow-sm flex flex-col items-center">
                 <p className="text-sm font-semibold text-center">Face Image Received</p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800 text-center">
+                <p className="mt-1 text-xs leading-5 text-green-600 text-center">
                   Your face image is being verified. This may take a few moments. Please do not close this window.
                 </p>
               </div>
@@ -404,7 +413,7 @@ export default function CurrentMalaysianMobileFaceCapture() {
                   : "hover:bg-white hover:border-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-800/60"
               }`}
             >
-              <span className="font-semibold text-sm">
+              <span className="text-gray-500 dark:text-gray-300 font-semibold text-sm">
                 {isUploadingFace 
                   ? "Verifying" 
                   : faceImage 
@@ -418,7 +427,7 @@ export default function CurrentMalaysianMobileFaceCapture() {
                 <div className="animate-spin w-6 h-6 border-4 border-gray-300 border-t-gray-600 dark:border-gray-600 dark:border-t-gray-300 rounded-full" />
               ) : (
                 <svg 
-                  className="w-6 h-6 text-[#3D405B] dark:text-gray-300" 
+                  className="w-6 h-6 text-gray-500 dark:text-gray-300" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -447,7 +456,7 @@ export default function CurrentMalaysianMobileFaceCapture() {
               <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
               <Link 
                 href="/contact_support" 
-                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-350 transition-colors"
               >
                 Contact Support
               </Link>

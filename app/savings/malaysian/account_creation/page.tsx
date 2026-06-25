@@ -364,12 +364,6 @@ export default function SavingsMalaysianAccountCreation() {
                 </div>
               </div>
 
-              {usernameError && (
-                <div className="mb-4 p-3 text-xs text-center font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg">
-                  {usernameError}
-                </div>
-              )}
-
               <div>
                 <Label className="block mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">
                   Username<span className="text-error-500">*</span>
@@ -384,6 +378,12 @@ export default function SavingsMalaysianAccountCreation() {
                   }}
                 />
               </div>
+
+              {usernameError && (
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
+                  {usernameError}
+                </div>
+              )}
 
               <button
                 type="button"
@@ -516,7 +516,7 @@ export default function SavingsMalaysianAccountCreation() {
               </div>
 
               {submitError && (
-                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+                <div className="mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm bg-red-50/80 border-red-200 dark:bg-red-900/30 dark:border-red-500/50 text-red-500">
                   {submitError}
                 </div>
               )}

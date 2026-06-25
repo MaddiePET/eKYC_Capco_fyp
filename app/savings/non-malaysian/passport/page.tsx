@@ -11,7 +11,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
   const router = useRouter();
 
   const [mobileUrl, setMobileUrl] = useState<string>("");
-  const [journeyId, setJourneyId] = useState<string | null>(null);
+  const [journeyId, setJourneyId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isFailed, setIsFailed] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -45,9 +45,10 @@ export default function SavingsNonMalaysianPassportQRCode() {
   };
 
   useEffect(() => {
-    const jId = localStorage.getItem("journeyId");
+    const jId = localStorage.getItem("journeyId") || "";
 
     if (!jId) {
+      console.error("Journey ID missing");
       return;
     }
     
@@ -57,20 +58,44 @@ export default function SavingsNonMalaysianPassportQRCode() {
       localStorage.setItem("journeyId", jId);
     }
 
+    const isDarkMode = document.documentElement.classList.contains("dark");
+    const activeTheme = isDarkMode ? "dark" : "light";
+
     const origin = window.location.origin;
-    const targetUrl = `${origin}/savings/non-malaysian/passport/mobile?journeyId=${jId}`;
+    const targetUrl = `${origin}/savings/non-malaysian/passport/mobile?journeyId=${jId}&theme=${activeTheme}`;
 
     setMobileUrl(targetUrl);
 
     const checkStatus = setInterval(async () => {
       try {
         const res = await fetch(`/api/ekyc/status?journeyId=${jId}`);
-        const data = await res.json();
+        const rawText = await res.text();
+
+        if (!rawText || rawText.trim() === "") {
+          return;
+        }
+
+        const data = JSON.parse(rawText);
 
         if (data.status === "processing") {
           setIsProcessing(true);
         } else if (data.status === "verified") {
           setIsProcessing(false);
+          const detectedPassportNum = data.id_num;
+
+          if (!detectedPassportNum) {
+            setIsFailed(true);
+            clearInterval(checkStatus);
+            return;
+          }
+
+          const hasExistingAccount = await checkExistingSavingsAccount(detectedPassportNum);
+
+          if (hasExistingAccount) {
+            clearInterval(checkStatus);
+            return;
+          }
+
           setIsVerified(true);
           clearInterval(checkStatus);
         } else if (data.status === "duplicate") {
@@ -88,7 +113,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
           setIsProcessing(false);
         }
       } catch (error) {
-        console.error(error);
+        console.warn("Verification status polling skipped due to a temporary network connection break.");
       }
     }, 500);
 
@@ -98,7 +123,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
   const handleNext = () => {
     if (isVerified) {
       router.push(
-        `/savings/non-malaysian/face_verification?journeyId=${encodeURIComponent(journeyId || "")}`
+        `/savings/non-malaysian/face_verification?journeyId=${encodeURIComponent(journeyId)}`
       );
     }
   };
@@ -239,7 +264,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
                   isVerified
                     ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
                     : isProcessing
-                    ? "border-green-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-green-800"
+                    ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
                     : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
                 }`}
                 >
@@ -311,15 +336,15 @@ export default function SavingsNonMalaysianPassportQRCode() {
                   disabled={!isVerified}
                   className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-xl shadow-theme-xs ${
                     isVerified
-                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B]"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-655"
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-650"
                   }`}
                 >
                   Continue
                 </button>
                 <div className="mt-4 text-center">
                   <p className="text-xs">
-                    <span className="text-gray-500 dark:text-gray-455">Having trouble? </span>
+                    <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
                     <Link
                       href="/contact_support"
                       className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-350 transition-colors"
@@ -369,7 +394,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
                     <span className="text-xs font-bold text-green-600">Fits Corner Guides</span>
                   </div>
                   
-                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-200">
+                  <div className="w-full h-32 bg-gray-950/40 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-200">
                     <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-green-200"></div>
                     <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-green-200"></div>
                     <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-green-200"></div>
@@ -409,7 +434,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
                     <span className="text-xs font-bold text-red-600">Cropped / Blurry / Glare Spot</span>
                   </div>
 
-                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-200">
+                  <div className="w-full h-32 bg-gray-950/40 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-200">
                     <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-red-200"></div>
                     <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-red-200"></div>
                     <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-red-200"></div>
@@ -426,7 +451,7 @@ export default function SavingsNonMalaysianPassportQRCode() {
 
                       <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-black/10 to-transparent pointer-events-none" />
                       <div className="absolute inset-0 bg-gradient-to-bl from-white/90 via-white/20 to-transparent pointer-events-none" />
-                      <div className="absolute -top-2 -right-4 w-20 h-16 bg-white rounded-full blur-md opacity-80 pointer-events-none" />
+                      <div className="absolute -top-2 -right-1 w-20 h-16 bg-white rounded-full blur-md opacity-80 pointer-events-none" />
                     </div>
                   </div>
 
