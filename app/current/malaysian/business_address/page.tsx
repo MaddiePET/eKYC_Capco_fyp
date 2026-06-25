@@ -846,10 +846,55 @@ export default function CurrentMalaysianBusinessAddress() {
 
             <div className="mb-8">
               {!userLocation ? (
-                <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl text-center dark:bg-blue-900/30 dark:border-blue-500/50">
-                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-blue-800 dark:text-blue-300">
+                <>
+                  <div className="p-6 mb-4 bg-blue-50 border-2 rounded-xl text-center border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+
+                    <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-1">
+                      Enable Location Services
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Find the nearest branches to you.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRequestLocation}
+                    disabled={isLocating}
+                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition-all bg-blue-600 border border-transparent rounded-xl shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-500"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {isLocating ? "Locating..." : "Use My Current Location"}
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 p-4 border-2 rounded-xl border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center">
                     <svg
-                      className="w-6 h-6"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -869,44 +914,11 @@ export default function CurrentMalaysianBusinessAddress() {
                     </svg>
                   </div>
 
-                  <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">
-                    Enable Location Services
-                  </h3>
-                  <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
-                    Find the nearest branches to you.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleRequestLocation}
-                    disabled={isLocating}
-                    className="text-sm font-bold text-blue-700 underline hover:text-blue-800 dark:text-blue-400"
-                  >
-                    {isLocating ? "Locating..." : "Use My Current Location"}
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 p-4 bg-[#3D405B]/5 border-2 border-[#3D405B]/20 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#3D405B] text-white rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                    </svg>
-                  </div>
-
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
                       Current Location
                     </p>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {userAddressLabel}
                     </p>
                   </div>
@@ -914,7 +926,7 @@ export default function CurrentMalaysianBusinessAddress() {
                   <button
                     type="button"
                     onClick={() => setUserLocation(null)}
-                    className="text-xs font-bold text-[#3D405B] dark:text-blue-400"
+                    className="text-sm font-bold text-[#3D405B] dark:text-blue-400"
                   >
                     Change
                   </button>

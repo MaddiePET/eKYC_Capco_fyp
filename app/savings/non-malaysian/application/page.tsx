@@ -421,7 +421,7 @@ export default function SavingsNonMalaysianApplication() {
 
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="mb-10 text-center">
+            <div className="mb-6 text-center">
               <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
                 Upload Your Supporting Documents
               </h1>
@@ -529,6 +529,40 @@ export default function SavingsNonMalaysianApplication() {
                 + Add another document
               </button>
 
+              <div className="p-4 mb-8 rounded-xl border transition-all backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
+              <div className="flex gap-3 items-start">
+                <svg 
+                  className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
+                  fill="currentColor" 
+                  viewBox="0 0 20 20"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+                  <div>
+                    <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-1.5 text-sm">
+                      Why are these documents required?
+                    </h4>
+                    <p className="text-xs text-blue-900 dark:text-blue-100 mb-4 leading-relaxed">
+                      Under Bank A regulations, we are required to verify the residency, employment status, and legal eligibility of non-Malaysian applicants. This helps us confirm the legitimacy of your residency and protects against fraudulent activities.
+                    </p>
+                    <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-1.5 text-sm">
+                      Accepted Document Types
+                    </h4>
+                    <ul className="list-disc pl-4 text-xs text-blue-900 dark:text-blue-100 space-y-1.5 leading-relaxed">
+                      <li>Valid Employment Pass, Work Permit, or Residence Pass</li>
+                      <li>Official Employer Letter of Confirmation (issued within the last 3 months)</li>
+                      <li>Valid Student Visa or Official University Admission Letter (if applying as a student)</li>
+                      <li>Valid Passport photocopy (biodata page and current visa endorsement page)</li>
+                      <li>Proof of residential address in Malaysia (e.g., utility bills or tenancy agreement)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-4 flex flex-col items-center">
                 <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
                   By clicking continue, you confirm that the documents uploaded are valid and belong to you.
@@ -560,7 +594,7 @@ export default function SavingsNonMalaysianApplication() {
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="mb-10 text-center">
-              <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
+              <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md whitespace-nowrap">
                 Select Your Preferred Branch Location
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -570,48 +604,87 @@ export default function SavingsNonMalaysianApplication() {
 
             <div className="mb-8">
               {!userLocation ? (
-                <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl text-center dark:bg-blue-900/30 dark:border-blue-500/50">
-                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-blue-800 dark:text-blue-300">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <>
+                  <div className="p-6 mb-4 bg-blue-50 border-2 rounded-xl text-center border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
+                    <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+
+                    <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-1">
+                      Enable Location Services
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Find the nearest branches to you.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRequestLocation}
+                    disabled={isLocating}
+                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-bold text-white transition-all bg-blue-600 border border-transparent rounded-xl shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-500"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                  </div>
-
-                  <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">
-                    Enable Location Services
-                  </h3>
-                  <p className="text-xs text-blue-800 dark:text-blue-200/70 mb-3">
-                    Find the nearest branches to you.
-                  </p>
-                  <button 
-                    onClick={handleRequestLocation} 
-                    disabled={isLocating} 
-                    className="text-sm font-bold text-blue-700 underline hover:text-blue-800 dark:text-blue-400"
-                  >
                     {isLocating ? "Locating..." : "Use My Current Location"}
                   </button>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center gap-3 p-4 bg-[#3D405B]/5 border-2 border-[#3D405B]/20 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#3D405B] text-white rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <div className="flex items-center gap-3 p-4 border-2 rounded-xl border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
                   </div>
 
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
                       Current Location
                     </p>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {userAddress}
                     </p>
                   </div>
-                  
-                  <button 
-                    onClick={() => setUserLocation(null)} 
-                    className="text-xs font-bold text-[#3D405B] dark:text-blue-400"
+
+                  <button
+                    type="button"
+                    onClick={() => setUserLocation(null)}
+                    className="text-sm font-bold text-[#3D405B] dark:text-blue-400"
                   >
                     Change
                   </button>
@@ -664,12 +737,17 @@ export default function SavingsNonMalaysianApplication() {
 
             <div className="pt-10 flex flex-col items-center">
               <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-                By clicking continue, you confirm that all selected information is correct.
+                By clicking continue, you confirm that the information provided is accurate and belongs to you.
               </p>
               <button 
+                type="button"
                 onClick={handleNext}
                 disabled={!preferredBranch} 
-                className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d] disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-800 dark:disabled:text-gray-600 shadow-theme-xs"
+                className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs active:scale-[0.98] ${
+                  preferredBranch
+                    ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+                }`}
               >
                 Continue
               </button>

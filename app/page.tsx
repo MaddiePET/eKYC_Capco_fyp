@@ -410,6 +410,14 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="lg:w-1/2">
               <h2 className="text-3xl font-extrabold mb-8 text-[#3D405B] dark:text-white">Contact DTCOB</h2>
+              {formStatus && (
+                <div className={`mb-4 w-full p-3 rounded-lg border text-xs text-center font-medium shadow-sm ${
+                  formStatus.type === "success" ? "bg-green-50 border-green-200 text-green-600" : "bg-red-50 border-red-200 text-red-600"
+                }`}
+                >
+                  {formStatus.message}
+                </div>
+              )}
               <form className="space-y-6" onSubmit={handleSubmit}>       
                 <div>
                     <Label className="block mb-2 text-center sm:text-left text-gray-800 dark:text-white/90">
@@ -420,7 +428,7 @@ export default function Home() {
                       className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40" 
                       placeholder="Enter your email address" 
                       value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
+                      onChange={(e) => setContactEmail(e.target.value.replace(/[^a-zA-Z0-9@.\-_+]/g, ""))} 
                       required 
                     />
                   </div>
@@ -430,23 +438,21 @@ export default function Home() {
                   </Label>
                   <textarea 
                     className="w-full px-4 py-2.5 text-sm transition-all bg-white border-2 rounded-xl outline-none border-gray-200 focus:border-[#F0CA8E] focus:ring-4 focus:ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#5c6185] dark:text-white dark:placeholder-gray-400 dark:focus:border-[#F0CA8E] dark:focus:ring-[#3D405B]/40 h-32 resize-none" 
-                    placeholder="Describe message here"
+                    placeholder="Describe your issue, question, or complaint..."
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
                     required
                   ></textarea>
                 </div>
-                {formStatus && (
-                  <p className={`text-sm font-medium ${formStatus.type === 'success' ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {formStatus.message}
-                  </p>
-                )}
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="inline-flex items-center justify-center w-full px-6 py-2.5 text-sm font-bold text-white transition rounded-xl bg-[#3D405B] shadow-lg hover:bg-[#2c2f42] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#3D405B] dark:text-white dark:hover:bg-[#4a4e6d]"
-                >
-                  {isSubmitting ? 'Sending...' : 'Submit Form'}
+                  className={`w-full inline-flex items-center justify-center px-6 py-3 text-sm font-bold transition rounded-xl ${
+                !isSubmitting && contactEmail.trim() && contactMessage.trim()
+                  ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
+              }`}
+            > {isSubmitting ? "Submitting..." : "Submit Inquiry"}
                 </button>
               </form>
             </div>

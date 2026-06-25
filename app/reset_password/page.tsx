@@ -19,7 +19,7 @@ export default function ResetPassword() {
   const [step, setStep] = useState<Step>("request");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [expectedEmail, setExpectedEmail] = useState(""); // Holds the real email from the DB
+  const [expectedEmail, setExpectedEmail] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState<boolean | null>(null);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -110,7 +110,6 @@ export default function ResetPassword() {
     setMessage("");
     setMessageType("");
 
-    // Verify if typed email matches the database email
     if (email.trim().toLowerCase() !== expectedEmail.trim().toLowerCase()) {
       setMessage("The entered email does not match our records for this username.");
       setMessageType("error");

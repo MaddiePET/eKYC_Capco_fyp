@@ -49,7 +49,7 @@ export default function SavingsNonMalaysianAccountCreation() {
   ];
 
   const phraseOptions: string[] = ["Whale Hello There!", "Sofa So Good..", "Donut Worry Be Happy!"];
-  const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,}/.test(password);
+  const isPasswordValid = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.* ).{8,}/.test(password);
   const score = (password.length >= 8 ? 1 : 0) + (/[0-9]/.test(password) ? 1 : 0) + (/[A-Z]/.test(password) ? 1 : 0) + (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
   const getPasswordStrength = (): string => {
@@ -423,7 +423,7 @@ export default function SavingsNonMalaysianAccountCreation() {
                       key={idx}
                       type="button"
                       onClick={() => setSecurityPhrase(phrase)}
-                      className="px-3 py-1.5 text-[11px] font-medium rounded-md border-2 border-gray-300 hover:border-[#3D405B] dark:border-[#3D405B] dark:hover:border-[#F0CA8E] text-gray-600 dark:text-gray-200"
+                      className="px-3 py-1.5 text-[11px] font-medium rounded-md border-2 border-gray-300 hover:border-[#3D405B] dark:border-[#3D405B] dark:hover:border-[#F0CA8E] text-gray-600 dark:text-gray-200 transition-colors"
                     >
                       {phrase}
                     </button>
@@ -457,22 +457,26 @@ export default function SavingsNonMalaysianAccountCreation() {
                 </div>
 
                 {password.length > 0 && !isPasswordValid && (
-                  <div className="mt-2 text-[10px] space-y-1 animate-in slide-in-from-top-1 fade-in duration-300">
-                    <p className={password.length >= 8 ? "text-green-500" : "text-gray-400"}>
-                      {password.length >= 8 ? "✓" : "○"} At least 8 characters
-                    </p>
-                    <p className={/[0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
-                      {/[0-9]/.test(password) ? "✓" : "○"} At least one number
-                    </p>
-                    <p className={/[A-Z]/.test(password) ? "text-green-500" : "text-gray-400"}>
-                      {/[A-Z]/.test(password) ? "✓" : "○"} At least one capital letter
-                    </p>
-                    <p className={/[a-z]/.test(password) ? "text-green-500" : "text-gray-400"}>
-                      {/[a-z]/.test(password) ? "✓" : "○"} At least one lowercase letter
-                    </p>
-                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : "text-gray-400"}>
-                      {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} At least one special character
-                    </p>
+                  <div className="mt-3 flex-wrap gap-x-3 gap-y-2 animate-in slide-in-from-top-1 fade-in duration-300">
+                    {[
+                      { label: "At least 8 characters", isValid: password.length >= 8 },
+                      { label: "At least one number", isValid: /[0-9]/.test(password) },
+                      { label: "At least one capital letter", isValid: /[A-Z]/.test(password) },
+                      { label: "At least one lowercase letter", isValid: /[a-z]/.test(password) },
+                      { label: "At least one special character", isValid: /[^A-Za-z0-9]/.test(password) },
+                    ].map((criterion, idx) => (
+                      <div
+                        key={idx}
+                        className={`text-[12px] font-medium flex items-center gap-1 transition-colors ${
+                          criterion.isValid 
+                            ? "text-green-500 dark:text-green-400" 
+                            : "text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
+                        <span>{criterion.isValid ? "✓" : "○"}</span>
+                        {criterion.label}
+                      </div>
+                    ))}
                   </div>
                 )}
 

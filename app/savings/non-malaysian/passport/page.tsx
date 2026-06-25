@@ -221,137 +221,237 @@ export default function SavingsNonMalaysianPassportQRCode() {
         </Link>
       </header>
 
-      <main className="relative w-full max-w-2xl z-10">
+      <main className="relative w-full max-w-5xl z-10 px-2 sm:px-4">
         <div className="mb-10 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Passport Verification
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
             Please use your mobile device camera to scan the QR code below and securely capture your Passport.
           </p>
         </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mt-6">
+          <div className="lg:col-span-5 flex flex-col">
+            <div className="w-full bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl flex flex-col justify-center h-full">
+              <div className="flex flex-col items-center w-full">
+                <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
+                  isVerified
+                    ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
+                    : isProcessing
+                    ? "border-green-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-green-800"
+                    : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
+                }`}
+                >
+                  {mobileUrl ? (
+                    <div className="relative">
+                      <QRCodeSVG
+                        value={mobileUrl}
+                        size={200}
+                        level="H"
+                        className={`rounded-xl transition-all duration-500 ${
+                          isVerified || isFailed || duplicateAccountPopup || isProcessing
+                            ? "opacity-20 blur-md"
+                            : "opacity-100"
+                        }`}
+                      />
 
-        <section className="flex flex-col items-center justify-center mb-8">
-          <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
-            <div className={`p-6 rounded-3xl shadow-xl border transition-all duration-500 ${
-                isVerified
-                  ? "border-[#F0CA8E] bg-white/90 shadow-lg ring-4 ring-[#F0CA8E]/20 dark:bg-gray-900/90 dark:border-[#F0CA8E] dark:ring-[#F0CA8E]/20" 
-                  : isProcessing
-                  ? "border-emerald-200 bg-white shadow-lg ring-4 ring-emerald-200 dark:bg-gray-900 dark:border-emerald-800"
-                  : "bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800"
-              }`}
-            >
-              {mobileUrl ? (
-                <div className="relative">
-                  <QRCodeSVG
-                    value={mobileUrl}
-                    size={220}
-                    level="H"
-                    className={`rounded-xl transition-all duration-500 ${
-                      isVerified || isFailed || duplicateAccountPopup || isProcessing
-                        ? "opacity-20 blur-md"
-                        : "opacity-100"
-                    }`}
-                  />
+                      {isProcessing && !isVerified && !isFailed && !duplicateAccountPopup && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                          <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
+                          <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
+                            Passport Image Received
+                          </span>
+                          <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
+                            Your Passport images are being verified. This may take a few moments. Please do not close this window.
+                          </span>
+                        </div>
+                      )}
 
-                  {isProcessing && !isVerified && !isFailed && !duplicateAccountPopup && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                      <div className="animate-spin w-12 h-12 border-4 border-[#3D405B] border-t-transparent dark:border-gray-400 dark:border-t-transparent rounded-full mb-3" />
-                      <span className="font-bold text-gray-900 dark:text-white text-center text-sm px-2">
-                        Passport Image Received
-                      </span>
-                      <span className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 text-center px-4 leading-normal">
-                        Your Passport image is being verified. This may take a few moments. Please do not close this window.
-                      </span>
+                      {isVerified && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+                          <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
+                            <svg
+                              className="w-8 h-8"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="3"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                          <span className="mt-3 font-bold text-sm text-gray-900 dark:text-white">Verified Successfully</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {isVerified && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                      <div className="w-20 h-20 mb-6 bg-green-100 text-green-500 rounded-full flex items-center justify-center shadow-md">
-                        <svg
-                          className="w-8 h-8"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="3"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-
-                      <span className="mt-3 font-bold text-gray-900 dark:text-white">Verified Successfully!</span>
-                    </div>
+                  ) : (
+                    <div className="w-[200px] h-[200px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
                   )}
                 </div>
-              ) : (
-                <div className="w-[220px] h-[220px] bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
-              )}
-            </div>
 
-            {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
-              <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
-                </span>
-                Waiting for Passport scan...
+                {!isVerified && !isFailed && !duplicateAccountPopup && !isProcessing && (
+                  <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F0CA8E] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-[#F0CA8E]" />
+                    </span>
+                    Waiting for Passport scan...
+                  </div>
+                )}
               </div>
-            )}
+              
+              <div className="mt-6 w-full">
+                <button
+                  onClick={handleNext}
+                  disabled={!isVerified}
+                  className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-xl shadow-theme-xs ${
+                    isVerified
+                      ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B]"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-655"
+                  }`}
+                >
+                  Continue
+                </button>
+                <div className="mt-4 text-center">
+                  <p className="text-xs">
+                    <span className="text-gray-500 dark:text-gray-455">Having trouble? </span>
+                    <Link
+                      href="/contact_support"
+                      className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-350 transition-colors"
+                    >
+                      Contact Support
+                    </Link>
+                  </p>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  <div className="p-4 rounded-xl flex gap-3 border transition-all backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
+                    <svg
+                      className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      />
+                    </svg>
+                    <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
+                      Your data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
-
-        <div className="mt-6 w-full max-w-md mx-auto relative z-10">
-          <button
-            onClick={handleNext}
-            disabled={!isVerified}
-            className={`inline-flex items-center justify-center w-full px-4 py-3 text-sm font-bold transition rounded-lg shadow-theme-xs relative z-10 ${
-              isVerified
-                ? "bg-[#3D405B] text-white hover:bg-[#2c2f42] dark:bg-[#3D405B] dark:hover:bg-[#4a4e6d]"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
-            }`}
-          >
-            Continue
-          </button>
-
-          <div className="mt-5 text-center">
-            <p className="text-sm font-normal">
-              <span className="text-gray-500 dark:text-gray-400">Having trouble? </span>
-              <Link
-                href="/contact_support"
-                className="font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-              >
-                Contact Support
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            <div className="p-4 rounded-xl flex gap-3 border transition-all backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50 dark:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <svg
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-900 dark:text-blue-100">
-                Your data is encrypted and processed securely. We only use this information for <span className="font-bold text-blue-700 dark:text-blue-300">mandatory identity verification</span>.
+          
+          <div className="lg:col-span-7 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-center">
+            <div>
+              <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">
+                Passport Capture Guidelines
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+                To pass mandatory Passport verification, make sure your document adheres to the following capture parameters:
               </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6"> 
+                <div className="flex flex-col border border-green-200 rounded-2xl bg-emerald-50/20 dark:bg-emerald-950/5 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-green-600 flex items-center justify-center text-xs font-bold">
+                      ✓
+                    </div>
+                    <span className="text-xs font-bold text-green-600">Fits Corner Guides</span>
+                  </div>
+                  
+                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-green-200">
+                    <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-green-200"></div>
+                    <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-green-200"></div>
+                    <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-green-200"></div>
+                    <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-green-200"></div>
+                    
+                    <div className="absolute inset-3 rounded-xl overflow-hidden flex items-center justify-center">
+                      <div className="relative w-full h-full">
+                        <Image
+                          src="/images/fake_passport.jpg"
+                          alt="Correctly framed passport sample"
+                          fill
+                          sizes="(max-width: 640px) 100vw, 200px"
+                          className="object-contain"
+                          priority
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <ul className="mt-4 space-y-2 text-xs text-green-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 mt-1">•</span>
+                      <span>Align the bio-data page inside the guided frame on your mobile screen.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-600 mt-1">•</span>
+                      <span>Ensure the camera is focused so the image is clear and readable.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col border border-red-200 rounded-2xl bg-rose-50/20 dark:bg-rose-950/5 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 flex items-center justify-center text-xs font-bold">
+                      ✕
+                    </div>
+                    <span className="text-xs font-bold text-red-600">Cropped / Blurry / Glare Spot</span>
+                  </div>
+
+                  <div className="w-full h-32 bg-gray-50 dark:bg-gray-950 rounded-xl relative overflow-hidden flex items-center justify-center border border-dashed border-red-200">
+                    <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-red-200"></div>
+                    <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-red-200"></div>
+                    <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-red-200"></div>
+                    <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-red-200"></div>
+
+                    <div className="absolute -left-4 top-6 w-28 h-18 bg-amber-50 dark:bg-gray-800 rounded-xl p-1.5 shadow-sm rotate-[3deg]">
+                      <Image
+                        src="/images/fake_passport.jpg"
+                        alt="Incorrectly framed passport sample"
+                        fill
+                        sizes="(max-width: 640px) 100vw, 200px"
+                        className="object-cover blur-[0.5px]"
+                      />
+
+                      <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-black/10 to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-bl from-white/90 via-white/20 to-transparent pointer-events-none" />
+                      <div className="absolute -top-2 -right-4 w-20 h-16 bg-white rounded-full blur-md opacity-80 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <ul className="mt-4 space-y-2 text-xs text-red-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 mt-0.5">•</span>
+                      <span>Avoid holding the camera too far away. Ensure the Passport fills the center.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 mt-0.5">•</span>
+                      <span>Do not capture cropped, or blurry photos.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-600 mt-0.5">•</span>
+                      <span>Avoid overhead light sources reflecting directly on the card surface or holographic text.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="relative mt-8 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
+      <footer className="relative mt-12 text-xs text-gray-400 dark:text-gray-200 text-center z-10">
         &copy; {new Date().getFullYear()} DTCOB Banking Services. All rights reserved.
       </footer>
     </div>

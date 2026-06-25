@@ -546,7 +546,7 @@ export default function CurrentMalaysianBusinessOTP() {
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
                   }`}
                 >
-                  {isLoading ? "Sending Code..." : "Sending Code"}
+                  {isLoading ? "Sending Code..." : "Send Code"}
                 </button>
               </div>
             </form>

@@ -151,8 +151,8 @@ export default function CurrentMalaysianSupportingDocuments() {
         </Link>
       </div>
 
-      <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-        <div className="mb-10 text-center">
+      <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-2xl w-full">
+        <div className="mb-6 text-center">
           <h1 className="mb-3 font-bold text-gray-800 text-title-sm dark:text-white sm:text-title-md">
             Upload Your Supporting Documents
           </h1>
@@ -296,6 +296,40 @@ export default function CurrentMalaysianSupportingDocuments() {
           >
             + Add another document
           </button>
+
+          <div className="p-4 mb-8 rounded-xl border transition-all backdrop-blur-sm bg-blue-50/80 border-blue-200 dark:bg-blue-900/30 dark:border-blue-500/50">
+            <div className="flex gap-3 items-start">
+              <svg 
+                className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path 
+                  fillRule="evenodd" 
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" 
+                  clipRule="evenodd" 
+                />
+              </svg>
+              <div>
+                <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-1.5 text-sm">
+                  Why are these documents required?
+                </h4>
+                <p className="text-xs text-blue-900 dark:text-blue-100 mb-4 leading-relaxed">
+                  Under Bank A regulations, we are required to verify your business's legal existence, operational address, and corporate structure. This helps us confirm the legitimacy of your operations and protects against fraudulent activities.
+                </p>
+                <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-1.5 text-sm">
+                  Accepted Document Types
+                </h4>
+                <ul className="list-disc pl-4 text-xs text-blue-900 dark:text-blue-100 space-y-1.5 leading-relaxed">
+                  <li>SSM Business Registration Documents (e.g., Form D, Form E, or Corporate Profile)</li>
+                  <li>Company Constitution or Partnership Agreement (if applicable)</li>
+                  <li>Board of Directors' Resolution authorizing the opening of the account</li>
+                  <li>Proof of physical operating address (e.g., utility bills or tenancy agreement in company name)</li>
+                  <li>Identification documents (MyKad) of directors, partners, and authorized signatories</li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
           <div className="pt-4 flex flex-col items-center">
             <p className="mb-6 text-xs text-gray-500 dark:text-gray-400 text-center">
