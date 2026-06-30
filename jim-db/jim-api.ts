@@ -1,65 +1,47 @@
 import * as admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
 import { decrypt, hashLookup } from "../lib/cryptoSecurity";
 
-let jimApp: admin.app.App | undefined;
-let jimDb: FirebaseFirestore.Firestore | undefined;
+let jimApp: admin.app.App;
+let jimDb: admin.firestore.Firestore;
 
-function initializeJIM() {
-  if (!jimDb) {
-    const appName = "jim-api-app";
-    const existingApp = admin.apps.find((app) => app?.name === appName);
-
-    if (existingApp) {
-      jimApp = existingApp;
-    } else {
-      let serviceAccount;
-
-      if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64) {
-        try {
-          const decoded = Buffer
-            .from(process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64, "base64")
-            .toString("utf8");
-
-          serviceAccount = JSON.parse(decoded);
-        } catch (err) {
-          console.error("Failed parsing B64:", err);
-          throw err;
-        }
-      } else if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT) {
-        serviceAccount = JSON.parse(process.env.FIREBASE_JIM_SERVICE_ACCOUNT);
-      } else {
-        const serviceAccountPath = path.join(
-          process.cwd(),
-          "jim-db",
-          "serviceAccountKey-JIM.json"
-        );
-
-        serviceAccount = JSON.parse(
-          fs.readFileSync(serviceAccountPath, "utf8")
-        );
-      }
-
-      try {
-        jimApp = admin.initializeApp(
-          {
-            credential: admin.credential.cert(serviceAccount),
-          },
-          appName
-        );
-      } catch (err) {
-        console.error("Failed to initialize Firebase app:", err);
-        throw err;
-      }
-    }
-    
-    jimDb = jimApp.firestore();
-    if (!jimDb) {
-      throw new Error("Firestore initialization failed");
-    }
+function getServiceAccount() {
+  if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64) {
+    return JSON.parse(
+      Buffer.from(
+        process.env.FIREBASE_JIM_SERVICE_ACCOUNT_B64,
+        "base64"
+      ).toString("utf8")
+    );
   }
 
+  if (process.env.FIREBASE_JIM_SERVICE_ACCOUNT) {
+    return JSON.parse(process.env.FIREBASE_JIM_SERVICE_ACCOUNT);
+  }
+
+  throw new Error("Missing Firebase service account credentials");
+}
+
+function initializeJIM() {
+  if (jimDb) return jimDb;
+
+  const appName = "jim-api-app";
+
+  const existingApp = admin.apps.find(app => app?.name === appName);
+
+  if (existingApp) {
+    jimApp = existingApp;
+  } else {
+    const serviceAccount = getServiceAccount();
+
+    jimApp = admin.initializeApp(
+      {
+        credential: admin.credential.cert(serviceAccount),
+      },
+      appName
+    );
+  }
+
+  jimDb = jimApp.firestore();
   return jimDb;
 }
 

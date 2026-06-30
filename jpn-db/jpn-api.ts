@@ -1,63 +1,47 @@
 import * as admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
 import { decrypt, hashLookup } from "../lib/cryptoSecurity";
 
-let jpnApp: admin.app.App | undefined;
-let jpnDb: FirebaseFirestore.Firestore | undefined;
+let jpnApp: admin.app.App;
+let jpnDb: FirebaseFirestore.Firestore;
 
-function initializeJPN() {
-  if (!jpnDb) {
-    const appName = "jpn-api-app";
-    const existingApp = admin.apps.find((app) => app?.name === appName);
-
-    if (existingApp) {
-      jpnApp = existingApp;
-    } else {
-      let serviceAccount;
-
-      if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
-        try {
-          const decoded = Buffer.from(process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64, "base64").toString("utf8");
-          serviceAccount = JSON.parse(decoded);
-        } catch (err) {
-          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT_B64 env var:", err);
-          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT_B64");
-        }
-      } else if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
-        try {
-          serviceAccount = JSON.parse(process.env.FIREBASE_JPN_SERVICE_ACCOUNT);
-        } catch (err) {
-          console.error("Failed to parse FIREBASE_JPN_SERVICE_ACCOUNT env var:", err);
-          throw new Error("Invalid FIREBASE_JPN_SERVICE_ACCOUNT JSON");
-        }
-      } else {
-        const serviceAccountPath = path.join(
-          process.cwd(),
-          "jpn-db",
-          "serviceAccountKey-JPN.json"
-        );
-        serviceAccount = JSON.parse(
-          fs.readFileSync(serviceAccountPath, "utf8")
-        );
-      }
-
-      try {
-        jpnApp = admin.initializeApp(
-          {
-            credential: admin.credential.cert(serviceAccount),
-          },
-          appName
-        );
-      } catch (err) {
-        console.error("Failed to initialize Firebase JPN app:", err);
-        throw err;
-      }
-    }
-
-    jpnDb = jpnApp.firestore();
+function getServiceAccount() {
+  if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64) {
+    return JSON.parse(
+      Buffer.from(
+        process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64,
+        "base64"
+      ).toString("utf8")
+    );
   }
 
+  if (process.env.FIREBASE_JPN_SERVICE_ACCOUNT) {
+    return JSON.parse(process.env.FIREBASE_JPN_SERVICE_ACCOUNT);
+  }
+
+  throw new Error("Missing JPN Firebase service account credentials");
+}
+
+function initializeJPN() {
+  if (jpnDb) return jpnDb;
+
+  const appName = "jpn-api-app";
+
+  const existingApp = admin.apps.find(app => app?.name === appName);
+
+  if (existingApp) {
+    jpnApp = existingApp;
+  } else {
+    const serviceAccount = getServiceAccount();
+
+    jpnApp = admin.initializeApp(
+      {
+        credential: admin.credential.cert(serviceAccount),
+      },
+      appName
+    );
+  }
+
+  jpnDb = jpnApp.firestore();
   return jpnDb;
 }
 

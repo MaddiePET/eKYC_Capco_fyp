@@ -1,14 +1,17 @@
-import dotenv from 'dotenv';
-import { initializeApp, getApps, cert, ServiceAccount } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import * as serviceAccount from './serviceAccountKey-JPN.json';
-import { encrypt, hashLookup } from '../lib/cryptoSecurity';
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { encrypt, hashLookup } from "../lib/cryptoSecurity";
 
-dotenv.config({ path: '.env.local' });
+const serviceAccount = JSON.parse(
+  Buffer.from(
+    process.env.FIREBASE_JPN_SERVICE_ACCOUNT_B64!,
+    "base64"
+  ).toString("utf8")
+);
 
-if (getApps().length === 0) {
+if (!getApps().length) {
   initializeApp({
-    credential: cert(serviceAccount as ServiceAccount)
+    credential: cert(serviceAccount),
   });
 }
 
