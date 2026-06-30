@@ -15,17 +15,17 @@ if (getApps().length === 0) {
 const db = getFirestore();
 
 const personData = {
-  passport_no: 'A38716565',
-  full_name: 'JAIND RAAJ SINGH',
-  date_of_birth: '2001-12-26',
+  passport_no: 'A123244344',
+  full_name: 'YOUR NAME',
+  date_of_birth: '2000-12-06',
   sex: 'M',
-  exp_date: '2021-09-02',
-  nationality: 'MALAYSIA',
-  country: 'MYS',
+  exp_date: '2029-09-02',
+  nationality: 'NATIONALTIY',
+  country: 'COUNTRY CODE',
   issue_date: '2016-09-02',
-  issue_office: 'SHAH ALAM',
+  issue_office: 'ISSUE OFFICE',
   passport_photo: '\\xffd8ffe000104a464946',
-  visa_type: 'Tourist',
+  visa_type: 'TOURIST',
   photo_pattern: 'PATTERN123',
 };
 

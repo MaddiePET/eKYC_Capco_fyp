@@ -15,15 +15,15 @@ if (getApps().length === 0) {
 const db = getFirestore();
 
 const personData = {
-  ic_number: "041206100535",
-  full_name: "SAMUEL HO SHENHAO",
-  date_of_birth: "2004-12-06",
+  ic_number: "1234567890",
+  full_name: "YOUR NAME",
+  date_of_birth: "2000-12-06",
   sex: "lelaki",
-  phone_registered: "173010270",
-  add1: "C-208 SD Apartment 2, Persiaran Meranti",
-  add2: "Bandar Sri Damansara, W. Persekutan Kuala Lumpur",
-  postcode: "52200",
-  state: "Kuala Lumpur",
+  phone_registered: "123241311",
+  add1: "YOUR ADDRESS LINE 1",
+  add2: "YOUR ADDRESS LINE 2",
+  postcode: "12345",
+  state: "YOUR STATE",
   ic_photo: "\\xffd8ffe000104a464946",
   photo_pattern: "ABC123",
 };
