@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { initializeApp, getApps, cert, ServiceAccount } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import serviceAccount from './serviceAccountKey-JPN.json';
+import * as serviceAccount from './serviceAccountKey-JPN.json';
 import { encrypt, hashLookup } from '../lib/cryptoSecurity';
 
 dotenv.config({ path: '.env.local' });
