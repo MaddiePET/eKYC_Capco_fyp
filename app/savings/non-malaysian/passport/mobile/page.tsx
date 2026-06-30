@@ -132,12 +132,15 @@ export default function SavingsNonMalaysianMobilePassportCapture() {
         "";
 
       if (!passportNo) {
+        console.error("OCR RESPONSE:", okayidResult);
         throw new Error("Passport number could not be extracted");
       }
 
       if (okayidResult.status !== "success") {
         throw new Error(okayidResult.message || "unrecognized");
       }
+      
+      console.log("OKAYID FULL RESPONSE:", okayidResult);
 
       const okaydocResponse = await fetch("/api/ekyc/okaydoc", {
         method: "POST",

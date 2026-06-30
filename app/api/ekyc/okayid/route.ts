@@ -55,12 +55,34 @@ export async function POST(req: Request) {
       }, { status: okayidResponse.status });
     }
 
-    const fieldMaps = (okayidResult as any)?.result?.[0]?.ListVerifiedFields?.pFieldMaps || [];
+    const result = (okayidResult as any)?.result?.[0];
 
+    if (!result?.ListVerifiedFields?.pFieldMaps) {
+      console.error("Invalid OCR structure:", okayidResult);
+      return NextResponse.json(
+        {
+          error: "OCR failed - invalid response structure",
+          raw: okayidResult,
+        },
+        { status: 422 }
+      );
+    }
+
+    const fieldMaps = result.ListVerifiedFields.pFieldMaps;
     const passportNo =
       fieldMaps.find((field: any) => field.FieldType === 2)?.Field_Visual ||
       fieldMaps.find((field: any) => field.FieldType === 2)?.Field_MRZ ||
       "";
+
+    if (!passportNo || passportNo.trim().length < 5) {
+      return NextResponse.json(
+        {
+          error: "Passport extraction failed - invalid or empty result",
+          raw: okayidResult,
+        },
+        { status: 422 }
+      );
+    }
 
     return NextResponse.json(
       {
